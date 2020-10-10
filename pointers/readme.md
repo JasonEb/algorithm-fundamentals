@@ -15,7 +15,7 @@
 
 # Recursion based techniques
     - [Dynamic Programming](https://www.yourdevopsguy.com/all-you-need-to-know-about-dynamic-programming/)
-    - Backtracking
+    - [ ] Backtracking
         - [N Queens](https://leetcode.com/problems/n-queens/)
         - [Letter Combination](https://leetcode.com/problems/letter-combinations-of-a-phone-number/)
         - [Sudoko Solver](https://leetcode.com/problems/sudoku-solver/)
