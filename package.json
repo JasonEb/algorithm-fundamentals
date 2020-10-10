@@ -1,0 +1,15 @@
+{
+  "name": "algorithm-fundamentals",
+  "version": "1.0.0",
+  "description": "practicing techniques",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "debug": "node --inspect-brk node_modules/.bin/jest --runInBand"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^26.0.1"
+  }
+}
