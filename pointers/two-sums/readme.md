@@ -1,11 +1,13 @@
 # Two Sums
+https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/
 
-## Utilizing Two Pointers
-This technique is very useful on sorted arrays and arrays whose elements we want to group.
 
-The idea is to use two (or more pointers) to split the array into different areas or groups based on some condition:
+Given an array of integers that is already sorted in ascending order, find two numbers such that they add up to a specific target number. The function twoSum should return indices of the two numbers such that they add up to the target, where index1 must be less than index2.
 
-Elements smaller than, equal to and greater than a certain value
-Elements whose sum is too small or too large.
+Notes:
+
+Your returned answers (both index1 and index2) are not zero-based.
+You may assume that each input would have exactly one solution and you may not use the same element twice.
+Example:
 
 
