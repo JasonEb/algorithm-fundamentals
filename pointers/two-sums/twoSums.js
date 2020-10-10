@@ -14,6 +14,26 @@ function twoSum(numbers, target) {
       ++l
     }
   }
-    return "error"
+  
+  return "error"
 }
-  module.exports = twoSum;
+
+function twoSumRec(numbers, target, l = 0, r = numbers.length - 1) {
+  if (r < l) {
+    return [l, r];
+  }
+
+  let sum = numbers[l] + numbers[r];
+
+  if (sum == target) {
+    return [l + 1, r + 1];
+  } else if (sum > target) {
+    twoSumRec(numbers, target, l, --r);
+  } else {
+    twoSumRec(numbers, target, ++l, r);
+  }
+
+  return twoSumRec(numbers, target, l, r);
+}
+
+module.exports = twoSum;
