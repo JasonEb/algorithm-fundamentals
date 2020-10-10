@@ -1,6 +1,6 @@
 # Pointer based techniques
 - Two Pointers
-    - [ ] Two Sum
+    - [x] Two Sum
     - Remove Duplicates From Array
     - Sort Colors
     - Remove n-th node from the end of a linked list

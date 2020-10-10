@@ -6,8 +6,7 @@ Given an array of integers that is already sorted in ascending order, find two n
 
 Notes:
 
-Your returned answers (both index1 and index2) are not zero-based.
-You may assume that each input would have exactly one solution and you may not use the same element twice.
-Example:
+- Algorithm demonstrates how to traverse with 2 points on a sorted list.
+- 3 sum implementation can involve an additional probe/pointer that will iterate the "gap" between the two pointers. What would be the runtime? 
 
 
