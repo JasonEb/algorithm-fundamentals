@@ -1,40 +1,24 @@
-const buildTree = (arr, root, i, n) => {
-
-    if ( i < n ) { 
-        let temp = new TreeNode(arr[i])
-        root = temp
-
-        root.left = buildTree(arr, root.left, 2*i + 1, n)
-        root.right = buildTree(arr, root.right, 2*i + 2, n)
+const preorderTraversal = (root) => {
+    if (!root) return [];
+    let stack = [], res = [];
+    stack.push(root);
+    while (stack.length) {
+        let node = stack.pop();
+        res.push(node.val);
+        if (node.right) stack.push(node.right);
+        if (node.left) stack.push(node.left);
     }
-
-    return root
+    return res;
 }
 
-function TreeNode(val, left, right) {
-    this.val = (val===undefined ? 0 : val)
-    this.left = (left===undefined ? null : left)
-    this.right = (right===undefined ? null : right)
-}
-
-const preorder = (root, result = []) => {
-    if (root == null) { return result }
-
-    result += root.value
-
-    preorderTraversal(root.left, result)
-    preorderTraversal(root.right, result)
-
-    return result
-}
-
-const preorderTraversal = (arr) => {
-    let rootNode = buildTree(arr)
-    let n = arr.length / 
-
-    let result = preorder(rootNode)
-
-    return result
+//recursive 
+const preorderTraversal2 = (root, stack = [], res = []) => {
+    if (!root) return [];
+    stack.push(root);
+    res.push(root.val);
+    if (root.left) preorderTraversal2(root.left, stack, res);
+    if (root.right) preorderTraversal2(root.right, stack, res);
+    return res;
 }
 
 exports.preorderTraversal = preorderTraversal
