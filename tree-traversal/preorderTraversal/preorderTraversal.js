@@ -21,4 +21,18 @@ const preorderTraversal2 = (root, stack = [], res = []) => {
     return res;
 }
 
+const preorder = (root) => {
+  let data = []
+  const traverse = (node) => {
+    if (!node) return
+    data.push(node.val)
+    for (let i = 0; i < node.children.length; i++) {
+      traverse(node.children[i])
+    }
+  }
+  traverse(root)
+  
+  return data
+};
+
 exports.preorderTraversal = preorderTraversal
