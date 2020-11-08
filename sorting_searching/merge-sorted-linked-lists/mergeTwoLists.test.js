@@ -25,3 +25,54 @@ test('it passes example 1', () => {
     
     expect(c_output).toEqual(output)
 })
+
+test('it passes edge case 1', () => {
+    let a = new ListNode(2)
+
+    let b = new ListNode(1)
+
+    let c = mergeTwoLists(a,b)
+    let output = [1,2]
+    let c_output = []
+
+    while(c != null) {
+        c_output.push(c.val)
+        c = c.next
+    }
+    
+    expect(c_output).toEqual(output)
+})
+
+test('it passes edge case 2', () => {
+    let a = new ListNode()
+
+    let b = new ListNode(2)
+
+    let c = mergeTwoLists(a,b)
+    let output = [2]
+    let c_output = []
+
+    while(c != null) {
+        c_output.push(c.val)
+        c = c.next
+    }
+    
+    expect(c_output).toEqual(output)
+})
+
+test('it passes edge case 2', () => {
+    let a = new ListNode()
+
+    let b = new ListNode()
+
+    let c = mergeTwoLists(a,b)
+    let output = []
+    let c_output = []
+
+    while(c != null) {
+        c_output.push(c.val)
+        c = c.next
+    }
+    
+    expect(c_output).toEqual(output)
+})

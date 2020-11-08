@@ -4,28 +4,24 @@ function ListNode(val, next) {
 }
 
 const mergeTwoLists = (a, b) => {
-    // let adx = 0
-    // let bdx = 0
-    // let result = []
-    // let aNum = a[adx]
-    // let bNum = b[bdx]
+    if (a == null) { return b }
 
-    // while( adx <= a.length && bdx <= b.length ) {
-    //     aNum = a[adx] || Number.POSITIVE_INFINITY
-    //     bNum = b[bdx] || Number.POSITIVE_INFINITY
+    let a_probe = a
+    let b_probe = b
+    let tmp = new ListNode()
 
-    //     if (aNum == Number.POSITIVE_INFINITY && bNum == Number.POSITIVE_INFINITY) {
-    //         break
-    //     }
-
-    //     if (aNum < bNum) {
-    //         result.push(aNum)
-    //         adx++
-    //     } else if (bNum <= aNum) {
-    //         result.push(bNum)
-    //         bdx++
-    //     }
-    // }
+    while(a_probe != null && b_probe!= null) {
+        if (a_probe.val <= b_probe.val) {
+            tmp = a_probe
+            a_probe = a_probe.next
+            tmp.next = b_probe
+        } else {
+            // assume b_probe.val < 
+            tmp = b_probe 
+            b_probe = b_probe.next
+            tmp.next = a_probe
+        }
+    }
 
     return a
 }
