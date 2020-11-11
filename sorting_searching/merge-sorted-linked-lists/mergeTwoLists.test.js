@@ -22,8 +22,6 @@ test('it passes example 1', () => {
     b.next = new ListNode(3)
     b.next.next = new ListNode(4)
 
-    debugger
-
     let c = mergeTwoLists(a,b)
     let output = [1,1,2,3,4,4]
     let c_output = []

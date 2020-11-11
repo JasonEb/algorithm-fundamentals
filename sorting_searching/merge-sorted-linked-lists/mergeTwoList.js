@@ -4,14 +4,16 @@ function ListNode(val, next) {
 }
 
 const mergeTwoLists = (a, b) => {
+  if (!a) return b
+  if (!b) return a
+    
   let a_probe = a
   let b_probe = b
   let tmp = new ListNode(Number.POSITIVE_INFINITY)
   let tail = a.val < b.val ? a : b
 
   while (a_probe.val != Number.POSITIVE_INFINITY && b_probe.val != Number.POSITIVE_INFINITY) {
-    debugger
-    if (a_probe.val <= b_probe.val) {
+    if (a_probe.val < b_probe.val) {
       tmp = a_probe
       a_probe = a_probe.next || new ListNode(Number.POSITIVE_INFINITY)
 
@@ -26,7 +28,7 @@ const mergeTwoLists = (a, b) => {
       tmp.next = a_probe.val < b_probe.val ? a_probe : b_probe
     }
 
-    tail = tail.val < tmp.val ? tail : tmp
+    tail = tail.val <= tmp.val ? tail : tmp
   }
 
   return tail
