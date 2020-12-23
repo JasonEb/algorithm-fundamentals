@@ -12,17 +12,7 @@ var MyStack = function() {
  * @return {void}
  */
 MyStack.prototype.push = function(x) {
-    this.queueB.unshift(x)
-    var tmp = []
-    
-    while(this.queueA.length != 0) {
-        this.queueB.unshift(this.queueA.pop())
-    }
-    
-    //swap
-    this.queueA = tmp
-    this.queueA = this.queueB
-    this.queueB = tmp
+    this.queueA.push(x)
     return null
 };
 
@@ -31,7 +21,18 @@ MyStack.prototype.push = function(x) {
  * @return {number}
  */
 MyStack.prototype.pop = function() {
-    return this.queueA.pop()
+    // 1) One by one dequeue everything except the last element from q1 and enqueue to q2.
+    while(this.queueA.length != 1) {
+        this.queueB.push(this.queueA.shift())
+    } 
+    // 2) Dequeue the last item of q1, the dequeued item is result, store it.
+    let result = this.queueA.pop()
+    // 3) Swap the names of q1 and q2
+    let tmp = this.queueA
+    this.queueA = this.queueB
+    this.queueB = tmp
+    // 4) Return the item stored in step 2.
+    return result
 };
 
 /**
