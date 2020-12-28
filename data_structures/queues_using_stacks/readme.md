@@ -1,4 +1,4 @@
-## [Implement Queues using Stacks](https://leetcode.com/problems/implement-queue-using-stacks/)
+## [Implement Queues using Stacks]()
 
 #### Implementing Queues using Stacks
 __Method 1__ (By making enQueue operation costly)

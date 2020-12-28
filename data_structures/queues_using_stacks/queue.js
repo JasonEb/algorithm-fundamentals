@@ -13,6 +13,7 @@ var MyQueue = function() {
  */
 MyQueue.prototype.push = function(x) {
     this.stackA.push(x)
+    return null
 };
 
 /**
@@ -20,7 +21,21 @@ MyQueue.prototype.push = function(x) {
  * @return {number}
  */
 MyQueue.prototype.pop = function() {
-    
+    //move all elements to stack b
+    //push to stack a
+    //pop elements back from b to a
+
+    while( this.stackA.length != 0 ){
+        this.stackB.push(this.stackA.pop())
+    }
+
+    let popped = this.stackB.pop()
+
+    while( this.stackB.length != 0 ){
+        this.stackA.push(this.stackB.pop())
+    }
+
+    return popped
 };
 
 /**
@@ -36,7 +51,7 @@ MyQueue.prototype.peek = function() {
  * @return {boolean}
  */
 MyQueue.prototype.empty = function() {
-
+    return this.stackA.length == 0
 }
 
 /** 
