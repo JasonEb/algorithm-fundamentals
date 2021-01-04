@@ -20,4 +20,16 @@ class PolyTreeNode
             new_parent.children.push(self)
         end
     end
+
+    def add_child(node)
+        node.parent = self 
+    end
+
+    def remove_child(node)
+        if node && !self.children.include?(node)
+            raise "remove child node error"
+        end
+
+        node.parent = nil
+    end
 end
