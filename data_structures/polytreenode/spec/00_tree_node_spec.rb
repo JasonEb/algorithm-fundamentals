@@ -108,11 +108,11 @@ describe 'Searchable' do
     end
   end
 
-  #     A
+  #     0A
   #    / \
-  #   B  C
-  #  / \ /\
-  #  D E F G
+  #   1B  2C
+  #  / \  /\
+  # 3D 4E 5F 6G
 
   shared_examples_for 'search method' do
     it "should return itself if it contains the value" do
