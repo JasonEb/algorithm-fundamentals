@@ -1,7 +1,18 @@
+module Searchable
+
+    def dfs(target = nil)
+        
+    end
+end
+
 class PolyTreeNode
+    include Searchable
+
     attr_reader :parent
     attr_accessor :value
     attr_accessor :children
+
+
 
     def initialize(value = nil)
         @value = value
