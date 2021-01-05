@@ -1,7 +1,16 @@
 module Searchable
 
     def dfs(target = nil)
-        
+        return if self.nil?
+        return nil if target.nil?
+
+        return self if self.value == target
+
+        children.each do |child|
+            result = child.dfs(target)
+            return result unless result.nil?
+        end
+        nil
     end
 end
 
