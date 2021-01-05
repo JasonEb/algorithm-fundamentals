@@ -97,7 +97,8 @@ end
 
 describe 'Searchable' do
   let(:nodes) { ('a'..'g').map { |value| PolyTreeNode.new(value) } }
-
+  # A B C D E F G H
+  # 0 1 2 3 4 5 6 7
   before do
     parent_index = 0
     nodes.each_with_index do |child, index|
@@ -106,6 +107,12 @@ describe 'Searchable' do
       parent_index += 1 if index.even?
     end
   end
+
+  #     A
+  #    / \
+  #   B  C
+  #  / \ /\
+  #  D E F G
 
   shared_examples_for 'search method' do
     it "should return itself if it contains the value" do
