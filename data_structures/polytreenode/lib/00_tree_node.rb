@@ -12,6 +12,20 @@ module Searchable
         end
         nil
     end
+
+    def bfs(target = nil)
+        queue = [self]
+
+        while !queue.empty?
+            node = queue.shift
+
+            return node if node.value == target
+
+            queue.concat(node.children)            
+        end
+
+        nil
+    end
 end
 
 class PolyTreeNode
