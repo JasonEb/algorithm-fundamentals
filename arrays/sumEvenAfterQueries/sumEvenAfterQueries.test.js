@@ -5,6 +5,6 @@ test('it passes example 1', () => {
     let queries = [[1,0],[-3,1],[-4,0],[2,3]]
     let output = [8,6,2,4]
     let result = sumEvenAfterQueries(A, queries)
-
+    console.log(result)
     expect(result).toEqual(output)
 })
