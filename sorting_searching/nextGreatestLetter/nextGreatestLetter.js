@@ -1,5 +1,5 @@
-const nextGreatestLetter = () => {
-    return 0
+const nextGreatestLetter = (letters, target) => {
+    
 }
 
 exports.nextGreatestLetter = nextGreatestLetter
