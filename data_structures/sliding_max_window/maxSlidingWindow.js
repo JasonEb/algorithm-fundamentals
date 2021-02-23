@@ -1,3 +1,26 @@
+<<<<<<< HEAD
+const maxSlidingWindow = (arr, k) => {
+    //set window to first 3
+    //find max of window
+    //iterate to the next step
+    let result = []
+
+    for (let i = 0; i < (arr.length - k + 1); i++) {
+        let window = arr.slice(i, i + k)
+        result.push(findMax(window))
+    }
+    return result
+}
+
+const findMax = window => {
+    let max = window[0]
+
+    window.forEach( num => {
+        max = Math.max(num, max)
+    })
+
+    return max
+=======
 const Dequeue = require('./dequeue')
 
 const maxSlidingWindow = (arr, k) => {
@@ -27,6 +50,7 @@ const maxSlidingWindow = (arr, k) => {
     }
 
     return result
+>>>>>>> 5a2ca3816c11cf87c6a8d202924b667b0005ac93
 }
 
 module.exports = maxSlidingWindow

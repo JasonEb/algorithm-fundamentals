@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+# Extending basic data structures
+
+## Dequeues
+I have seen data structure mostly used as another way to implement the sliding window technique you read about earlier in this article. The only difference with a standard FIFO queue is that you can operate (insert and delete elements) on both ends of the queue.
+=======
 # Abstract Data Structures
 
 Stack and Queue are one of the fundamental data structures. Important to know that stacks correspond with function calls and recursion. 
@@ -107,3 +113,4 @@ deQueue(q)
 
 ### References
 https://github.com/amandazhuyilan/Breakfast-Burrito
+>>>>>>> 5a2ca3816c11cf87c6a8d202924b667b0005ac93
