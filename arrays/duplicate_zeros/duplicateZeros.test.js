@@ -1,0 +1,50 @@
+const {duplicateZeros} = require('./duplicateZeros')
+
+test('it passes example 1', () =>{
+    let input = [1,0,2,3,0,4,5,0]
+    let answer = [1,0,0,2,3,0,0,4]
+
+    expect(duplicateZeros(input)).toEqual(answer)
+})
+
+test('it passes example 2', () =>{
+    let input = [1,2,3]
+    let answer = [1,2,3]
+
+    expect(duplicateZeros(input)).toEqual(answer)
+})
+
+test('it passes example 3', () =>{
+    let input = [0,1,2,3]
+    let answer = [0,0,1,2,3]
+
+    expect(duplicateZeros(input)).toEqual(answer)
+})
+
+test('it passes example 3', () =>{
+    let input = [0,1,2,3]
+    let answer = [0,0,1,2,3]
+
+    expect(duplicateZeros(input)).toEqual(answer)
+})
+
+test('it passes example 4', () =>{
+    let input = [0,0,1,2,3]
+    let answer = [0,0,0,0, 1,2,3]
+
+    expect(duplicateZeros(input)).toEqual(answer)
+})
+
+test('it passes example 5', () =>{
+    let input = [1,2,3,0]
+    let answer = [1,2,3,0,0]
+
+    expect(duplicateZeros(input)).toEqual(answer)
+})
+
+test('it passes example 6', () =>{
+    let input = [1,2,3,0,0]
+    let answer = [1,2,3,0,0,0,0]
+
+    expect(duplicateZeros(input)).toEqual(answer)
+})
