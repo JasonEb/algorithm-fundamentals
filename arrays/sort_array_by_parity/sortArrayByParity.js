@@ -4,7 +4,6 @@ const sortArrayByParity = (nums) => {
     let tmp = 0
 
     while( bdx < nums.length ) {
-        debugger
         if(nums[bdx] % 2 == 0) {
             //swap
             tmp = nums[adx]
