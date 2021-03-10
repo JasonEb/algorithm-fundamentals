@@ -57,3 +57,14 @@ test('2 x 2 case', () => {
     let output = [1,2,3,4]
     expect(findDiagonalOrder(input)).toEqual(output)
 })
+
+test('3 x 2 case', () => {
+    let input = [
+        [2, 5],
+        [8, 4],
+        [0, -1]
+    ]
+
+    let output = [1, 2, 3, 4]
+    expect(findDiagonalOrder(input)).toEqual(output)
+})
