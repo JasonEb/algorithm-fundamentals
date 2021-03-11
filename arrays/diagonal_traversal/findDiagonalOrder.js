@@ -19,7 +19,8 @@ var findDiagonalOrder = function(matrix) {
     //build diagonal downleft lines
     for(let i = 0; i < columns; i++) {
         for(let j = 0; j < rows; j++) {
-            downLeft = (i + j) % 2 == 0 ? true : false
+            debugger
+            downLeft = (i + j) % 2 == 0 ? false : true
 
             // edge cases for one row or one column
             if (matrix.length == 1) {
@@ -33,9 +34,9 @@ var findDiagonalOrder = function(matrix) {
             }
 
             if (downLeft) {
-                result[i +j].push(matrix[j][i])
-            } else {
                 result[i +j].push(matrix[i][j])
+            } else {
+                result[i +j].push(matrix[j][i])
             }
         }
     }

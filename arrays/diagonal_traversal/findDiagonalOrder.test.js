@@ -15,38 +15,38 @@ Output:  [1,2,4,7,5,3,6,8,9]
 
 const { findDiagonalOrder } = require('./findDiagonalOrder')
 
-test('example 1', () => {
-    let input = [
-        [ 1, 2, 3 ],
-        [ 4, 5, 6 ],
-        [ 7, 8, 9 ]
-    ]
+// test('3 x 3 example', () => {
+//     let input = [
+//         [ 1, 2, 3 ],
+//         [ 4, 5, 6 ],
+//         [ 7, 8, 9 ]
+//     ]
 
-    let output = [1,2,4,7,5,3,6,8,9]
+//     let output = [1,2,4,7,5,3,6,8,9]
 
-    expect(findDiagonalOrder(input)).toEqual(output)
-})
+//     expect(findDiagonalOrder(input)).toEqual(output)
+// })
 
-test('one row case', () => {
-    let input = [
-        [2,3]
-    ]
+// test('one row case', () => {
+//     let input = [
+//         [2,3]
+//     ]
 
-    let output = [2,3]
+//     let output = [2,3]
 
-    expect(findDiagonalOrder(input)).toEqual(output)
-})
+//     expect(findDiagonalOrder(input)).toEqual(output)
+// })
 
-test('one column case', () => {
-    let input = [
-        [2],
-        [3]
-    ]
+// test('one column case', () => {
+//     let input = [
+//         [2],
+//         [3]
+//     ]
 
-    let output = [2,3]
+//     let output = [2,3]
 
-    expect(findDiagonalOrder(input)).toEqual(output)
-})
+//     expect(findDiagonalOrder(input)).toEqual(output)
+// })
 
 test('2 x 2 case', () => {
     let input = [
@@ -65,6 +65,6 @@ test('3 x 2 case', () => {
         [0, -1]
     ]
 
-    let output = [1, 2, 3, 4]
+    let output = [2, 5, 8, 0, 4, -1]
     expect(findDiagonalOrder(input)).toEqual(output)
 })
