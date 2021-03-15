@@ -29,8 +29,6 @@
             row[idx - jdx] = prev[i] + prev[i - 1]
             jdx++
         }
-
-        debugger
         rows.push(row)
         idx++
     }
