@@ -9,8 +9,7 @@
     let l = 0, r = 0 
     let curr = 0
     let min = Number.POSITIVE_INFINITY  
-
-    debugger
+    
     while(r < nums.length) {
         curr += nums[r]
         while (curr >= target) {
