@@ -2,7 +2,8 @@
  * Initialize your data structure here.
  */
 var MyLinkedList = function() {
-    
+    this.head = null
+    this.length = 0
 };
 
 /**
@@ -20,7 +21,11 @@ MyLinkedList.prototype.get = function(index) {
  * @return {void}
  */
 MyLinkedList.prototype.addAtHead = function(val) {
-    
+    let node = new Node(val)
+    let prev = this.head
+    this.head = node
+    this.head.next = prev
+    this.length++
 };
 
 /**
