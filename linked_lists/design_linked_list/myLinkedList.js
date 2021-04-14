@@ -12,7 +12,15 @@ var MyLinkedList = function() {
  * @return {number}
  */
 MyLinkedList.prototype.get = function(index) {
-    
+    let probe = this.head
+    while( index > 0) {
+        if(probe == null) { return - 1}
+        probe = probe.next
+        --index
+    }
+
+    if (probe) { return probe.val }
+    return -1
 };
 
 /**
@@ -34,7 +42,15 @@ MyLinkedList.prototype.addAtHead = function(val) {
  * @return {void}
  */
 MyLinkedList.prototype.addAtTail = function(val) {
-    
+    let probe = this.head
+    let idx = 0
+    while(idx < (this.length - 1)) {
+        probe = probe.next
+        idx++
+    }
+    let node = new Node(val)
+    probe.next = node
+    this.length++
 };
 
 /**
@@ -44,7 +60,18 @@ MyLinkedList.prototype.addAtTail = function(val) {
  * @return {void}
  */
 MyLinkedList.prototype.addAtIndex = function(index, val) {
-    
+    let a = this.head
+    let j = 0
+    while(j < (index - 1)) {
+        a = a.next
+        j++
+    }
+    let b = new Node(val)
+    let c = a.next
+
+    a.next = b
+    b.next = c
+    this.length++   
 };
 
 /**
@@ -53,7 +80,22 @@ MyLinkedList.prototype.addAtIndex = function(index, val) {
  * @return {void}
  */
 MyLinkedList.prototype.deleteAtIndex = function(index) {
-    
+    if(index == 0) {
+        this.head = null
+        return;
+    }
+    let a = this.head
+    let j = 0
+    while(j < (index - 1)) {
+        a = a.next
+        j++
+    }
+    let c = null
+    if(a.next) { c = a.next.next }
+
+    a.next = c
+
+    this.length--       
 };
 
 /** 
