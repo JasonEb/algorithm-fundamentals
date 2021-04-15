@@ -42,6 +42,10 @@ MyLinkedList.prototype.addAtHead = function(val) {
  * @return {void}
  */
 MyLinkedList.prototype.addAtTail = function(val) {
+    if(this.length == 0) {
+        return this.addAtHead(val)
+    }
+
     let probe = this.head
     let idx = 0
     while(idx < (this.length - 1)) {
@@ -60,6 +64,8 @@ MyLinkedList.prototype.addAtTail = function(val) {
  * @return {void}
  */
 MyLinkedList.prototype.addAtIndex = function(index, val) {
+    if (index === 0) { return this.addAtHead(val) }
+
     let a = this.head
     let j = 0
     while(j < (index - 1)) {
@@ -80,10 +86,13 @@ MyLinkedList.prototype.addAtIndex = function(index, val) {
  * @return {void}
  */
 MyLinkedList.prototype.deleteAtIndex = function(index) {
-    if(index == 0) {
-        this.head = null
-        return;
+    if (index >= this.length || index < 0 ) { return }
+    if(index === 0) {
+        this.head = this.head.next
+        this.length--
+        return this
     }
+
     let a = this.head
     let j = 0
     while(j < (index - 1)) {
