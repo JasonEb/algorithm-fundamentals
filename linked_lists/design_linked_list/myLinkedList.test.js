@@ -1,5 +1,8 @@
 const { MyLinkedList, Node } = require('./myLinkedList')
 
+
+
+
 describe('Design linkedlist', () => {
     let ll = new MyLinkedList()
 
@@ -58,7 +61,7 @@ describe('Design linkedlist', () => {
         expect(ll.length).toEqual(3)
     })
 
-    test('wrong answer 1', () => {
+    test('deleting at head case 1', () => {
         //a➔b➔c➔e
         //0  1  2  3 
         let list = new MyLinkedList()
@@ -68,7 +71,7 @@ describe('Design linkedlist', () => {
         expect(list.get(0)).toEqual(-1)
     })
 
-    test('wrong answer 2', () => {
+    test('deleting at head case 2', () => {
 
         let list = new MyLinkedList()
         list.addAtHead(1)
@@ -77,5 +80,21 @@ describe('Design linkedlist', () => {
         expect(list.get(1)).toEqual(2)
         list.deleteAtIndex(0)
         expect(list.get(0)).toEqual(2)
+    })
+
+    test('addAtIndex at 0', () => {
+
+        let list = new MyLinkedList()
+        list.addAtIndex(0,10)
+        list.addAtIndex(0,20)
+        list.addAtIndex(1,30)
+        expect(list.get(0)).toEqual(20)
+    })
+
+    test('addAtTail edge case', () => {
+
+        let list = new MyLinkedList()
+        list.addAtTail(1)
+        expect(list.get(0)).toEqual(1)
     })
 })
