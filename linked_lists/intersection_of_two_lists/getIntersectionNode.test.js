@@ -33,7 +33,6 @@ test('example 2', () => {
     a.next = b
     b.next = c
     c.next = d
-    d.next = d
     d.next = e
 
     let i = new ListNode(3)
