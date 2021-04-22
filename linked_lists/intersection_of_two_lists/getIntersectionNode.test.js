@@ -31,7 +31,8 @@ test('example 2', () => {
     let e = new ListNode(4)
 
     a.next = b
-    c.next = c
+    b.next = c
+    c.next = d
     d.next = d
     d.next = e
 
