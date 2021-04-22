@@ -27,6 +27,8 @@ test('example 3', () =>{
     let a = new ListNode(1)
     let b = new ListNode(2)
 
+    a.next = b
+
     removeNthFromEnd(a, 1)
     expect(a.next).toEqual(null)
 })
