@@ -12,15 +12,14 @@ test('example 1', () =>{
     c.next = d
     d.next = e
 
-    removeNthFromEnd(a, 2)
+    expect(removeNthFromEnd(a, 2)).toEqual(a)
     expect(c.next).toEqual(e)
 })
 
 test('example 2', () =>{
     let a = new ListNode(1)
 
-    removeNthFromEnd(a, 1)
-    expect(a).toEqual(null)
+    expect(removeNthFromEnd(a, 1)).toEqual(null)
 })
 
 test('example 3', () =>{
