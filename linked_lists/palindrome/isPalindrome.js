@@ -28,7 +28,6 @@ function ListNode(val, next) {
     let prev = null
     let curr = a
     let tmp = null
-    
 
     while(curr) {
         tmp = curr.next
