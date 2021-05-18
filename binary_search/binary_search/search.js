@@ -4,10 +4,10 @@
  * @return {number}
  */
  var search = function(nums, target) {
-    let l = 0, r = nums.length - 1, m = Math.floor((r + l) / 2) 
+    let l = 0, r = nums.length - 1, m = Math.floor(l + (r - l) / 2) 
     let guess = nums[m] 
     while ( l <= r) {
-        m = Math.floor((r - l) / 2) 
+        m = Math.floor(l + (r - l) / 2) 
         guess = nums[m]
         
         if (target < guess) {
