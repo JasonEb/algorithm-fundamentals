@@ -1,5 +1,14 @@
 const { nextGreatestLetter } = require('./nextGreatestLetter')
 
+test('it passes example 6', () => {
+    let letters = ["c", "f", "j","k","l","n"]
+    let target = "k"
+    let output = "l"
+
+    expect(nextGreatestLetter(letters, target)).toEqual(output)
+})
+
+
 test('it passes example 1', () => {
     let letters = ["c", "f", "j"]
     let target = "a"

@@ -7,20 +7,19 @@ const nextGreatestLetter = (letters, target) => {
 
     let lo = 0
     let hi = letters.length
+    let bdx = -1 //boundary index
 
     while(lo < hi) {
         mid = Math.floor((lo + hi) / 2)
         let letter = letters[mid]
 
-        if (target == letter) {
-            return letter
-        } else if ( target > letter) {
-            hi -= 1
-        } else {
-            lo += 1
+        if(letter <= target) {
+            lo = mid + 1
+        } else if (letter > target) {
+            hi = mid
         }
     }
-    return letters[mid]
+    return letters[lo % letters.length]
 }
 
 exports.nextGreatestLetter = nextGreatestLetter
