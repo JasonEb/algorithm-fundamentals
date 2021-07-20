@@ -3,7 +3,7 @@ const firstTrue = (arr) => {
     let bdx = -1 //boundary index
 
     while (l <= r) {
-        let m = Math.floor( (l+r) / 2)
+        let m = Math.floor( l + (l-r) / 2)
 
         if (arr[m] === false) {
             l = m + 1
