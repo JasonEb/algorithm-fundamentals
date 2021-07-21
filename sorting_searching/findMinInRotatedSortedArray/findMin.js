@@ -13,7 +13,7 @@ var findMin = function(nums) {
         if(nums[m] <= nums[nums.length - 1]) {
             p = m
             r = m -1
-        } else {
+        } else { // mid value > truly last value
             l = m + 1
         }
 
