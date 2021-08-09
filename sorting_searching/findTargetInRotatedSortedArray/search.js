@@ -46,8 +46,6 @@ var search = function(nums, target) {
 
     let pdx = findPivotIdx(nums)
 
-    debugger
-
     //depending on the pivot index
     //search on the left side or right side
     //look at target and compare to first element
