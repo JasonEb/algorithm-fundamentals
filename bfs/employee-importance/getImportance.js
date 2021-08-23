@@ -15,19 +15,19 @@
 var GetImportance = function (employees, id) {
     let queue = []
 
-    let node = employees.find( el => el[0] == id)
-    let importance = node[1]
+    let employee = employees.find( el => el[0] == id)
+    let importance = employee[1]
 
-    queue = queue.concat(node[2])
+    queue = queue.concat(employee[2])
 
     while(queue.length > 0) {
         id = queue.shift()
 
-        node = employees.find(el => el[0] == id)
+        employee = employees.find(el => el[0] == id)
         
-        importance += node[1]
+        importance += employee[1]
 
-        queue = queue.concat(node[2])
+        queue = queue.concat(employee[2])
     }
 
     
