@@ -392,6 +392,51 @@
   .mini-caption{ font-size:0.82rem; color:var(--ink-soft); min-height:3.2em; }
   .mini-caption strong{ color:var(--ink); }
 
+  /* ---------- takeaways ---------- */
+  .takeaways{ list-style:none; margin:1.9rem 0 0; padding:0; display:flex; flex-direction:column; gap:1.5rem; }
+  .takeaway{ display:flex; gap:1.1rem; scroll-margin-top:2rem; }
+  .tk-num{ font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:0.95rem; color:var(--read); flex:none; width:2.2ch; padding-top:0.15rem; }
+  .tk-body h3{ font-family:'IBM Plex Sans',sans-serif; font-size:1.03rem; margin:0 0 0.4rem; text-wrap:balance; }
+  .tk-body p{ margin:0; font-size:0.96rem; color:var(--ink-soft); max-width:60ch; }
+  .takeaway:target .tk-body h3{ color:var(--read); }
+  .callout{
+    margin-top:2rem;
+    border-left:3px solid var(--read);
+    background:var(--paper-raised);
+    padding:0.9rem 1.1rem;
+    border-radius:0 8px 8px 0;
+    font-size:0.9rem;
+    color:var(--ink-soft);
+  }
+  .callout p{ margin:0; max-width:none; }
+  .callout a{ font-weight:600; }
+
+  /* ---------- gotchas ---------- */
+  .gotcha-block{ margin-top:2rem; }
+  .gotcha-list{ list-style:none; margin:1rem 0 0; padding:0; display:flex; flex-direction:column; gap:1.1rem; }
+  .gotcha-list[hidden]{ display:none; }
+  .gotcha-list li{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:0.95rem 1.15rem;
+  }
+  .gotcha-list h3{ font-family:'IBM Plex Sans',sans-serif; font-size:0.95rem; margin:0 0 0.4rem; text-wrap:balance; }
+  .gotcha-list p{ margin:0; font-size:0.9rem; color:var(--ink-soft); max-width:none; }
+  .gotcha-list code{
+    font-family:'IBM Plex Mono',monospace;
+    background:var(--line-soft);
+    padding:0.1rem 0.35rem;
+    border-radius:4px;
+    font-size:0.87em;
+    color:var(--ink);
+  }
+  .gotcha-list.universal li{ border-left:3px solid var(--read); }
+
+  .lang-tabs{ display:flex; gap:0.4rem; margin-top:0.9rem; flex-wrap:wrap; }
+  .lang-tabs button[aria-selected="true"]{ background:var(--read); border-color:var(--read); color:var(--paper); }
+  .lang-tabs button[aria-selected="true"]:hover{ color:var(--paper); opacity:0.9; }
+
   footer{ padding-top:3.2rem; text-align:center; color:var(--ink-faint); font-size:0.82rem; }
   footer a{ color:var(--ink-faint); text-decoration:underline; }
 
@@ -561,6 +606,152 @@
         <div class="stat-value">O(1)</div>
         <p>Just a handful of scalars — read, write, running total, and a cutoff flag. The array shown as two tracks above is really one, mutated in place.</p>
       </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Beyond this problem</p>
+    <h2>Main takeaways</h2>
+    <p class="prose-narrow">Duplicate Zeros is a good vehicle for patterns that show up constantly in array problems — worth carrying past this one exercise.</p>
+
+    <ol class="takeaways">
+      <li class="takeaway" id="tk-1">
+        <span class="tk-num">01</span>
+        <div class="tk-body">
+          <h3>"In-place" is a hint to count first, act second.</h3>
+          <p>The naive approach (shift on every zero) is correct but redoes work — each shift is O(n), and you might do it O(n) times. The fix isn't a cleverer shift, it's splitting the problem into two separate passes: one that only figures out what the final array looks like (where does everything land, where does it get cut off), and one that writes it. Whenever you catch yourself repeating an O(n) operation inside a loop, that's the signal to ask "can I precompute this in one pass instead?"</p>
+        </div>
+      </li>
+      <li class="takeaway" id="tk-2">
+        <span class="tk-num">02</span>
+        <div class="tk-body">
+          <h3>Two pointers isn't one specific trick — it's "read and write don't have to move together."</h3>
+          <p>Here read and write advance at different rates (a zero consumes 2 write-slots but only 1 read-slot), which is exactly why you need two independent indices instead of one loop variable indexing both sides.</p>
+        </div>
+      </li>
+      <li class="takeaway" id="tk-3">
+        <span class="tk-num">03</span>
+        <div class="tk-body">
+          <h3>Direction of traversal matters when reads and writes overlap.</h3>
+          <p>This is the sharpest lesson in the problem. Because duplicating a zero always pushes values rightward, write is always at or ahead of read. Writing forward means you'd overwrite a cell before you've read its original value — silent data corruption. Writing backward guarantees every cell is read before it's ever written into. This exact idea — walk backward when the destination and source overlap and destination trails behind — reappears in merging two sorted arrays in place (LeetCode 88), string compression, and general in-place merge steps.</p>
+        </div>
+      </li>
+      <li class="takeaway" id="tk-4">
+        <span class="tk-num">04</span>
+        <div class="tk-body">
+          <h3>Boundary/cutoff is an edge case worth naming, not just handling.</h3>
+          <p>The last zero you count might only get 1 of its 2 slots before the running total hits n. Giving that case a name (cutoff) instead of letting it fall out of an off-by-one is what makes pass 2 correct — it's a small example of "figure out the edge case explicitly before you write the loop that has to handle it."</p>
+        </div>
+      </li>
+      <li class="takeaway" id="tk-5">
+        <span class="tk-num">05</span>
+        <div class="tk-body">
+          <h3>O(1) space means "a few scalars," not "no cleverness."</h3>
+          <p>The whole algorithm's state is read, write, a running total, and a boolean — that's the real meaning of O(1) auxiliary space, as opposed to allocating a second array of size n (which would trivially solve the problem but isn't the point of the exercise).</p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="callout">
+      <p>The <a href="two_pointer_notes.md">two-pointer notes</a> file already frames <a href="#tk-1">#1</a> and <a href="#tk-3">#3</a> well — those are the two ideas worth internalizing beyond this specific problem.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Before you write it</p>
+    <h2>Common coding gotchas</h2>
+    <p class="prose-narrow">The algorithm is the hard part — but "in place" turns out to be a surprisingly easy constraint to accidentally violate in every one of these languages, usually without an error telling you so.</p>
+
+    <div class="gotcha-block">
+      <div class="builder-label">Universal — applies no matter what you're writing this in</div>
+      <ul class="gotcha-list universal">
+        <li>
+          <h3>Reassigning the parameter doesn't mutate the caller's array.</h3>
+          <p>Setting <code>arr = someNewArray</code> inside your function only repoints your local variable — the array your caller is holding is untouched. "In place" means writing into existing slots (<code>arr[i] = value</code>) or using a method that replaces contents wholesale, never handing back a different object.</p>
+        </li>
+        <li>
+          <h3>Building a same-length result and returning it isn't the same as solving it in place.</h3>
+          <p>It's a genuinely good way to work out the logic, and a good way to check your answer — but the submission has to end with the original array's cells changed, with nothing returned.</p>
+        </li>
+        <li>
+          <h3>Forgetting the array is fixed-length.</h3>
+          <p>Every language below gives you a resizable list by default. The moment you append or insert a real element without immediately removing one to compensate, you've grown past <code>n</code> — and "elements beyond the original length are not written" is already broken.</p>
+        </li>
+      </ul>
+    </div>
+
+    <div class="gotcha-block">
+      <div class="builder-label">Language-specific</div>
+      <div class="lang-tabs" role="tablist" aria-label="Choose a language">
+        <button type="button" role="tab" aria-selected="true" data-lang="js" id="tab-js">JavaScript</button>
+        <button type="button" role="tab" aria-selected="false" data-lang="ts" id="tab-ts">TypeScript</button>
+        <button type="button" role="tab" aria-selected="false" data-lang="py" id="tab-py">Python</button>
+        <button type="button" role="tab" aria-selected="false" data-lang="rb" id="tab-rb">Ruby</button>
+      </div>
+
+      <ul class="gotcha-list" data-panel="js" role="tabpanel" aria-labelledby="tab-js">
+        <li>
+          <h3>Reaching for <code>splice</code> is the direct naive translation.</h3>
+          <p><code>arr.splice(i, 0, 0); arr.pop();</code> reads cleanly, but <code>splice</code> shifts every element after <code>i</code> — it's the same O(n)-per-call cost as the shift-on-every-zero approach, just spelled with a built-in.</p>
+        </li>
+        <li>
+          <h3>Never iterate an array with <code>for...in</code>.</h3>
+          <p>It walks enumerable keys as strings — including anything inherited — not numeric indices in order. Use <code>for</code>, <code>for...of</code>, or <code>.forEach</code> instead.</p>
+        </li>
+        <li>
+          <h3>Truthiness isn't the same as "equals zero."</h3>
+          <p><code>if (!arr[i])</code> happens to catch <code>0</code>, but it also catches <code>undefined</code> and <code>NaN</code> — compare explicitly with <code>arr[i] === 0</code> so the check means what you intend.</p>
+        </li>
+        <li>
+          <h3><code>arr.length = n</code> truncates in place.</h3>
+          <p>An easy-to-forget built-in: assigning to <code>.length</code> drops every element past <code>n</code> immediately, no loop or <code>pop()</code> needed.</p>
+        </li>
+      </ul>
+
+      <ul class="gotcha-list" data-panel="ts" role="tabpanel" aria-labelledby="tab-ts" hidden>
+        <li>
+          <h3><code>number[]</code> doesn't encode a fixed length.</h3>
+          <p>The type checker happily allows <code>push</code>, <code>splice</code>, anything that resizes — TypeScript gives you no extra protection against breaking the fixed-length rule here, despite the more precise-feeling types.</p>
+        </li>
+        <li>
+          <h3><code>readonly number[]</code> quietly rules out solving it at all.</h3>
+          <p>Marking input parameters <code>readonly</code> is good habit almost everywhere else in TS — but here it turns <code>arr[i] = value</code> and every mutating method into a compile error. The one parameter you actually need to mutate can't be <code>readonly</code>.</p>
+        </li>
+        <li>
+          <h3><code>noUncheckedIndexedAccess</code> changes what <code>arr[i]</code> is.</h3>
+          <p>With that flag on, indexing returns <code>number | undefined</code> instead of <code>number</code>. <code>arr[i] === 0</code> still works fine, but passing <code>arr[i]</code> further downstream may force an unexpected narrow or assertion.</p>
+        </li>
+      </ul>
+
+      <ul class="gotcha-list" data-panel="py" role="tabpanel" aria-labelledby="tab-py" hidden>
+        <li>
+          <h3><code>list.insert(i, 0)</code> + <code>list.pop()</code> is the same naive trap.</h3>
+          <p>It reads even more naturally in Python than in JS, which makes it easier to reach for without noticing it's still an O(n) shift per zero.</p>
+        </li>
+        <li>
+          <h3>Slice assignment mutates; plain reassignment doesn't.</h3>
+          <p><code>arr = new_values</code> just rebinds the local name. <code>arr[:] = new_values</code> is the idiom that actually copies into the existing list object your caller is holding — the two look similar and behave completely differently.</p>
+        </li>
+        <li>
+          <h3><code>is 0</code> is not the same check as <code>== 0</code>.</h3>
+          <p>CPython caches small integers, so <code>arr[i] is 0</code> often happens to return the right answer — but <code>is</code> compares identity, not value, and Python 3.8+ will warn you about it for good reason.</p>
+        </li>
+      </ul>
+
+      <ul class="gotcha-list" data-panel="rb" role="tabpanel" aria-labelledby="tab-rb" hidden>
+        <li>
+          <h3>The <code>!</code> in a method name is the whole story.</h3>
+          <p><code>arr.insert(i, 0)</code> mutates the receiver, but it's easy to assume the same of a non-bang method like <code>arr.map { ... }</code> — that returns a new array and leaves <code>arr</code> untouched. You'd need <code>map!</code> for it to count as in place.</p>
+        </li>
+        <li>
+          <h3>Reassignment doesn't mutate here either — but Ruby gives you a clean fix.</h3>
+          <p><code>arr = result</code> just rebinds the local variable, same pitfall as every language above. <code>arr.replace(result)</code> is the idiom that copies <code>result</code>'s contents into the array object the caller already holds.</p>
+        </li>
+        <li>
+          <h3>You can see this exact tension in this repo's own Ruby solution.</h3>
+          <p>The version in <a href="Ruby/duplicate_zeros.rb">duplicate_zeros.rb</a> that builds <code>result</code> and returns <code>result[0...arr.length]</code> reads cleanly and produces the right values — but it returns a new array rather than mutating <code>arr</code>, which is the "building a result and returning it" gotcha above, concretely.</p>
+        </li>
+      </ul>
     </div>
   </section>
 
@@ -1184,6 +1375,19 @@
     document.getElementById('playForward').addEventListener('click', playForwardDemo);
     document.getElementById('playBackward').addEventListener('click', playBackwardDemo);
     window.addEventListener('resize', () => requestAnimationFrame(renderCarets));
+    wireLangTabs();
+  }
+
+  function wireLangTabs(){
+    const tabs = [...document.querySelectorAll('.lang-tabs [role="tab"]')];
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.setAttribute('aria-selected', String(t === tab)));
+        document.querySelectorAll('[data-panel]').forEach(panel => {
+          panel.hidden = panel.dataset.panel !== tab.dataset.lang;
+        });
+      });
+    });
   }
 
   renderHero();
