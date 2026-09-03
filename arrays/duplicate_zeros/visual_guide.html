@@ -1,0 +1,1195 @@
+<title>Duplicate Zeros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root{
+    --paper:#EDF1F2;
+    --paper-raised:#F8FAFB;
+    --ink:#1B2A3A;
+    --ink-soft:#4C6070;
+    --ink-faint:#8494A0;
+    --line:rgba(27,42,58,0.16);
+    --line-soft:rgba(27,42,58,0.09);
+    --read:#1F7A8C;
+    --read-soft:rgba(31,122,140,0.14);
+    --write:#B85C1E;
+    --write-soft:rgba(184,92,30,0.14);
+    --zero-bg:#1B2A3A;
+    --zero-text:#EDF1F2;
+    --danger:#A6402E;
+    --danger-soft:rgba(166,64,46,0.14);
+    --shadow:0 1px 2px rgba(27,42,58,0.07), 0 10px 28px rgba(27,42,58,0.07);
+    --cell-w:52px;
+    --cell-gap:8px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) {
+      --paper:#101A22;
+      --paper-raised:#16232D;
+      --ink:#E7ECEE;
+      --ink-soft:#9FB0BB;
+      --ink-faint:#5E727D;
+      --line:rgba(231,236,238,0.16);
+      --line-soft:rgba(231,236,238,0.08);
+      --read:#5FC3D6;
+      --read-soft:rgba(95,195,214,0.16);
+      --write:#E38A4C;
+      --write-soft:rgba(227,138,76,0.16);
+      --zero-bg:#E7ECEE;
+      --zero-text:#101A22;
+      --danger:#E07A63;
+      --danger-soft:rgba(224,122,99,0.16);
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#101A22;
+    --paper-raised:#16232D;
+    --ink:#E7ECEE;
+    --ink-soft:#9FB0BB;
+    --ink-faint:#5E727D;
+    --line:rgba(231,236,238,0.16);
+    --line-soft:rgba(231,236,238,0.08);
+    --read:#5FC3D6;
+    --read-soft:rgba(95,195,214,0.16);
+    --write:#E38A4C;
+    --write-soft:rgba(227,138,76,0.16);
+    --zero-bg:#E7ECEE;
+    --zero-text:#101A22;
+    --danger:#E07A63;
+    --danger-soft:rgba(224,122,99,0.16);
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  ::selection{ background:var(--read-soft); }
+
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0/100% 28px,
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0/28px 100%,
+      var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4', Georgia, 'Times New Roman', serif;
+    font-size:1.05rem;
+    line-height:1.65;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) body{
+      background:
+        linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0/100% 28px,
+        linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0/28px 100%,
+        var(--paper);
+    }
+  }
+
+  h1,h2,h3,.ui{ font-family:'IBM Plex Sans', system-ui, sans-serif; }
+  .mono, code, .cell, .caret, .narration, .stat-value, button, .step-counter, .quiz-btn{
+    font-family:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  }
+
+  a{ color:var(--read); }
+
+  main{
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 4.5rem 1.5rem 6rem;
+  }
+  section{ padding: 3.4rem 0; }
+  section + section{ border-top: 1px dashed var(--line); }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--read);
+    margin: 0 0 0.9rem;
+  }
+  h1{
+    font-size:clamp(2.1rem, 5.2vw, 3.3rem);
+    line-height:1.05;
+    margin:0 0 1rem;
+    font-weight:700;
+    letter-spacing:-0.01em;
+    text-wrap:balance;
+  }
+  h2{
+    font-size:clamp(1.4rem, 3vw, 1.85rem);
+    margin: 0 0 1.1rem;
+    font-weight:600;
+    letter-spacing:-0.005em;
+    text-wrap:balance;
+  }
+  h3{ font-size:1.05rem; margin:0 0 0.6rem; font-weight:600; }
+  p{ max-width:66ch; color:var(--ink); }
+  p.lede{ font-size:1.2rem; color:var(--ink-soft); max-width:56ch; }
+  .prose-narrow{ max-width:62ch; }
+
+  .rules{
+    list-style:none;
+    margin:1.6rem 0 0;
+    padding:0;
+    display:grid;
+    gap:0.7rem;
+  }
+  .rules li{
+    display:flex;
+    gap:0.8rem;
+    align-items:baseline;
+    font-size:0.98rem;
+    color:var(--ink-soft);
+  }
+  .rules li::before{
+    content:"—";
+    color:var(--read);
+    font-family:'IBM Plex Mono',monospace;
+    flex:none;
+  }
+  .rules strong{ color:var(--ink); font-weight:600; }
+
+  /* ---------- generic cell/track styling ---------- */
+  .track-row{
+    display:flex;
+    gap:var(--cell-gap);
+    position:relative;
+  }
+  .cell{
+    width:var(--cell-w);
+    height:var(--cell-w);
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:600;
+    font-size:1.05rem;
+    background:var(--paper-raised);
+    border:1.5px solid var(--line);
+    border-radius:6px;
+    color:var(--ink);
+    position:relative;
+    transition: background .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease, opacity .25s ease;
+  }
+  .cell.zero{ background:var(--zero-bg); color:var(--zero-text); border-color:var(--zero-bg); }
+  .cell.empty{ background:transparent; border-style:dashed; color:var(--ink-faint); }
+  .cell.unreached{ opacity:0.32; }
+  .cell.scanned{ box-shadow: inset 0 0 0 2px var(--read-soft); }
+  .cell.spent{ opacity:0.5; }
+  .cell.scanning, .cell.reading{
+    border-color:var(--read);
+    box-shadow: 0 0 0 3px var(--read-soft);
+  }
+  .cell.boundary{
+    border-color:var(--write);
+    box-shadow: 0 0 0 3px var(--write-soft);
+  }
+  .cell.writing{
+    border-color:var(--write);
+    box-shadow: 0 0 0 3px var(--write-soft);
+  }
+  .idx-row{ display:flex; gap:var(--cell-gap); margin-top:0.35rem; }
+  .idx{
+    width:var(--cell-w); flex:none; text-align:center;
+    font-size:0.68rem; color:var(--ink-faint); letter-spacing:0.02em;
+  }
+  .track-wrap{ overflow-x:auto; padding-bottom:2px; }
+  .track-flip-anchor{ position:relative; }
+
+  .caret{
+    position:absolute;
+    top:-1.55rem;
+    transform:translateX(-50%);
+    font-size:0.62rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:0.15rem 0.4rem;
+    border-radius:4px;
+    white-space:nowrap;
+    pointer-events:none;
+    transition: left .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .caret.read{ background:var(--read-soft); color:var(--read); }
+  .caret.write{ background:var(--write-soft); color:var(--write); }
+  .caret::after{
+    content:"";
+    position:absolute; left:50%; bottom:-4px; transform:translateX(-50%);
+    border:4px solid transparent;
+  }
+  .caret.read::after{ border-top-color: var(--read-soft); }
+  .caret.write::after{ border-top-color: var(--write-soft); }
+
+  /* ---------- hero static example ---------- */
+  .hero-example{
+    margin-top:2.2rem;
+    display:flex;
+    align-items:center;
+    gap:1.4rem;
+    flex-wrap:wrap;
+  }
+  .hero-arrow{ color:var(--ink-faint); font-size:1.4rem; flex:none; }
+  .hero-col .cap{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-faint); margin-bottom:0.5rem; }
+
+  /* ---------- stat tiles ---------- */
+  .stats{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.8rem; }
+  .stat-card{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:1.2rem 1.3rem;
+    box-shadow:var(--shadow);
+  }
+  .stat-card h3{ font-family:'IBM Plex Sans',sans-serif; font-size:0.95rem; color:var(--ink-soft); font-weight:500; }
+  .stat-value{ font-size:1.5rem; font-weight:700; margin:0.3rem 0; }
+  .stat-card.optimal .stat-value{ color:var(--read); }
+  .stat-card p{ font-size:0.86rem; color:var(--ink-faint); margin:0; }
+  @media (max-width:560px){ .stats{ grid-template-columns:1fr; } }
+
+  /* ---------- buttons ---------- */
+  button{
+    font-size:0.82rem;
+    border-radius:7px;
+    border:1px solid var(--line);
+    background:var(--paper-raised);
+    color:var(--ink);
+    padding:0.5rem 0.85rem;
+    cursor:pointer;
+    transition: border-color .15s ease, background .15s ease, color .15s ease, opacity .15s ease;
+  }
+  button:hover:not(:disabled){ border-color:var(--read); color:var(--read); }
+  button:focus-visible, .cell:focus-visible, .palette-tile:focus-visible{
+    outline:2px solid var(--read); outline-offset:2px;
+  }
+  button:disabled{ opacity:0.4; cursor:not-allowed; }
+  button.primary{ background:var(--read); border-color:var(--read); color:var(--paper); }
+  button.primary:hover:not(:disabled){ color:var(--paper); opacity:0.88; }
+  button.ghost{ background:transparent; }
+  button.danger-zone{ border-style:dashed; }
+  .btn-row{ display:flex; flex-wrap:wrap; gap:0.55rem; align-items:center; }
+  .segmented{ display:inline-flex; border:1px solid var(--line); border-radius:7px; overflow:hidden; }
+  .segmented button{ border:none; border-radius:0; }
+  .segmented button + button{ border-left:1px solid var(--line); }
+  .segmented button.active{ background:var(--read); color:var(--paper); }
+
+  /* ---------- builder ---------- */
+  .builder-block{ margin-top:1.8rem; }
+  .builder-label{ font-size:0.78rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.6rem; }
+  .palette{ display:flex; flex-wrap:wrap; gap:0.5rem; }
+  .palette-tile{
+    width:38px; height:38px; border-radius:7px;
+    border:1px solid var(--line);
+    background:var(--paper-raised);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:600; cursor:grab;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .palette-tile[data-v="0"]{ background:var(--zero-bg); color:var(--zero-text); border-color:var(--zero-bg); }
+  .palette-tile:hover{ border-color:var(--read); transform:translateY(-2px); }
+  .palette-tile:active{ cursor:grabbing; }
+
+  .array-zone{ margin-top:1.1rem; }
+  .array-track{
+    min-height: calc(var(--cell-w) + 4px);
+    display:flex; gap:var(--cell-gap); flex-wrap:wrap; align-items:center;
+    padding:0.4rem;
+    border-radius:10px;
+    transition: background .15s ease;
+  }
+  .array-track.drop-hover{ background:var(--read-soft); }
+  .tile{
+    position:relative;
+    cursor:grab;
+  }
+  .tile:active{ cursor:grabbing; }
+  .tile.dragging{ opacity:0.35; }
+  .tile .remove{
+    position:absolute; top:-8px; right:-8px;
+    width:18px; height:18px; border-radius:50%;
+    background:var(--danger); color:#fff;
+    font-size:0.65rem; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+    border:none; padding:0; opacity:0; transform:scale(0.8);
+    transition: opacity .15s ease, transform .15s ease;
+  }
+  .tile:hover .remove, .tile:focus-within .remove{ opacity:1; transform:scale(1); }
+  .empty-hint{ font-size:0.85rem; color:var(--ink-faint); font-style:italic; }
+
+  .trash-zone{
+    margin-top:0.7rem; padding:0.6rem 0.9rem; border:1px dashed var(--line);
+    border-radius:8px; font-size:0.78rem; color:var(--ink-faint); text-align:center;
+    transition: border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  .trash-zone.active-drop{ border-color:var(--danger); color:var(--danger); background:var(--danger-soft); }
+
+  .presets{ margin-top:1.3rem; }
+
+  /* ---------- viz section ---------- */
+  .viz-card{
+    margin-top:2rem;
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:1.6rem 1.6rem 1.4rem;
+    box-shadow:var(--shadow);
+  }
+  .viz-head{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.3rem; }
+  .phase-chip{
+    font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase;
+    padding:0.28rem 0.65rem; border-radius:20px; font-weight:600;
+    background:var(--line-soft); color:var(--ink-soft);
+  }
+  .phase-chip.scan{ background:var(--read-soft); color:var(--read); }
+  .phase-chip.write{ background:var(--write-soft); color:var(--write); }
+  .phase-chip.done{ background:var(--zero-bg); color:var(--zero-text); }
+  .step-counter{ font-size:0.78rem; color:var(--ink-faint); }
+
+  .gauge-wrap{ margin: 0.4rem 0 1.6rem; }
+  .gauge-label{ display:flex; justify-content:space-between; font-size:0.75rem; color:var(--ink-faint); margin-bottom:0.35rem; }
+  .gauge-track{ height:8px; border-radius:5px; background:var(--line-soft); overflow:hidden; position:relative; }
+  .gauge-fill{ height:100%; background:var(--read); border-radius:5px; width:0%; transition:width .3s cubic-bezier(.2,.8,.2,1), background .3s ease; }
+  .gauge-fill.over{ background:var(--write); }
+  .gauge-need{ position:absolute; top:-3px; bottom:-3px; width:2px; background:var(--ink); opacity:0.35; }
+
+  .track-label{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.5rem; }
+  .track-block + .track-block{ margin-top:1.9rem; }
+
+  .narration{
+    margin-top:1.5rem;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:0.85rem 1rem;
+    font-size:0.86rem;
+    color:var(--ink);
+    min-height:2.6em;
+    display:flex; align-items:center;
+  }
+  .narration .prompt{ color:var(--read); margin-right:0.6rem; flex:none; }
+
+  .controls{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-top:1.2rem; }
+
+  /* ---------- backward/forward mini demo ---------- */
+  .mini-compare{ display:grid; grid-template-columns:1fr 1fr; gap:1.6rem; margin-top:1.8rem; }
+  @media (max-width:620px){ .mini-compare{ grid-template-columns:1fr; } }
+  .mini-panel{ background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:1.1rem 1.2rem 1.3rem; }
+  .mini-panel h3{ font-family:'IBM Plex Sans',sans-serif; }
+  .mini-panel .tag{ font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; padding:0.15rem 0.5rem; border-radius:20px; font-weight:600; }
+  .mini-panel.forward .tag{ background:var(--danger-soft); color:var(--danger); }
+  .mini-panel.backward .tag{ background:var(--read-soft); color:var(--read); }
+  .mini-track{ display:flex; gap:6px; margin:0.9rem 0; }
+  .mini-cell{
+    width:40px; height:40px; border-radius:5px; border:1.5px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-weight:600; font-size:0.9rem;
+    background:var(--paper); position:relative; transition: all .3s ease;
+  }
+  .mini-cell.zero{ background:var(--zero-bg); color:var(--zero-text); border-color:var(--zero-bg); }
+  .mini-cell.hi{ box-shadow:0 0 0 2px var(--read-soft); border-color:var(--read); }
+  .mini-cell.corrupt{ box-shadow:0 0 0 2px var(--danger-soft); border-color:var(--danger); background:var(--danger-soft); }
+  .mini-cell.safe{ box-shadow:0 0 0 2px var(--read-soft); border-color:var(--read); background:var(--read-soft); }
+  .mini-caption{ font-size:0.82rem; color:var(--ink-soft); min-height:3.2em; }
+  .mini-caption strong{ color:var(--ink); }
+
+  footer{ padding-top:3.2rem; text-align:center; color:var(--ink-faint); font-size:0.82rem; }
+  footer a{ color:var(--ink-faint); text-decoration:underline; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+</style>
+
+<main>
+
+  <section class="hero">
+    <p class="eyebrow">Two Pointers · O(n) time, O(1) space</p>
+    <h1>Duplicate Zeros</h1>
+    <p class="lede">Every zero in a fixed-length array needs to become two zeros, and everything after it shifts right — without a second array, and without touching anything past the original end.</p>
+
+    <div class="hero-example" aria-hidden="false">
+      <div class="hero-col">
+        <div class="cap">Input</div>
+        <div class="track-row" id="heroIn"></div>
+      </div>
+      <div class="hero-arrow">→</div>
+      <div class="hero-col">
+        <div class="cap">Output</div>
+        <div class="track-row" id="heroOut"></div>
+      </div>
+    </div>
+
+    <ul class="rules">
+      <li><strong>Fixed length.</strong> The array never grows — it stays exactly as long as it started.</li>
+      <li><strong>Every 0 doubles.</strong> Each zero you encounter becomes two zeros, pushing later elements right.</li>
+      <li><strong>Overflow is dropped.</strong> Anything that would land past the original length is simply never written.</li>
+      <li><strong>In place.</strong> The array is mutated directly — nothing is returned.</li>
+    </ul>
+  </section>
+
+  <section>
+    <p class="eyebrow">The trap</p>
+    <h2>Why "shift on every zero" is O(n²)</h2>
+    <p class="prose-narrow">The obvious approach works: scan left to right, and the moment you see a zero, insert a second zero right after it and shift everything past that point one step to the right. It's correct — but each shift touches every element after the insertion point. Do that for every zero in an array of all zeros, and you're paying O(n) work, up to n times.</p>
+    <p class="prose-narrow">The optimal trick never shifts more than once. It figures out, ahead of time, exactly which elements survive the truncation — then writes the final array from the back, in a single backward pass.</p>
+    <div class="stats">
+      <div class="stat-card">
+        <h3>Shift on every zero</h3>
+        <div class="stat-value">O(n²) time</div>
+        <p>Every zero can trigger an O(n) shift of everything after it.</p>
+      </div>
+      <div class="stat-card optimal">
+        <h3>Two-pass, two-pointer</h3>
+        <div class="stat-value">O(n) time · O(1) space</div>
+        <p>One forward pass to count, one backward pass to write. No shifting.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="builder-section">
+    <p class="eyebrow">Your turn</p>
+    <h2>Build an array to test</h2>
+    <p class="prose-narrow">Drag tiles from the palette onto the array below to insert them, or click a tile to add it to the end. Drag array tiles to reorder them, or to the trash strip to remove one. Every control also works from the keyboard: focus a tile and use the arrow keys to move it, or Delete to remove it.</p>
+
+    <div class="builder-block">
+      <div class="builder-label">Palette — click to append, drag to insert</div>
+      <div class="palette" id="palette" role="group" aria-label="Number tiles to add"></div>
+    </div>
+
+    <div class="array-zone">
+      <div class="builder-label">Your array (max 10 elements)</div>
+      <div class="array-track" id="arrayTrack" role="list" aria-label="Your array, drag tiles to reorder"></div>
+      <div class="trash-zone" id="trashZone">drag a tile here to remove it</div>
+    </div>
+
+    <div class="presets">
+      <div class="builder-label">Or load an example</div>
+      <div class="btn-row">
+        <button data-preset="8,4,5,0,0,0,0,7">Cutoff case</button>
+        <button data-preset="1,0,2,3,0,4,5,0">Exact-fit case</button>
+        <button data-preset="0,0,0,0">All zeros</button>
+        <button data-preset="1,2,3,0" class="quiz-btn">Try it: [1,2,3,0]</button>
+        <button id="btnShuffle" class="ghost">Shuffle values</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="viz-section">
+    <p class="eyebrow">Watch it solve</p>
+    <h2>Pass 1 counts, pass 2 writes</h2>
+    <p class="prose-narrow">Pass 1 scans forward, tallying one output slot per number and two per zero, until the tally reaches the array's length — that index is the <strong>boundary</strong>. Pass 2 starts there and walks <em>backward</em>, writing the final values from the last index toward the first.</p>
+
+    <div class="viz-card">
+      <div class="viz-head">
+        <span class="phase-chip" id="phaseChip">Ready</span>
+        <span class="step-counter" id="stepCounter">Step 0 / 0</span>
+      </div>
+
+      <div class="gauge-wrap">
+        <div class="gauge-label"><span>Output slots claimed (pass 1)</span><span id="gaugeText">0 / 0</span></div>
+        <div class="gauge-track"><div class="gauge-fill" id="gaugeFill"></div><div class="gauge-need" id="gaugeNeed"></div></div>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label">Source — original array</div>
+        <div class="track-wrap"><div class="track-flip-anchor" id="anchorA">
+          <div class="track-row" id="trackA"></div>
+          <div class="idx-row" id="idxA"></div>
+        </div></div>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label">Destination — being written, back to front</div>
+        <div class="track-wrap"><div class="track-flip-anchor" id="anchorB">
+          <div class="track-row" id="trackB"></div>
+          <div class="idx-row" id="idxB"></div>
+        </div></div>
+      </div>
+
+      <div class="narration" id="narration"><span class="prompt">›</span><span id="narrationText">Press “Next” or “Play” to begin.</span></div>
+
+      <div class="controls">
+        <div class="btn-row">
+          <button id="btnReset" class="ghost">⟲ Reset</button>
+          <button id="btnPrev">◀ Prev</button>
+          <button id="btnNext">Next ▶</button>
+          <button id="btnPlay" class="primary">▶ Play</button>
+        </div>
+        <div class="segmented" role="group" aria-label="Playback speed">
+          <button data-speed="1400">Slow</button>
+          <button data-speed="900" class="active">Normal</button>
+          <button data-speed="450">Fast</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">The subtle part</p>
+    <h2>Why walk backward, not forward?</h2>
+    <p class="prose-narrow">Duplicating a zero always pushes data <em>rightward</em>. If you write forward while reading forward, the write pointer races ahead of the read pointer and starts overwriting cells you haven't read yet. Walking backward guarantees the opposite: the write pointer is always at or ahead of the read pointer, so you finish reading a cell before anything is ever written into it.</p>
+
+    <div class="mini-compare">
+      <div class="mini-panel forward">
+        <span class="tag">Breaks</span>
+        <h3>Writing forward</h3>
+        <div class="mini-track" id="miniForward"></div>
+        <div class="mini-caption" id="miniForwardCaption">Array: [0, 1, 2, 3]</div>
+        <button id="playForward">▶ Play forward attempt</button>
+      </div>
+      <div class="mini-panel backward">
+        <span class="tag">Safe</span>
+        <h3>Writing backward</h3>
+        <div class="mini-track" id="miniBackward"></div>
+        <div class="mini-caption" id="miniBackwardCaption">Array: [0, 1, 2, 3]</div>
+        <button id="playBackward">▶ Play backward pass</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Recap</p>
+    <h2>Complexity</h2>
+    <div class="stats">
+      <div class="stat-card optimal">
+        <h3>Time</h3>
+        <div class="stat-value">O(n)</div>
+        <p>Pass 1 visits at most n elements; pass 2 visits at most n elements. Two linear passes, no nested shifting.</p>
+      </div>
+      <div class="stat-card optimal">
+        <h3>Space</h3>
+        <div class="stat-value">O(1)</div>
+        <p>Just a handful of scalars — read, write, running total, and a cutoff flag. The array shown as two tracks above is really one, mutated in place.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Based on <a href="https://leetcode.com/problems/duplicate-zeros/" target="_blank" rel="noopener">LeetCode 1089 — Duplicate Zeros</a>.
+  </footer>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const MAX_N = 10;
+  let idCounter = 0;
+  const makeTile = (value) => ({ id: 't' + (idCounter++), value });
+
+  let tiles = [8,4,5,0,0,0,0,7].map(makeTile);
+  let analysis = null;
+  let stepIndex = -1;
+  let playing = false;
+  let playTimer = null;
+  let speed = 900;
+  let draggedTileId = null;
+  let draggedPaletteValue = null;
+
+  // ---------------- analysis engine ----------------
+  function analyze(vals){
+    const n = vals.length;
+    let total = 0, boundary = -1, cutoff = false;
+    const pass1 = [];
+    for (let i = 0; i < n; i++){
+      const slots = vals[i] === 0 ? 2 : 1;
+      total += slots;
+      pass1.push({ index:i, value:vals[i], slots, total });
+      if (total >= n){ boundary = i; cutoff = total > n; break; }
+    }
+    if (boundary === -1) boundary = n - 1;
+    const pass2 = [];
+    let write = n - 1, read = boundary, cutoffActive = cutoff;
+    const result = new Array(n).fill(null);
+    while (read >= 0){
+      if (vals[read] !== 0){
+        pass2.push({ type:'copy', read, write });
+        result[write] = vals[read];
+        write -= 1;
+      } else if (cutoffActive){
+        pass2.push({ type:'cutoff', read, write });
+        result[write] = 0;
+        write -= 1;
+        cutoffActive = false;
+      } else {
+        pass2.push({ type:'pair', read, writeHi:write, writeLo:write - 1 });
+        result[write] = 0; result[write - 1] = 0;
+        write -= 2;
+      }
+      read -= 1;
+    }
+    const steps = [
+      ...pass1.map(p => ({ phase:'scan', p })),
+      ...pass2.map(p => ({ phase:'write', p })),
+      { phase:'done' }
+    ];
+    return { arr: vals, n, pass1, boundary, cutoff, pass2, result, steps };
+  }
+
+  function narrate(a, idx){
+    if (idx < 0) return 'Press “Next” or “Play” to start pass 1: scanning left to right to see how many output slots this array needs.';
+    const s = a.steps[idx];
+    if (s.phase === 'scan'){
+      const p = s.p;
+      let base = p.value === 0
+        ? `Index ${p.index} holds 0 — a zero needs 2 output slots. Running total is now ${p.total} (need ${a.n}).`
+        : `Index ${p.index} holds ${p.value} — needs 1 output slot. Running total is now ${p.total} (need ${a.n}).`;
+      if (p.total >= a.n){
+        base += a.cutoff
+          ? ` That's over ${a.n} — this zero only gets 1 of its 2 slots inside the array, so index ${p.index} is the boundary, and it's a cutoff.`
+          : ` That's exactly ${a.n} — index ${p.index} is the boundary, an exact fit.`;
+      }
+      return base;
+    }
+    if (s.phase === 'write'){
+      const p = s.p;
+      if (p.type === 'copy') return `Read index ${p.read} — value ${a.arr[p.read]}, nonzero. Write it straight to index ${p.write}. Both pointers move one step left.`;
+      if (p.type === 'pair') return `Read index ${p.read} — value 0. Write two zeros, to indices ${p.writeHi} and ${p.writeLo}. Write pointer jumps left by 2.`;
+      if (p.type === 'cutoff') return `Read index ${p.read} — value 0, the cutoff zero. Only 1 slot remains, so write a single 0 to index ${p.write}.`;
+    }
+    return `Done. The array now reads [${a.result.join(', ')}] — every zero duplicated in place, nothing beyond the original length written.`;
+  }
+
+  // ---------------- generic cell renderer ----------------
+  function makeCell(value, extraClass){
+    const d = document.createElement('div');
+    d.className = 'cell' + (extraClass ? ' ' + extraClass : '');
+    if (value === 0) d.classList.add('zero');
+    if (value !== null && value !== undefined) d.textContent = value;
+    return d;
+  }
+  function makeIdx(i){
+    const d = document.createElement('div');
+    d.className = 'idx';
+    d.textContent = i;
+    return d;
+  }
+
+  // ---------------- hero static example ----------------
+  function renderHero(){
+    const inArr = [1,0,2,3,0,4,5,0];
+    const outArr = [1,0,0,2,3,0,0,4];
+    const heroIn = document.getElementById('heroIn');
+    const heroOut = document.getElementById('heroOut');
+    heroIn.innerHTML = ''; heroOut.innerHTML = '';
+    inArr.forEach(v => heroIn.appendChild(makeCell(v)));
+    outArr.forEach(v => heroOut.appendChild(makeCell(v)));
+  }
+
+  // ---------------- builder: palette ----------------
+  function renderPalette(){
+    const pal = document.getElementById('palette');
+    pal.innerHTML = '';
+    for (let v = 0; v <= 9; v++){
+      const b = document.createElement('button');
+      b.className = 'palette-tile';
+      b.type = 'button';
+      b.textContent = v;
+      b.dataset.v = v;
+      b.setAttribute('draggable', 'true');
+      b.setAttribute('aria-label', `Add ${v} to your array`);
+      b.addEventListener('click', () => appendTile(v));
+      b.addEventListener('dragstart', (e) => {
+        draggedPaletteValue = v;
+        e.dataTransfer.effectAllowed = 'copy';
+        e.dataTransfer.setData('text/plain', 'palette:' + v);
+      });
+      b.addEventListener('dragend', () => { draggedPaletteValue = null; });
+      pal.appendChild(b);
+    }
+  }
+
+  // ---------------- FLIP helper ----------------
+  function flip(container, mutate){
+    if (REDUCE_MOTION){ mutate(); return; }
+    const before = new Map();
+    [...container.children].forEach(el => {
+      if (el.dataset && el.dataset.id) before.set(el.dataset.id, el.getBoundingClientRect());
+    });
+    mutate();
+    requestAnimationFrame(() => {
+      [...container.children].forEach(el => {
+        const id = el.dataset && el.dataset.id;
+        if (!id) return;
+        const b = before.get(id);
+        if (!b){
+          el.animate([{ opacity:0, transform:'scale(0.6)' }, { opacity:1, transform:'scale(1)' }], { duration:220, easing:'ease-out' });
+          return;
+        }
+        const a = el.getBoundingClientRect();
+        const dx = b.left - a.left, dy = b.top - a.top;
+        if (dx || dy){
+          el.animate([{ transform:`translate(${dx}px, ${dy}px)` }, { transform:'translate(0,0)' }], { duration:260, easing:'cubic-bezier(.2,.8,.2,1)' });
+        }
+      });
+    });
+  }
+
+  // ---------------- builder: array track ----------------
+  function appendTile(v){
+    if (tiles.length >= MAX_N) return flashFull();
+    flip(document.getElementById('arrayTrack'), () => { tiles.push(makeTile(v)); renderArrayTrack(); });
+    afterArrayChange();
+  }
+  function insertTileAt(v, index){
+    if (tiles.length >= MAX_N) return flashFull();
+    flip(document.getElementById('arrayTrack'), () => { tiles.splice(index, 0, makeTile(v)); renderArrayTrack(); });
+    afterArrayChange();
+  }
+  function removeTileById(id){
+    const track = document.getElementById('arrayTrack');
+    const el = track.querySelector(`[data-id="${id}"]`);
+    const finish = () => {
+      flip(track, () => { tiles = tiles.filter(t => t.id !== id); renderArrayTrack(); });
+      afterArrayChange();
+    };
+    if (el && !REDUCE_MOTION){
+      el.animate([{ opacity:1, transform:'scale(1)' }, { opacity:0, transform:'scale(0.5)' }], { duration:160, easing:'ease-in' }).onfinish = finish;
+    } else finish();
+  }
+  function flashFull(){
+    const hint = document.getElementById('arrayTrack');
+    hint.animate([{ background:'var(--danger-soft)' }, { background:'transparent' }], { duration:500 });
+  }
+
+  function positionOfClientX(clientX){
+    const track = document.getElementById('arrayTrack');
+    const kids = [...track.children].filter(c => c.classList.contains('tile'));
+    for (let i = 0; i < kids.length; i++){
+      const r = kids[i].getBoundingClientRect();
+      if (clientX < r.left + r.width / 2) return i;
+    }
+    return kids.length;
+  }
+
+  function renderArrayTrack(){
+    const track = document.getElementById('arrayTrack');
+    track.innerHTML = '';
+    if (tiles.length === 0){
+      const hint = document.createElement('div');
+      hint.className = 'empty-hint';
+      hint.textContent = 'Empty — add a tile from the palette above.';
+      track.appendChild(hint);
+    }
+    tiles.forEach((t, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'tile';
+      wrap.dataset.id = t.id;
+      wrap.setAttribute('draggable', 'true');
+      wrap.setAttribute('role', 'listitem');
+      wrap.setAttribute('tabindex', '0');
+      wrap.setAttribute('aria-label', `Value ${t.value}, position ${i + 1} of ${tiles.length}. Arrow keys to move, Delete to remove.`);
+
+      const cell = makeCell(t.value);
+      wrap.appendChild(cell);
+
+      const rm = document.createElement('button');
+      rm.className = 'remove';
+      rm.type = 'button';
+      rm.textContent = '×';
+      rm.setAttribute('aria-label', `Remove value ${t.value}`);
+      rm.addEventListener('click', (e) => { e.stopPropagation(); removeTileById(t.id); });
+      wrap.appendChild(rm);
+
+      wrap.addEventListener('dragstart', (e) => {
+        draggedTileId = t.id;
+        wrap.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', 'tile:' + t.id);
+      });
+      wrap.addEventListener('dragend', () => {
+        wrap.classList.remove('dragging');
+        draggedTileId = null;
+        document.getElementById('trashZone').classList.remove('active-drop');
+      });
+      wrap.addEventListener('keydown', (e) => {
+        const idx = tiles.findIndex(x => x.id === t.id);
+        if (e.key === 'ArrowLeft' && idx > 0){
+          e.preventDefault();
+          flip(track, () => { [tiles[idx-1], tiles[idx]] = [tiles[idx], tiles[idx-1]]; renderArrayTrack(); });
+          afterArrayChange();
+          requestAnimationFrame(() => track.querySelector(`[data-id="${t.id}"]`).focus());
+        } else if (e.key === 'ArrowRight' && idx < tiles.length - 1){
+          e.preventDefault();
+          flip(track, () => { [tiles[idx], tiles[idx+1]] = [tiles[idx+1], tiles[idx]]; renderArrayTrack(); });
+          afterArrayChange();
+          requestAnimationFrame(() => track.querySelector(`[data-id="${t.id}"]`).focus());
+        } else if (e.key === 'Delete' || e.key === 'Backspace'){
+          e.preventDefault();
+          removeTileById(t.id);
+        }
+      });
+
+      track.appendChild(wrap);
+    });
+  }
+
+  function setupTrackDropZone(){
+    const track = document.getElementById('arrayTrack');
+    track.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = draggedPaletteValue !== null ? 'copy' : 'move';
+      track.classList.add('drop-hover');
+      if (draggedTileId !== null){
+        const targetIndex = positionOfClientX(e.clientX);
+        const currentIndex = tiles.findIndex(t => t.id === draggedTileId);
+        if (currentIndex !== -1 && targetIndex !== currentIndex && targetIndex !== currentIndex + 1){
+          const adjTarget = targetIndex > currentIndex ? targetIndex - 1 : targetIndex;
+          if (adjTarget !== currentIndex){
+            flip(track, () => {
+              const [moved] = tiles.splice(currentIndex, 1);
+              tiles.splice(adjTarget, 0, moved);
+              renderArrayTrack();
+            });
+          }
+        }
+      }
+    });
+    track.addEventListener('dragleave', (e) => {
+      if (e.target === track) track.classList.remove('drop-hover');
+    });
+    track.addEventListener('drop', (e) => {
+      e.preventDefault();
+      track.classList.remove('drop-hover');
+      if (draggedPaletteValue !== null){
+        const idx = positionOfClientX(e.clientX);
+        insertTileAt(draggedPaletteValue, idx);
+      } else if (draggedTileId !== null){
+        afterArrayChange();
+      }
+    });
+
+    const trash = document.getElementById('trashZone');
+    trash.addEventListener('dragover', (e) => {
+      if (draggedTileId !== null){ e.preventDefault(); trash.classList.add('active-drop'); }
+    });
+    trash.addEventListener('dragleave', () => trash.classList.remove('active-drop'));
+    trash.addEventListener('drop', (e) => {
+      e.preventDefault();
+      trash.classList.remove('active-drop');
+      if (draggedTileId !== null) removeTileById(draggedTileId);
+    });
+  }
+
+  function afterArrayChange(){
+    stepIndex = -1;
+    stopPlaying();
+    analysis = analyze(tiles.map(t => t.value));
+    renderViz();
+  }
+
+  // ---------------- viz rendering ----------------
+  function cellClassA(i){
+    if (!analysis) return '';
+    const n = analysis.n, boundary = analysis.boundary;
+    if (stepIndex < 0) return '';
+    const inScan = stepIndex < analysis.pass1.length;
+    if (inScan){
+      const scanCount = stepIndex + 1;
+      if (i < scanCount - 1) return 'scanned';
+      if (i === scanCount - 1) return 'scanning';
+      return '';
+    }
+    if (i > boundary) return 'unreached';
+    const inWrite = stepIndex < analysis.pass1.length + analysis.pass2.length;
+    if (inWrite){
+      const p = analysis.steps[stepIndex].p;
+      if (i === p.read) return 'reading';
+      if (i > p.read) return 'spent';
+      return 'scanned';
+    }
+    return 'spent';
+  }
+
+  function renderTrackA(){
+    const trackA = document.getElementById('trackA');
+    const idxA = document.getElementById('idxA');
+    trackA.innerHTML = ''; idxA.innerHTML = '';
+    if (!analysis) return;
+    analysis.arr.forEach((v, i) => {
+      const cls = cellClassA(i) + (i === analysis.boundary && stepIndex >= analysis.pass1.length - 1 ? ' boundary' : '');
+      trackA.appendChild(makeCell(v, cls.trim()));
+      idxA.appendChild(makeIdx(i));
+    });
+  }
+
+  function renderTrackB(){
+    const trackB = document.getElementById('trackB');
+    const idxB = document.getElementById('idxB');
+    trackB.innerHTML = ''; idxB.innerHTML = '';
+    if (!analysis) return;
+    const n = analysis.n;
+    const dest = new Array(n).fill(null);
+    let writeCount = 0;
+    if (stepIndex >= analysis.pass1.length){
+      writeCount = Math.min(stepIndex - analysis.pass1.length + 1, analysis.pass2.length);
+    }
+    for (let k = 0; k < writeCount; k++){
+      const p = analysis.pass2[k];
+      if (p.type === 'copy') dest[p.write] = analysis.arr[p.read];
+      else if (p.type === 'cutoff') dest[p.write] = 0;
+      else { dest[p.writeHi] = 0; dest[p.writeLo] = 0; }
+    }
+    const isWritePhase = stepIndex >= analysis.pass1.length && stepIndex < analysis.pass1.length + analysis.pass2.length;
+    const currentP = isWritePhase ? analysis.steps[stepIndex].p : null;
+    for (let i = 0; i < n; i++){
+      let cls = '';
+      let val = dest[i];
+      if (val === null){ cls = 'empty'; }
+      else {
+        let isCurrent = false;
+        if (currentP){
+          if (currentP.type === 'copy' && currentP.write === i) isCurrent = true;
+          if (currentP.type === 'cutoff' && currentP.write === i) isCurrent = true;
+          if (currentP.type === 'pair' && (currentP.writeHi === i || currentP.writeLo === i)) isCurrent = true;
+        }
+        cls = isCurrent ? 'writing' : '';
+      }
+      trackB.appendChild(makeCell(val === null ? '·' : val, cls));
+      idxB.appendChild(makeIdx(i));
+    }
+  }
+
+  function positionCaret(caretEl, track, index){
+    const cellEl = track.children[index];
+    if (!cellEl){ caretEl.style.display = 'none'; return; }
+    caretEl.style.display = '';
+    caretEl.style.left = (cellEl.offsetLeft + cellEl.offsetWidth / 2) + 'px';
+  }
+
+  function renderCarets(){
+    let readCaret = document.getElementById('readCaret');
+    let writeCaret = document.getElementById('writeCaret');
+    const anchorA = document.getElementById('anchorA');
+    const anchorB = document.getElementById('anchorB');
+    if (!readCaret){
+      readCaret = document.createElement('div');
+      readCaret.id = 'readCaret'; readCaret.className = 'caret read'; readCaret.textContent = 'read';
+      anchorA.appendChild(readCaret);
+    }
+    if (!writeCaret){
+      writeCaret = document.createElement('div');
+      writeCaret.id = 'writeCaret'; writeCaret.className = 'caret write'; writeCaret.textContent = 'write';
+      anchorB.appendChild(writeCaret);
+    }
+    const isWritePhase = analysis && stepIndex >= analysis.pass1.length && stepIndex < analysis.pass1.length + analysis.pass2.length;
+    if (!isWritePhase){
+      readCaret.style.display = 'none';
+      writeCaret.style.display = 'none';
+      return;
+    }
+    const p = analysis.steps[stepIndex].p;
+    positionCaret(readCaret, document.getElementById('trackA'), p.read);
+    const writeTarget = p.type === 'pair' ? p.writeHi : p.write;
+    positionCaret(writeCaret, document.getElementById('trackB'), writeTarget);
+  }
+
+  function renderGauge(){
+    const fill = document.getElementById('gaugeFill');
+    const text = document.getElementById('gaugeText');
+    const need = document.getElementById('gaugeNeed');
+    if (!analysis){ fill.style.width = '0%'; text.textContent = '0 / 0'; return; }
+    const n = analysis.n;
+    let total = 0;
+    if (stepIndex >= 0 && stepIndex < analysis.pass1.length) total = analysis.steps[stepIndex].p.total;
+    else if (stepIndex >= analysis.pass1.length) total = analysis.pass1[analysis.pass1.length - 1].total;
+    const pct = Math.min(total / n, 1.4) * 100;
+    fill.style.width = Math.min(pct, 100) + '%';
+    fill.classList.toggle('over', total > n);
+    text.textContent = `${total} / ${n}`;
+    need.style.left = '100%';
+  }
+
+  function renderPhaseAndCounter(){
+    const chip = document.getElementById('phaseChip');
+    const counter = document.getElementById('stepCounter');
+    if (!analysis){ chip.textContent = 'Ready'; chip.className = 'phase-chip'; counter.textContent = 'Step 0 / 0'; return; }
+    const total = analysis.steps.length;
+    if (stepIndex < 0){ chip.textContent = 'Ready'; chip.className = 'phase-chip'; }
+    else {
+      const ph = analysis.steps[stepIndex].phase;
+      chip.textContent = ph === 'scan' ? 'Pass 1 · Scanning' : ph === 'write' ? 'Pass 2 · Writing' : 'Done';
+      chip.className = 'phase-chip ' + (ph === 'scan' ? 'scan' : ph === 'write' ? 'write' : 'done');
+    }
+    counter.textContent = `Step ${stepIndex + 1} / ${total}`;
+  }
+
+  function renderNarration(){
+    document.getElementById('narrationText').textContent = analysis ? narrate(analysis, stepIndex) : 'Build an array above to begin.';
+  }
+
+  function renderControls(){
+    const atStart = stepIndex < 0;
+    const atEnd = !analysis || stepIndex >= analysis.steps.length - 1;
+    document.getElementById('btnPrev').disabled = atStart;
+    document.getElementById('btnNext').disabled = atEnd;
+    document.getElementById('btnPlay').disabled = atEnd;
+    document.getElementById('btnPlay').textContent = playing ? '⏸ Pause' : '▶ Play';
+  }
+
+  function renderViz(){
+    renderTrackA();
+    renderTrackB();
+    renderGauge();
+    renderPhaseAndCounter();
+    renderNarration();
+    renderControls();
+    requestAnimationFrame(renderCarets);
+  }
+
+  function goNext(){
+    if (!analysis || stepIndex >= analysis.steps.length - 1) return stopPlaying();
+    stepIndex++;
+    renderViz();
+    if (analysis && stepIndex >= analysis.steps.length - 1) stopPlaying();
+  }
+  function goPrev(){
+    if (stepIndex < 0) return;
+    stepIndex--;
+    renderViz();
+  }
+  function doReset(){
+    stepIndex = -1;
+    stopPlaying();
+    renderViz();
+  }
+  function startPlaying(){
+    if (!analysis || stepIndex >= analysis.steps.length - 1) return;
+    playing = true;
+    renderControls();
+    playTimer = setInterval(() => {
+      goNext();
+      if (!analysis || stepIndex >= analysis.steps.length - 1) stopPlaying();
+    }, speed);
+  }
+  function stopPlaying(){
+    playing = false;
+    if (playTimer) clearInterval(playTimer);
+    playTimer = null;
+    renderControls();
+  }
+
+  // ---------------- mini forward/backward demo ----------------
+  const sleep = (ms) => new Promise(r => setTimeout(r, REDUCE_MOTION ? 0 : ms));
+
+  function renderMini(container, values, classes){
+    container.innerHTML = '';
+    values.forEach((v, i) => {
+      const c = document.createElement('div');
+      c.className = 'mini-cell' + (v === 0 ? ' zero' : '') + (classes[i] ? ' ' + classes[i] : '');
+      c.textContent = v === null ? '·' : v;
+      container.appendChild(c);
+    });
+  }
+
+  async function playForwardDemo(){
+    const btn = document.getElementById('playForward');
+    btn.disabled = true;
+    const container = document.getElementById('miniForward');
+    const caption = document.getElementById('miniForwardCaption');
+    let display = [0,1,2,3];
+    renderMini(container, display, []);
+    caption.textContent = 'Naive forward attempt: write while reading left to right.';
+    await sleep(600);
+
+    renderMini(container, display, ['hi','','','']);
+    caption.innerHTML = '<strong>Read index 0</strong> — value 0. It needs 2 output slots.';
+    await sleep(1000);
+
+    renderMini(container, display, ['hi','hi','','']);
+    caption.innerHTML = 'Write 0 to index 0 (fine), then also write a duplicate 0 to index 1.';
+    await sleep(1000);
+
+    display = [0,0,2,3];
+    renderMini(container, display, ['', 'corrupt', '', '']);
+    caption.innerHTML = '<strong>Index 1\'s original value, 1, is gone</strong> — overwritten before it was ever read.';
+    await sleep(1200);
+
+    renderMini(container, display, ['', 'corrupt hi', '', '']);
+    caption.innerHTML = 'The pointer now moves to index 1 and reads <strong>0</strong> — not the real value 1. Everything downstream is now wrong.';
+    await sleep(1400);
+    btn.disabled = false;
+  }
+
+  async function playBackwardDemo(){
+    const btn = document.getElementById('playBackward');
+    btn.disabled = true;
+    const container = document.getElementById('miniBackward');
+    const caption = document.getElementById('miniBackwardCaption');
+    const original = [0,1,2,3];
+    let dest = [null,null,null,null];
+    renderMini(container, dest, []);
+    caption.textContent = 'Boundary is index 2 (exact fit). Read backward from 2, write backward from 3.';
+    await sleep(700);
+
+    renderMini(container, dest, ['', '', 'hi', '']);
+    caption.innerHTML = '<strong>Read index 2</strong> — value 2, nonzero.';
+    await sleep(900);
+    dest[3] = 2;
+    renderMini(container, dest, ['', '', '', 'safe']);
+    caption.innerHTML = 'Write it to index 3 — a cell that never held data we still need.';
+    await sleep(1100);
+
+    renderMini(container, dest, ['', 'hi', '', '']);
+    caption.innerHTML = '<strong>Read index 1</strong> — value 1, nonzero.';
+    await sleep(900);
+    dest[2] = 1;
+    renderMini(container, dest, ['', '', 'safe', '']);
+    caption.innerHTML = 'Write it to index 2 — already read in the previous step, so overwriting it now is harmless.';
+    await sleep(1100);
+
+    renderMini(container, dest, ['hi', '', '', '']);
+    caption.innerHTML = '<strong>Read index 0</strong> — value 0. Needs two zero slots.';
+    await sleep(900);
+    dest[1] = 0; dest[0] = 0;
+    renderMini(container, dest, ['safe', 'safe', '', '']);
+    caption.innerHTML = '<strong>Result: [0, 0, 1, 2]</strong> — every value was read before its cell was overwritten.';
+    await sleep(1000);
+    btn.disabled = false;
+  }
+
+  // ---------------- wiring ----------------
+  function wireEvents(){
+    setupTrackDropZone();
+    document.querySelectorAll('[data-preset]').forEach(b => {
+      b.addEventListener('click', () => {
+        const vals = b.dataset.preset.split(',').map(Number);
+        tiles = vals.map(makeTile);
+        renderArrayTrack();
+        afterArrayChange();
+      });
+    });
+    document.getElementById('btnShuffle').addEventListener('click', () => {
+      const vals = tiles.map(t => t.value);
+      for (let i = vals.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [vals[i], vals[j]] = [vals[j], vals[i]];
+      }
+      const track = document.getElementById('arrayTrack');
+      flip(track, () => { tiles = vals.map(makeTile); renderArrayTrack(); });
+      afterArrayChange();
+    });
+    document.getElementById('btnNext').addEventListener('click', () => { stopPlaying(); goNext(); });
+    document.getElementById('btnPrev').addEventListener('click', () => { stopPlaying(); goPrev(); });
+    document.getElementById('btnReset').addEventListener('click', doReset);
+    document.getElementById('btnPlay').addEventListener('click', () => { playing ? stopPlaying() : startPlaying(); });
+    document.querySelectorAll('.segmented [data-speed]').forEach(b => {
+      b.addEventListener('click', () => {
+        speed = Number(b.dataset.speed);
+        document.querySelectorAll('.segmented [data-speed]').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        if (playing){ stopPlaying(); startPlaying(); }
+      });
+    });
+    document.getElementById('playForward').addEventListener('click', playForwardDemo);
+    document.getElementById('playBackward').addEventListener('click', playBackwardDemo);
+    window.addEventListener('resize', () => requestAnimationFrame(renderCarets));
+  }
+
+  renderHero();
+  renderPalette();
+  renderArrayTrack();
+  wireEvents();
+  afterArrayChange();
+})();
+</script>
