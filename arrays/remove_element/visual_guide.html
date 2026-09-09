@@ -1,0 +1,817 @@
+<title>Remove Element</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root{
+    --paper:#EDF1F2;
+    --paper-raised:#F8FAFB;
+    --ink:#1B2A3A;
+    --ink-soft:#4C6070;
+    --ink-faint:#8494A0;
+    --line:rgba(27,42,58,0.16);
+    --line-soft:rgba(27,42,58,0.09);
+    --read:#1F7A8C;
+    --read-soft:rgba(31,122,140,0.14);
+    --write:#B85C1E;
+    --write-soft:rgba(184,92,30,0.14);
+    --target-bg:#1B2A3A;
+    --target-text:#EDF1F2;
+    --danger:#A6402E;
+    --danger-soft:rgba(166,64,46,0.14);
+    --shadow:0 1px 2px rgba(27,42,58,0.07), 0 10px 28px rgba(27,42,58,0.07);
+    --cell-w:52px;
+    --cell-gap:8px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) {
+      --paper:#101A22;
+      --paper-raised:#16232D;
+      --ink:#E7ECEE;
+      --ink-soft:#9FB0BB;
+      --ink-faint:#5E727D;
+      --line:rgba(231,236,238,0.16);
+      --line-soft:rgba(231,236,238,0.08);
+      --read:#5FC3D6;
+      --read-soft:rgba(95,195,214,0.16);
+      --write:#E38A4C;
+      --write-soft:rgba(227,138,76,0.16);
+      --target-bg:#E7ECEE;
+      --target-text:#101A22;
+      --danger:#E07A63;
+      --danger-soft:rgba(224,122,99,0.16);
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#101A22;
+    --paper-raised:#16232D;
+    --ink:#E7ECEE;
+    --ink-soft:#9FB0BB;
+    --ink-faint:#5E727D;
+    --line:rgba(231,236,238,0.16);
+    --line-soft:rgba(231,236,238,0.08);
+    --read:#5FC3D6;
+    --read-soft:rgba(95,195,214,0.16);
+    --write:#E38A4C;
+    --write-soft:rgba(227,138,76,0.16);
+    --target-bg:#E7ECEE;
+    --target-text:#101A22;
+    --danger:#E07A63;
+    --danger-soft:rgba(224,122,99,0.16);
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  ::selection{ background:var(--read-soft); }
+
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0/100% 28px,
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0/28px 100%,
+      var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4', Georgia, 'Times New Roman', serif;
+    font-size:1.05rem;
+    line-height:1.65;
+  }
+
+  h1,h2,h3,.ui{ font-family:'IBM Plex Sans', system-ui, sans-serif; }
+  .mono, code, .cell, .caret, .narration, .stat-value, button, .step-counter{
+    font-family:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  }
+  a{ color:var(--read); }
+
+  main{ max-width: 900px; margin: 0 auto; padding: 4.5rem 1.5rem 6rem; }
+  section{ padding: 3.2rem 0; }
+  section + section{ border-top: 1px dashed var(--line); }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.12em;
+    text-transform:uppercase; color:var(--read); margin: 0 0 0.9rem;
+  }
+  h1{ font-size:clamp(2.1rem, 5.2vw, 3.3rem); line-height:1.05; margin:0 0 1rem; font-weight:700; letter-spacing:-0.01em; text-wrap:balance; }
+  h2{ font-size:clamp(1.4rem, 3vw, 1.85rem); margin: 0 0 1.1rem; font-weight:600; letter-spacing:-0.005em; text-wrap:balance; }
+  h3{ font-size:1.05rem; margin:0 0 0.6rem; font-weight:600; }
+  p{ max-width:66ch; color:var(--ink); }
+  p.lede{ font-size:1.2rem; color:var(--ink-soft); max-width:56ch; }
+  .prose-narrow{ max-width:62ch; }
+
+  .rules{ list-style:none; margin:1.6rem 0 0; padding:0; display:grid; gap:0.7rem; }
+  .rules li{ display:flex; gap:0.8rem; align-items:baseline; font-size:0.98rem; color:var(--ink-soft); }
+  .rules li::before{ content:"—"; color:var(--read); font-family:'IBM Plex Mono',monospace; flex:none; }
+  .rules strong{ color:var(--ink); font-weight:600; }
+
+  .track-row{ display:flex; gap:var(--cell-gap); position:relative; }
+  .cell{
+    width:var(--cell-w); height:var(--cell-w); flex:none;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:600; font-size:1.05rem;
+    background:var(--paper-raised); border:1.5px solid var(--line); border-radius:6px;
+    color:var(--ink); position:relative;
+    transition: background .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease, opacity .25s ease;
+  }
+  .cell.empty{ background:transparent; border-style:dashed; color:var(--ink-faint); }
+  .cell.skipped{ opacity:0.35; text-decoration:line-through; text-decoration-color:var(--danger); }
+  .cell.kept{ box-shadow: inset 0 0 0 2px var(--read-soft); }
+  .cell.reading{ border-color:var(--read); box-shadow: 0 0 0 3px var(--read-soft); }
+  .cell.writing{ border-color:var(--write); box-shadow: 0 0 0 3px var(--write-soft); }
+  .cell.target{ box-shadow: 0 0 0 2px var(--danger); }
+  .cell.clickable{ cursor:pointer; }
+  .idx-row{ display:flex; gap:var(--cell-gap); margin-top:0.35rem; }
+  .idx{ width:var(--cell-w); flex:none; text-align:center; font-size:0.68rem; color:var(--ink-faint); letter-spacing:0.02em; }
+  .track-wrap{ overflow-x:auto; padding-bottom:2px; }
+  .track-flip-anchor{ position:relative; }
+
+  .caret{
+    position:absolute; top:-1.55rem; transform:translateX(-50%);
+    font-size:0.62rem; letter-spacing:0.06em; text-transform:uppercase;
+    padding:0.15rem 0.4rem; border-radius:4px; white-space:nowrap; pointer-events:none;
+    transition: left .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .caret.read{ background:var(--read-soft); color:var(--read); }
+  .caret.write{ background:var(--write-soft); color:var(--write); }
+  .caret::after{ content:""; position:absolute; left:50%; bottom:-4px; transform:translateX(-50%); border:4px solid transparent; }
+  .caret.read::after{ border-top-color: var(--read-soft); }
+  .caret.write::after{ border-top-color: var(--write-soft); }
+
+  .hero-example{ margin-top:2.2rem; display:flex; align-items:center; gap:1.4rem; flex-wrap:wrap; }
+  .hero-arrow{ color:var(--ink-faint); font-size:1.4rem; flex:none; }
+  .hero-col .cap{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-faint); margin-bottom:0.5rem; }
+
+  .stats{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.8rem; }
+  .stat-card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem; box-shadow:var(--shadow); }
+  .stat-card h3{ font-family:'IBM Plex Sans',sans-serif; font-size:0.95rem; color:var(--ink-soft); font-weight:500; }
+  .stat-value{ font-size:1.5rem; font-weight:700; margin:0.3rem 0; }
+  .stat-card.optimal .stat-value{ color:var(--read); }
+  .stat-card p{ font-size:0.86rem; color:var(--ink-faint); margin:0; }
+  @media (max-width:560px){ .stats{ grid-template-columns:1fr; } }
+
+  button{
+    font-size:0.82rem; border-radius:7px; border:1px solid var(--line);
+    background:var(--paper-raised); color:var(--ink); padding:0.5rem 0.85rem; cursor:pointer;
+    transition: border-color .15s ease, background .15s ease, color .15s ease, opacity .15s ease;
+  }
+  button:hover:not(:disabled){ border-color:var(--read); color:var(--read); }
+  button:focus-visible, .cell:focus-visible, .palette-tile:focus-visible, input:focus-visible{ outline:2px solid var(--read); outline-offset:2px; }
+  button:disabled{ opacity:0.4; cursor:not-allowed; }
+  button.primary{ background:var(--read); border-color:var(--read); color:var(--paper); }
+  button.primary:hover:not(:disabled){ color:var(--paper); opacity:0.88; }
+  button.ghost{ background:transparent; }
+  .btn-row{ display:flex; flex-wrap:wrap; gap:0.55rem; align-items:center; }
+
+  .builder-block{ margin-top:1.8rem; }
+  .builder-label{ font-size:0.78rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.6rem; }
+  .palette{ display:flex; flex-wrap:wrap; gap:0.5rem; }
+  .palette-tile{
+    width:38px; height:38px; border-radius:7px; border:1px solid var(--line); background:var(--paper-raised);
+    display:flex; align-items:center; justify-content:center; font-weight:600; cursor:grab;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .palette-tile:hover{ border-color:var(--read); transform:translateY(-2px); }
+  .palette-tile:active{ cursor:grabbing; }
+
+  .array-zone{ margin-top:1.1rem; }
+  .array-track{
+    min-height: calc(var(--cell-w) + 4px); display:flex; gap:var(--cell-gap); flex-wrap:wrap; align-items:center;
+    padding:0.4rem; border-radius:10px; transition: background .15s ease;
+  }
+  .array-track.drop-hover{ background:var(--read-soft); }
+  .tile{ position:relative; cursor:grab; }
+  .tile:active{ cursor:grabbing; }
+  .tile.dragging{ opacity:0.35; }
+  .tile .remove{
+    position:absolute; top:-8px; right:-8px; width:18px; height:18px; border-radius:50%;
+    background:var(--danger); color:#fff; font-size:0.65rem; line-height:1;
+    display:flex; align-items:center; justify-content:center; border:none; padding:0;
+    opacity:0; transform:scale(0.8); transition: opacity .15s ease, transform .15s ease;
+  }
+  .tile:hover .remove, .tile:focus-within .remove{ opacity:1; transform:scale(1); }
+  .empty-hint{ font-size:0.85rem; color:var(--ink-faint); font-style:italic; }
+
+  .trash-zone{
+    margin-top:0.7rem; padding:0.6rem 0.9rem; border:1px dashed var(--line); border-radius:8px;
+    font-size:0.78rem; color:var(--ink-faint); text-align:center;
+    transition: border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  .trash-zone.active-drop{ border-color:var(--danger); color:var(--danger); background:var(--danger-soft); }
+
+  .val-picker{ display:flex; align-items:center; gap:0.7rem; margin-top:1.2rem; flex-wrap:wrap; }
+  .val-picker label{ font-size:0.85rem; color:var(--ink-soft); }
+  .val-picker input{
+    width:4.5rem; padding:0.4rem 0.6rem; border-radius:7px; border:1px solid var(--line);
+    background:var(--paper-raised); color:var(--ink); font-size:1rem; text-align:center;
+  }
+  .val-picker .hint{ font-size:0.78rem; color:var(--ink-faint); }
+
+  .presets{ margin-top:1.3rem; }
+
+  .viz-card{ margin-top:2rem; background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:1.6rem 1.6rem 1.4rem; box-shadow:var(--shadow); }
+  .viz-head{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.3rem; }
+  .phase-chip{ font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.28rem 0.65rem; border-radius:20px; font-weight:600; background:var(--line-soft); color:var(--ink-soft); }
+  .phase-chip.scan{ background:var(--read-soft); color:var(--read); }
+  .phase-chip.done{ background:var(--target-bg); color:var(--target-text); }
+  .step-counter{ font-size:0.78rem; color:var(--ink-faint); }
+
+  .track-label{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.5rem; }
+  .track-block + .track-block{ margin-top:1.9rem; }
+
+  .narration{ margin-top:1.5rem; background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:0.85rem 1rem; font-size:0.86rem; color:var(--ink); min-height:2.6em; display:flex; align-items:center; }
+  .narration .prompt{ color:var(--read); margin-right:0.6rem; flex:none; }
+
+  .controls{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-top:1.2rem; }
+
+  .aside{
+    margin-top:1.6rem; border-left:3px solid var(--write); background:var(--paper-raised);
+    padding:0.95rem 1.2rem; border-radius:0 8px 8px 0; font-size:0.92rem; color:var(--ink-soft);
+  }
+  .aside p{ max-width:none; margin:0.4rem 0 0; }
+  .aside p:first-child{ margin-top:0; }
+  .aside strong{ color:var(--ink); }
+
+  footer{ padding-top:3.2rem; text-align:center; color:var(--ink-faint); font-size:0.82rem; }
+  footer a{ color:var(--ink-faint); text-decoration:underline; }
+
+  @media (prefers-reduced-motion: reduce){ *{ transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; } }
+</style>
+
+<main>
+
+  <section class="hero">
+    <p class="eyebrow">Two Pointers · O(n) time, O(1) space</p>
+    <h1>Remove Element</h1>
+    <p class="lede">Given an array and a target value, wipe out every occurrence of that value in place — the order of what's left doesn't matter, only that the first <code>k</code> slots hold everything else.</p>
+
+    <div class="hero-example">
+      <div class="hero-col">
+        <div class="cap">Input (val = 2)</div>
+        <div class="track-row" id="heroIn"></div>
+      </div>
+      <div class="hero-arrow">→</div>
+      <div class="hero-col">
+        <div class="cap">One valid output (k = 5)</div>
+        <div class="track-row" id="heroOut"></div>
+      </div>
+    </div>
+
+    <ul class="rules">
+      <li><strong>Order may change.</strong> Unlike Duplicate Zeros, nothing here has to stay in its original sequence.</li>
+      <li><strong>Return a count, not an array.</strong> <code>k</code> is however many elements are left that don't equal <code>val</code>.</li>
+      <li><strong>Only the first k slots are checked.</strong> Everything from index <code>k</code> onward is ignored by the judge — leave whatever's there.</li>
+      <li><strong>In place.</strong> Mutate the array directly.</li>
+    </ul>
+  </section>
+
+  <section>
+    <p class="eyebrow">The trap</p>
+    <h2>Why deleting-as-you-go is O(n²)</h2>
+    <p class="prose-narrow">The obvious move is to delete every matching element as you find it — in Ruby, <code>arr.delete_at(i)</code>. It works, but every deletion shifts everything after it one step left, which is O(n) per call. An array that's entirely the target value triggers that shift n times.</p>
+    <p class="prose-narrow">The optimal version never shifts anything. It just decides, for each element, whether it survives — and if it does, writes it to the next open slot.</p>
+    <div class="stats">
+      <div class="stat-card">
+        <h3>Delete as you find it</h3>
+        <div class="stat-value">O(n²) time</div>
+        <p>Every match can trigger an O(n) shift of everything after it.</p>
+      </div>
+      <div class="stat-card optimal">
+        <h3>Two-pointer overwrite</h3>
+        <div class="stat-value">O(n) time · O(1) space</div>
+        <p>One forward pass. Keep it or skip it — never shift.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="builder-section">
+    <p class="eyebrow">Your turn</p>
+    <h2>Build an array to test</h2>
+    <p class="prose-narrow">Drag tiles from the palette to insert them, drag array tiles to reorder or remove them, or click any tile in your array to set it as the value to remove.</p>
+
+    <div class="builder-block">
+      <div class="builder-label">Palette — click to append, drag to insert</div>
+      <div class="palette" id="palette" role="group" aria-label="Number tiles to add"></div>
+    </div>
+
+    <div class="array-zone">
+      <div class="builder-label">Your array (max 10 elements)</div>
+      <div class="array-track" id="arrayTrack" role="list" aria-label="Your array, drag tiles to reorder, click a tile to target its value"></div>
+      <div class="trash-zone" id="trashZone">drag a tile here to remove it</div>
+    </div>
+
+    <div class="val-picker">
+      <label for="valInput">Value to remove (val):</label>
+      <input type="number" id="valInput" min="0" max="9" value="2">
+      <span class="hint">or click any tile above</span>
+    </div>
+
+    <div class="presets">
+      <div class="builder-label">Or load an example</div>
+      <div class="btn-row">
+        <button data-preset="3,2,2,3" data-val="3">Example 1</button>
+        <button data-preset="0,1,2,2,3,0,4,2" data-val="2">Example 2</button>
+        <button data-preset="7,7,7" data-val="7">Every element removed</button>
+        <button data-preset="1,2,3" data-val="9">Nothing removed</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="viz-section">
+    <p class="eyebrow">Watch it solve</p>
+    <h2>One pass, two pointers</h2>
+    <p class="prose-narrow"><code>read</code> scans every element. <code>write</code> only advances when something survives — so <code>write</code> is always at or behind <code>read</code>, never ahead of it. That's exactly why this problem never needs a backward pass: overwriting forward is always safe when the write pointer can't outrun the read pointer.</p>
+
+    <div class="viz-card">
+      <div class="viz-head">
+        <span class="phase-chip" id="phaseChip">Ready</span>
+        <span class="step-counter" id="stepCounter">Step 0 / 0</span>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label">Source — original array</div>
+        <div class="track-wrap"><div class="track-flip-anchor" id="anchorA">
+          <div class="track-row" id="trackA"></div>
+          <div class="idx-row" id="idxA"></div>
+        </div></div>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label">Destination — kept values, filling left to right</div>
+        <div class="track-wrap"><div class="track-flip-anchor" id="anchorB">
+          <div class="track-row" id="trackB"></div>
+          <div class="idx-row" id="idxB"></div>
+        </div></div>
+      </div>
+
+      <div class="narration" id="narration"><span class="prompt">›</span><span id="narrationText">Press "Next" or "Play" to begin.</span></div>
+
+      <div class="controls">
+        <div class="btn-row">
+          <button id="btnReset" class="ghost">⟲ Reset</button>
+          <button id="btnPrev">◀ Prev</button>
+          <button id="btnNext">Next ▶</button>
+          <button id="btnPlay" class="primary">▶ Play</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">A further refinement</p>
+    <h2>Swapping with the end</h2>
+    <p class="prose-narrow">The version above copies every surviving element forward, even ones that don't need to move. A second optimal approach trades that for fewer writes when <code>val</code> is rare: keep a <code>left</code> pointer scanning forward and a <code>right</code> pointer starting at the end. When <code>left</code> lands on <code>val</code>, swap it with whatever's at <code>right - 1</code> and shrink the range from the right — instead of shifting the whole remainder, you just move the last element into the gap.</p>
+    <div class="aside">
+      <p><strong>Same array, example 1:</strong> <code>[3, 2, 2, 3]</code>, val = 3.</p>
+      <p><code>left=0</code> reads 3 (a match) → swap with <code>right-1</code> (index 3, value 3) → array becomes <code>[3, 2, 2, 3]</code> (no visible change, both were 3) → shrink: <code>right = 3</code>.</p>
+      <p><code>left=0</code> reads 3 again (the swapped-in value) → swap with new <code>right-1</code> (index 2, value 2) → array becomes <code>[2, 2, 3, 3]</code> → shrink: <code>right = 2</code>.</p>
+      <p><code>left=0</code> reads 2 (not a match) → keep it, <code>left = 1</code>. <code>left=1</code> reads 2 → keep it, <code>left = 2</code>. Now <code>left == right == 2</code>: done. <code>k = 2</code>, and the first two slots hold <code>[2, 2]</code> — correct, in fewer writes than the copy-forward version needed.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Recap</p>
+    <h2>Complexity</h2>
+    <div class="stats">
+      <div class="stat-card optimal">
+        <h3>Time</h3>
+        <div class="stat-value">O(n)</div>
+        <p>A single forward pass visits each element exactly once.</p>
+      </div>
+      <div class="stat-card optimal">
+        <h3>Space</h3>
+        <div class="stat-value">O(1)</div>
+        <p>Just <code>read</code> and <code>write</code>. The two tracks above are really one array, mutated in place.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Based on <a href="https://leetcode.com/problems/remove-element/" target="_blank" rel="noopener">LeetCode 27 — Remove Element</a>.
+  </footer>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const MAX_N = 10;
+  let idCounter = 0;
+  const makeTile = (value) => ({ id: 't' + (idCounter++), value });
+
+  let tiles = [0,1,2,2,3,0,4,2].map(makeTile);
+  let targetVal = 2;
+  let analysis = null;
+  let stepIndex = -1;
+  let playing = false;
+  let playTimer = null;
+  const speed = 900;
+  let draggedTileId = null;
+  let draggedPaletteValue = null;
+
+  function analyze(vals, val){
+    const n = vals.length;
+    let write = 0;
+    const steps = [];
+    for (let read = 0; read < n; read++){
+      const kept = vals[read] !== val;
+      steps.push({ phase:'scan', read, writeBefore: write, kept, value: vals[read] });
+      if (kept) write++;
+    }
+    steps.push({ phase:'done' });
+    return { vals, n, val, k: write, steps };
+  }
+
+  function narrate(a, idx){
+    if (idx < 0) return `Press "Next" or "Play" to scan left to right, comparing each value to val = ${a.val}.`;
+    const s = a.steps[idx];
+    if (s.phase === 'scan'){
+      return s.kept
+        ? `Read index ${s.read} → value ${s.value}, not equal to ${a.val}. Keep it: write to index ${s.writeBefore}, both pointers move forward.`
+        : `Read index ${s.read} → value ${s.value}, equal to ${a.val}. Skip it — only the read pointer moves forward.`;
+    }
+    return `Done. k = ${a.k}. The first ${a.k} slot${a.k === 1 ? '' : 's'} hold everything that wasn't ${a.val}; index ${a.k} onward is never checked.`;
+  }
+
+  function makeCell(value, extraClass){
+    const d = document.createElement('div');
+    d.className = 'cell' + (extraClass ? ' ' + extraClass : '');
+    if (value !== null && value !== undefined) d.textContent = value;
+    return d;
+  }
+  function makeIdx(i){
+    const d = document.createElement('div');
+    d.className = 'idx';
+    d.textContent = i;
+    return d;
+  }
+
+  function renderHero(){
+    const inArr = [0,1,2,2,3,0,4,2];
+    const outArr = [0,1,4,0,3];
+    const heroIn = document.getElementById('heroIn');
+    const heroOut = document.getElementById('heroOut');
+    heroIn.innerHTML = ''; heroOut.innerHTML = '';
+    inArr.forEach(v => heroIn.appendChild(makeCell(v, v === 2 ? 'target' : '')));
+    outArr.forEach(v => heroOut.appendChild(makeCell(v)));
+    for (let i = 0; i < 3; i++) heroOut.appendChild(makeCell('_', 'empty'));
+  }
+
+  function renderPalette(){
+    const pal = document.getElementById('palette');
+    pal.innerHTML = '';
+    for (let v = 0; v <= 9; v++){
+      const b = document.createElement('button');
+      b.className = 'palette-tile';
+      b.type = 'button';
+      b.textContent = v;
+      b.dataset.v = v;
+      b.setAttribute('draggable', 'true');
+      b.setAttribute('aria-label', `Add ${v} to your array`);
+      b.addEventListener('click', () => appendTile(v));
+      b.addEventListener('dragstart', (e) => {
+        draggedPaletteValue = v;
+        e.dataTransfer.effectAllowed = 'copy';
+        e.dataTransfer.setData('text/plain', 'palette:' + v);
+      });
+      b.addEventListener('dragend', () => { draggedPaletteValue = null; });
+      pal.appendChild(b);
+    }
+  }
+
+  function flip(container, mutate){
+    if (REDUCE_MOTION){ mutate(); return; }
+    const before = new Map();
+    [...container.children].forEach(el => { if (el.dataset && el.dataset.id) before.set(el.dataset.id, el.getBoundingClientRect()); });
+    mutate();
+    requestAnimationFrame(() => {
+      [...container.children].forEach(el => {
+        const id = el.dataset && el.dataset.id;
+        if (!id) return;
+        const b = before.get(id);
+        if (!b){
+          el.animate([{ opacity:0, transform:'scale(0.6)' }, { opacity:1, transform:'scale(1)' }], { duration:220, easing:'ease-out' });
+          return;
+        }
+        const a = el.getBoundingClientRect();
+        const dx = b.left - a.left, dy = b.top - a.top;
+        if (dx || dy) el.animate([{ transform:`translate(${dx}px, ${dy}px)` }, { transform:'translate(0,0)' }], { duration:260, easing:'cubic-bezier(.2,.8,.2,1)' });
+      });
+    });
+  }
+
+  function appendTile(v){
+    if (tiles.length >= MAX_N) return flashFull();
+    flip(document.getElementById('arrayTrack'), () => { tiles.push(makeTile(v)); renderArrayTrack(); });
+    afterArrayChange();
+  }
+  function insertTileAt(v, index){
+    if (tiles.length >= MAX_N) return flashFull();
+    flip(document.getElementById('arrayTrack'), () => { tiles.splice(index, 0, makeTile(v)); renderArrayTrack(); });
+    afterArrayChange();
+  }
+  function removeTileById(id){
+    const track = document.getElementById('arrayTrack');
+    const el = track.querySelector(`[data-id="${id}"]`);
+    const finish = () => {
+      flip(track, () => { tiles = tiles.filter(t => t.id !== id); renderArrayTrack(); });
+      afterArrayChange();
+    };
+    if (el && !REDUCE_MOTION){
+      el.animate([{ opacity:1, transform:'scale(1)' }, { opacity:0, transform:'scale(0.5)' }], { duration:160, easing:'ease-in' }).onfinish = finish;
+    } else finish();
+  }
+  function flashFull(){
+    document.getElementById('arrayTrack').animate([{ background:'var(--danger-soft)' }, { background:'transparent' }], { duration:500 });
+  }
+
+  function positionOfClientX(clientX){
+    const track = document.getElementById('arrayTrack');
+    const kids = [...track.children].filter(c => c.classList.contains('tile'));
+    for (let i = 0; i < kids.length; i++){
+      const r = kids[i].getBoundingClientRect();
+      if (clientX < r.left + r.width / 2) return i;
+    }
+    return kids.length;
+  }
+
+  function setVal(v){
+    targetVal = v;
+    document.getElementById('valInput').value = v;
+    afterArrayChange();
+  }
+
+  function renderArrayTrack(){
+    const track = document.getElementById('arrayTrack');
+    track.innerHTML = '';
+    if (tiles.length === 0){
+      const hint = document.createElement('div');
+      hint.className = 'empty-hint';
+      hint.textContent = 'Empty — add a tile from the palette above.';
+      track.appendChild(hint);
+    }
+    tiles.forEach((t, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'tile';
+      wrap.dataset.id = t.id;
+      wrap.setAttribute('draggable', 'true');
+      wrap.setAttribute('role', 'listitem');
+      wrap.setAttribute('tabindex', '0');
+      wrap.setAttribute('aria-label', `Value ${t.value}, position ${i + 1} of ${tiles.length}. Click to set as target value, arrow keys to move, Delete to remove.`);
+
+      const cell = makeCell(t.value, t.value === targetVal ? 'target clickable' : 'clickable');
+      cell.addEventListener('click', () => setVal(t.value));
+      wrap.appendChild(cell);
+
+      const rm = document.createElement('button');
+      rm.className = 'remove';
+      rm.type = 'button';
+      rm.textContent = '×';
+      rm.setAttribute('aria-label', `Remove value ${t.value}`);
+      rm.addEventListener('click', (e) => { e.stopPropagation(); removeTileById(t.id); });
+      wrap.appendChild(rm);
+
+      wrap.addEventListener('dragstart', (e) => {
+        draggedTileId = t.id;
+        wrap.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', 'tile:' + t.id);
+      });
+      wrap.addEventListener('dragend', () => {
+        wrap.classList.remove('dragging');
+        draggedTileId = null;
+        document.getElementById('trashZone').classList.remove('active-drop');
+      });
+      wrap.addEventListener('keydown', (e) => {
+        const idx = tiles.findIndex(x => x.id === t.id);
+        if (e.key === 'ArrowLeft' && idx > 0){
+          e.preventDefault();
+          flip(track, () => { [tiles[idx-1], tiles[idx]] = [tiles[idx], tiles[idx-1]]; renderArrayTrack(); });
+          afterArrayChange();
+          requestAnimationFrame(() => track.querySelector(`[data-id="${t.id}"]`).focus());
+        } else if (e.key === 'ArrowRight' && idx < tiles.length - 1){
+          e.preventDefault();
+          flip(track, () => { [tiles[idx], tiles[idx+1]] = [tiles[idx+1], tiles[idx]]; renderArrayTrack(); });
+          afterArrayChange();
+          requestAnimationFrame(() => track.querySelector(`[data-id="${t.id}"]`).focus());
+        } else if (e.key === 'Delete' || e.key === 'Backspace'){
+          e.preventDefault();
+          removeTileById(t.id);
+        } else if (e.key === 'Enter' || e.key === ' '){
+          e.preventDefault();
+          setVal(t.value);
+        }
+      });
+
+      track.appendChild(wrap);
+    });
+  }
+
+  function setupTrackDropZone(){
+    const track = document.getElementById('arrayTrack');
+    track.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = draggedPaletteValue !== null ? 'copy' : 'move';
+      track.classList.add('drop-hover');
+      if (draggedTileId !== null){
+        const targetIndex = positionOfClientX(e.clientX);
+        const currentIndex = tiles.findIndex(t => t.id === draggedTileId);
+        if (currentIndex !== -1 && targetIndex !== currentIndex && targetIndex !== currentIndex + 1){
+          const adjTarget = targetIndex > currentIndex ? targetIndex - 1 : targetIndex;
+          if (adjTarget !== currentIndex){
+            flip(track, () => {
+              const [moved] = tiles.splice(currentIndex, 1);
+              tiles.splice(adjTarget, 0, moved);
+              renderArrayTrack();
+            });
+          }
+        }
+      }
+    });
+    track.addEventListener('dragleave', (e) => { if (e.target === track) track.classList.remove('drop-hover'); });
+    track.addEventListener('drop', (e) => {
+      e.preventDefault();
+      track.classList.remove('drop-hover');
+      if (draggedPaletteValue !== null){
+        insertTileAt(draggedPaletteValue, positionOfClientX(e.clientX));
+      } else if (draggedTileId !== null){
+        afterArrayChange();
+      }
+    });
+
+    const trash = document.getElementById('trashZone');
+    trash.addEventListener('dragover', (e) => { if (draggedTileId !== null){ e.preventDefault(); trash.classList.add('active-drop'); } });
+    trash.addEventListener('dragleave', () => trash.classList.remove('active-drop'));
+    trash.addEventListener('drop', (e) => {
+      e.preventDefault();
+      trash.classList.remove('active-drop');
+      if (draggedTileId !== null) removeTileById(draggedTileId);
+    });
+  }
+
+  function afterArrayChange(){
+    stepIndex = -1;
+    stopPlaying();
+    analysis = analyze(tiles.map(t => t.value), targetVal);
+    renderViz();
+  }
+
+  function renderTrackA(){
+    const trackA = document.getElementById('trackA');
+    const idxA = document.getElementById('idxA');
+    trackA.innerHTML = ''; idxA.innerHTML = '';
+    if (!analysis) return;
+    const isDone = stepIndex >= analysis.n;
+    const currentRead = (stepIndex >= 0 && stepIndex < analysis.n) ? analysis.steps[stepIndex].read : -1;
+    analysis.vals.forEach((v, i) => {
+      let cls = '';
+      if (i === currentRead) cls = 'reading';
+      else if (i < currentRead || isDone){
+        const step = analysis.steps[i];
+        cls = step.kept ? 'kept' : 'skipped';
+      }
+      if (v === analysis.val) cls += ' target';
+      trackA.appendChild(makeCell(v, cls.trim()));
+      idxA.appendChild(makeIdx(i));
+    });
+  }
+
+  function renderTrackB(){
+    const trackB = document.getElementById('trackB');
+    const idxB = document.getElementById('idxB');
+    trackB.innerHTML = ''; idxB.innerHTML = '';
+    if (!analysis) return;
+    const n = analysis.n;
+    const upTo = stepIndex < 0 ? 0 : Math.min(stepIndex + 1, n);
+    const kept = [];
+    for (let i = 0; i < upTo; i++){
+      if (analysis.steps[i].kept) kept.push(analysis.steps[i].value);
+    }
+    const writeSoFar = kept.length;
+    const justWroteThisStep = stepIndex >= 0 && stepIndex < n && analysis.steps[stepIndex].kept;
+    for (let i = 0; i < n; i++){
+      const isJustWritten = justWroteThisStep && i === writeSoFar - 1;
+      if (i < writeSoFar) trackB.appendChild(makeCell(kept[i], isJustWritten ? 'writing' : ''));
+      else trackB.appendChild(makeCell('_', 'empty'));
+      idxB.appendChild(makeIdx(i));
+    }
+  }
+
+  function positionCaret(caretEl, track, index){
+    const cellEl = track.children[index];
+    if (!cellEl){ caretEl.style.display = 'none'; return; }
+    caretEl.style.display = '';
+    caretEl.style.left = (cellEl.offsetLeft + cellEl.offsetWidth / 2) + 'px';
+  }
+
+  function renderCarets(){
+    let readCaret = document.getElementById('readCaret');
+    let writeCaret = document.getElementById('writeCaret');
+    const anchorA = document.getElementById('anchorA');
+    const anchorB = document.getElementById('anchorB');
+    if (!readCaret){
+      readCaret = document.createElement('div');
+      readCaret.id = 'readCaret'; readCaret.className = 'caret read'; readCaret.textContent = 'read';
+      anchorA.appendChild(readCaret);
+    }
+    if (!writeCaret){
+      writeCaret = document.createElement('div');
+      writeCaret.id = 'writeCaret'; writeCaret.className = 'caret write'; writeCaret.textContent = 'write';
+      anchorB.appendChild(writeCaret);
+    }
+    if (!analysis || stepIndex < 0 || stepIndex >= analysis.n){
+      readCaret.style.display = 'none';
+      writeCaret.style.display = 'none';
+      return;
+    }
+    const s = analysis.steps[stepIndex];
+    positionCaret(readCaret, document.getElementById('trackA'), s.read);
+    positionCaret(writeCaret, document.getElementById('trackB'), s.writeBefore);
+  }
+
+  function renderPhaseAndCounter(){
+    const chip = document.getElementById('phaseChip');
+    const counter = document.getElementById('stepCounter');
+    if (!analysis){ chip.textContent = 'Ready'; chip.className = 'phase-chip'; counter.textContent = 'Step 0 / 0'; return; }
+    const total = analysis.steps.length;
+    if (stepIndex < 0){ chip.textContent = 'Ready'; chip.className = 'phase-chip'; }
+    else if (stepIndex < analysis.n){ chip.textContent = 'Scanning'; chip.className = 'phase-chip scan'; }
+    else { chip.textContent = 'Done'; chip.className = 'phase-chip done'; }
+    counter.textContent = `Step ${stepIndex + 1} / ${total}`;
+  }
+
+  function renderNarration(){
+    document.getElementById('narrationText').textContent = analysis ? narrate(analysis, stepIndex) : 'Build an array above to begin.';
+  }
+
+  function renderControls(){
+    const atStart = stepIndex < 0;
+    const atEnd = !analysis || stepIndex >= analysis.steps.length - 1;
+    document.getElementById('btnPrev').disabled = atStart;
+    document.getElementById('btnNext').disabled = atEnd;
+    document.getElementById('btnPlay').disabled = atEnd;
+    document.getElementById('btnPlay').textContent = playing ? '⏸ Pause' : '▶ Play';
+  }
+
+  function renderViz(){
+    renderTrackA();
+    renderTrackB();
+    renderPhaseAndCounter();
+    renderNarration();
+    renderControls();
+    requestAnimationFrame(renderCarets);
+  }
+
+  function goNext(){
+    if (!analysis || stepIndex >= analysis.steps.length - 1) return stopPlaying();
+    stepIndex++;
+    renderViz();
+    if (analysis && stepIndex >= analysis.steps.length - 1) stopPlaying();
+  }
+  function goPrev(){
+    if (stepIndex < 0) return;
+    stepIndex--;
+    renderViz();
+  }
+  function doReset(){ stepIndex = -1; stopPlaying(); renderViz(); }
+  function startPlaying(){
+    if (!analysis || stepIndex >= analysis.steps.length - 1) return;
+    playing = true;
+    renderControls();
+    playTimer = setInterval(() => {
+      goNext();
+      if (!analysis || stepIndex >= analysis.steps.length - 1) stopPlaying();
+    }, speed);
+  }
+  function stopPlaying(){ playing = false; if (playTimer) clearInterval(playTimer); playTimer = null; renderControls(); }
+
+  function wireEvents(){
+    setupTrackDropZone();
+    document.querySelectorAll('[data-preset]').forEach(b => {
+      b.addEventListener('click', () => {
+        const vals = b.dataset.preset.split(',').map(Number);
+        targetVal = Number(b.dataset.val);
+        document.getElementById('valInput').value = targetVal;
+        tiles = vals.map(makeTile);
+        renderArrayTrack();
+        afterArrayChange();
+      });
+    });
+    document.getElementById('valInput').addEventListener('input', (e) => {
+      const v = Number(e.target.value);
+      if (!Number.isNaN(v)){ targetVal = v; afterArrayChange(); }
+    });
+    document.getElementById('btnNext').addEventListener('click', () => { stopPlaying(); goNext(); });
+    document.getElementById('btnPrev').addEventListener('click', () => { stopPlaying(); goPrev(); });
+    document.getElementById('btnReset').addEventListener('click', doReset);
+    document.getElementById('btnPlay').addEventListener('click', () => { playing ? stopPlaying() : startPlaying(); });
+    window.addEventListener('resize', () => requestAnimationFrame(renderCarets));
+  }
+
+  renderHero();
+  renderPalette();
+  renderArrayTrack();
+  wireEvents();
+  afterArrayChange();
+})();
+</script>
