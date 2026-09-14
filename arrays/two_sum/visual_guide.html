@@ -1,0 +1,843 @@
+<title>Two Sum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root{
+    --paper:#EDF1F2;
+    --paper-raised:#F8FAFB;
+    --ink:#1B2A3A;
+    --ink-soft:#4C6070;
+    --ink-faint:#8494A0;
+    --line:rgba(27,42,58,0.16);
+    --line-soft:rgba(27,42,58,0.09);
+    --read:#1F7A8C;
+    --read-soft:rgba(31,122,140,0.14);
+    --write:#B85C1E;
+    --write-soft:rgba(184,92,30,0.14);
+    --target-bg:#1B2A3A;
+    --target-text:#EDF1F2;
+    --danger:#A6402E;
+    --danger-soft:rgba(166,64,46,0.14);
+    --shadow:0 1px 2px rgba(27,42,58,0.07), 0 10px 28px rgba(27,42,58,0.07);
+    --cell-w:52px;
+    --cell-gap:8px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) {
+      --paper:#101A22;
+      --paper-raised:#16232D;
+      --ink:#E7ECEE;
+      --ink-soft:#9FB0BB;
+      --ink-faint:#5E727D;
+      --line:rgba(231,236,238,0.16);
+      --line-soft:rgba(231,236,238,0.08);
+      --read:#5FC3D6;
+      --read-soft:rgba(95,195,214,0.16);
+      --write:#E38A4C;
+      --write-soft:rgba(227,138,76,0.16);
+      --target-bg:#E7ECEE;
+      --target-text:#101A22;
+      --danger:#E07A63;
+      --danger-soft:rgba(224,122,99,0.16);
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#101A22;
+    --paper-raised:#16232D;
+    --ink:#E7ECEE;
+    --ink-soft:#9FB0BB;
+    --ink-faint:#5E727D;
+    --line:rgba(231,236,238,0.16);
+    --line-soft:rgba(231,236,238,0.08);
+    --read:#5FC3D6;
+    --read-soft:rgba(95,195,214,0.16);
+    --write:#E38A4C;
+    --write-soft:rgba(227,138,76,0.16);
+    --target-bg:#E7ECEE;
+    --target-text:#101A22;
+    --danger:#E07A63;
+    --danger-soft:rgba(224,122,99,0.16);
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  ::selection{ background:var(--read-soft); }
+
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0/100% 28px,
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0/28px 100%,
+      var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4', Georgia, 'Times New Roman', serif;
+    font-size:1.05rem;
+    line-height:1.65;
+  }
+
+  h1,h2,h3,.ui{ font-family:'IBM Plex Sans', system-ui, sans-serif; }
+  .mono, code, .cell, .caret, .narration, .stat-value, button, .step-counter, .map-chip{
+    font-family:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  }
+  a{ color:var(--read); }
+
+  main{ max-width: 900px; margin: 0 auto; padding: 4.5rem 1.5rem 6rem; }
+  section{ padding: 3.2rem 0; }
+  section + section{ border-top: 1px dashed var(--line); }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.12em;
+    text-transform:uppercase; color:var(--read); margin: 0 0 0.9rem;
+  }
+  h1{ font-size:clamp(2.1rem, 5.2vw, 3.3rem); line-height:1.05; margin:0 0 1rem; font-weight:700; letter-spacing:-0.01em; text-wrap:balance; }
+  h2{ font-size:clamp(1.4rem, 3vw, 1.85rem); margin: 0 0 1.1rem; font-weight:600; letter-spacing:-0.005em; text-wrap:balance; }
+  h3{ font-size:1.05rem; margin:0 0 0.6rem; font-weight:600; }
+  p{ max-width:66ch; color:var(--ink); }
+  p.lede{ font-size:1.2rem; color:var(--ink-soft); max-width:56ch; }
+  .prose-narrow{ max-width:62ch; }
+
+  .rules{ list-style:none; margin:1.6rem 0 0; padding:0; display:grid; gap:0.7rem; }
+  .rules li{ display:flex; gap:0.8rem; align-items:baseline; font-size:0.98rem; color:var(--ink-soft); }
+  .rules li::before{ content:"—"; color:var(--read); font-family:'IBM Plex Mono',monospace; flex:none; }
+  .rules strong{ color:var(--ink); font-weight:600; }
+
+  .track-row{ display:flex; gap:var(--cell-gap); position:relative; align-items:center; }
+  .cell{
+    width:var(--cell-w); height:var(--cell-w); flex:none;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:600; font-size:1.05rem;
+    background:var(--paper-raised); border:1.5px solid var(--line); border-radius:6px;
+    color:var(--ink); position:relative;
+    transition: background .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease, opacity .25s ease;
+  }
+  .cell.empty{ background:transparent; border-style:dashed; color:var(--ink-faint); }
+  .cell.skipped{ opacity:0.35; }
+  .cell.kept{ box-shadow: inset 0 0 0 2px var(--read-soft); }
+  .cell.reading{ border-color:var(--read); box-shadow: 0 0 0 3px var(--read-soft); }
+  .cell.target{ border-color:var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
+  .hero-op{ font-size:1.3rem; color:var(--ink-faint); flex:none; display:flex; align-items:center; }
+  .idx-row{ display:flex; gap:var(--cell-gap); margin-top:0.35rem; }
+  .idx{ width:var(--cell-w); flex:none; text-align:center; font-size:0.68rem; color:var(--ink-faint); letter-spacing:0.02em; }
+  .track-wrap{ overflow-x:auto; padding-bottom:2px; }
+  .track-flip-anchor{ position:relative; }
+
+  .caret{
+    position:absolute; top:-1.55rem; transform:translateX(-50%);
+    font-size:0.62rem; letter-spacing:0.06em; text-transform:uppercase;
+    padding:0.15rem 0.4rem; border-radius:4px; white-space:nowrap; pointer-events:none;
+    transition: left .35s cubic-bezier(.2,.8,.2,1);
+    background:var(--read-soft); color:var(--read);
+  }
+  .caret::after{ content:""; position:absolute; left:50%; bottom:-4px; transform:translateX(-50%); border:4px solid transparent; border-top-color: var(--read-soft); }
+
+  .hero-example{ margin-top:2.2rem; display:flex; align-items:center; gap:1.4rem; flex-wrap:wrap; }
+  .hero-arrow{ color:var(--ink-faint); font-size:1.4rem; flex:none; }
+  .hero-col .cap{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-faint); margin-bottom:0.5rem; }
+
+  .stats{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.8rem; }
+  .stat-card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem; box-shadow:var(--shadow); }
+  .stat-card h3{ font-family:'IBM Plex Sans',sans-serif; font-size:0.95rem; color:var(--ink-soft); font-weight:500; }
+  .stat-value{ font-size:1.5rem; font-weight:700; margin:0.3rem 0; }
+  .stat-card.optimal .stat-value{ color:var(--read); }
+  .stat-card p{ font-size:0.86rem; color:var(--ink-faint); margin:0; }
+  @media (max-width:560px){ .stats{ grid-template-columns:1fr; } }
+
+  button{
+    font-size:0.82rem; border-radius:7px; border:1px solid var(--line);
+    background:var(--paper-raised); color:var(--ink); padding:0.5rem 0.85rem; cursor:pointer;
+    transition: border-color .15s ease, background .15s ease, color .15s ease, opacity .15s ease;
+  }
+  button:hover:not(:disabled){ border-color:var(--read); color:var(--read); }
+  button:focus-visible, .cell:focus-visible, .palette-tile:focus-visible, input:focus-visible{ outline:2px solid var(--read); outline-offset:2px; }
+  button:disabled{ opacity:0.4; cursor:not-allowed; }
+  button.primary{ background:var(--read); border-color:var(--read); color:var(--paper); }
+  button.primary:hover:not(:disabled){ color:var(--paper); opacity:0.88; }
+  button.ghost{ background:transparent; }
+  .btn-row{ display:flex; flex-wrap:wrap; gap:0.55rem; align-items:center; }
+
+  .builder-block{ margin-top:1.8rem; }
+  .builder-label{ font-size:0.78rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.6rem; }
+  .palette{ display:flex; flex-wrap:wrap; gap:0.5rem; }
+  .palette-tile{
+    width:38px; height:38px; border-radius:7px; border:1px solid var(--line); background:var(--paper-raised);
+    display:flex; align-items:center; justify-content:center; font-weight:600; cursor:grab;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .palette-tile:hover{ border-color:var(--read); transform:translateY(-2px); }
+  .palette-tile:active{ cursor:grabbing; }
+
+  .array-zone{ margin-top:1.1rem; }
+  .array-track{
+    min-height: calc(var(--cell-w) + 4px); display:flex; gap:var(--cell-gap); flex-wrap:wrap; align-items:center;
+    padding:0.4rem; border-radius:10px; transition: background .15s ease;
+  }
+  .array-track.drop-hover{ background:var(--read-soft); }
+  .tile{ position:relative; cursor:grab; }
+  .tile:active{ cursor:grabbing; }
+  .tile.dragging{ opacity:0.35; }
+  .tile .remove{
+    position:absolute; top:-8px; right:-8px; width:18px; height:18px; border-radius:50%;
+    background:var(--danger); color:#fff; font-size:0.65rem; line-height:1;
+    display:flex; align-items:center; justify-content:center; border:none; padding:0;
+    opacity:0; transform:scale(0.8); transition: opacity .15s ease, transform .15s ease;
+  }
+  .tile:hover .remove, .tile:focus-within .remove{ opacity:1; transform:scale(1); }
+  .empty-hint{ font-size:0.85rem; color:var(--ink-faint); font-style:italic; }
+
+  .trash-zone{
+    margin-top:0.7rem; padding:0.6rem 0.9rem; border:1px dashed var(--line); border-radius:8px;
+    font-size:0.78rem; color:var(--ink-faint); text-align:center;
+    transition: border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  .trash-zone.active-drop{ border-color:var(--danger); color:var(--danger); background:var(--danger-soft); }
+
+  .val-picker{ display:flex; align-items:center; gap:0.7rem; margin-top:1.2rem; flex-wrap:wrap; }
+  .val-picker label{ font-size:0.85rem; color:var(--ink-soft); }
+  .val-picker input{
+    width:5.5rem; padding:0.4rem 0.6rem; border-radius:7px; border:1px solid var(--line);
+    background:var(--paper-raised); color:var(--ink); font-size:1rem; text-align:center;
+  }
+  .val-picker .hint{ font-size:0.78rem; color:var(--ink-faint); }
+
+  .presets{ margin-top:1.3rem; }
+
+  .viz-card{ margin-top:2rem; background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:1.6rem 1.6rem 1.4rem; box-shadow:var(--shadow); }
+  .viz-head{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.3rem; }
+  .phase-chip{ font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.28rem 0.65rem; border-radius:20px; font-weight:600; background:var(--line-soft); color:var(--ink-soft); }
+  .phase-chip.scan{ background:var(--read-soft); color:var(--read); }
+  .phase-chip.found{ background:var(--target-bg); color:var(--target-text); }
+  .phase-chip.nomatch{ background:var(--danger-soft); color:var(--danger); }
+  .step-counter{ font-size:0.78rem; color:var(--ink-faint); }
+
+  .track-label{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.5rem; }
+  .track-block + .track-block{ margin-top:1.9rem; }
+
+  .chip-row{ display:flex; flex-wrap:wrap; gap:0.5rem; min-height: calc(var(--cell-w) + 4px); align-items:center; }
+  .map-chip{
+    padding:0.45rem 0.75rem; border-radius:20px; border:1.5px solid var(--line); background:var(--paper);
+    font-weight:600; font-size:0.9rem; color:var(--ink);
+    transition: border-color .25s ease, box-shadow .25s ease, color .25s ease;
+  }
+  .map-chip .arrow{ color:var(--ink-faint); margin:0 0.35rem; }
+  .map-chip.hit{ border-color:var(--danger); box-shadow:0 0 0 3px var(--danger-soft); color:var(--danger); }
+  .chip-empty{ font-size:0.85rem; color:var(--ink-faint); font-style:italic; }
+
+  .narration{ margin-top:1.5rem; background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:0.85rem 1rem; font-size:0.86rem; color:var(--ink); min-height:2.6em; display:flex; align-items:center; }
+  .narration .prompt{ color:var(--read); margin-right:0.6rem; flex:none; }
+
+  .controls{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-top:1.2rem; }
+
+  .aside{
+    margin-top:1.6rem; border-left:3px solid var(--write); background:var(--paper-raised);
+    padding:0.95rem 1.2rem; border-radius:0 8px 8px 0; font-size:0.92rem; color:var(--ink-soft);
+  }
+  .aside p{ max-width:none; margin:0.4rem 0 0; }
+  .aside p:first-child{ margin-top:0; }
+  .aside strong{ color:var(--ink); }
+
+  footer{ padding-top:3.2rem; text-align:center; color:var(--ink-faint); font-size:0.82rem; }
+  footer a{ color:var(--ink-faint); text-decoration:underline; }
+
+  @media (prefers-reduced-motion: reduce){ *{ transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; } }
+</style>
+
+<main>
+
+  <section class="hero">
+    <p class="eyebrow">Hash Map · O(n) time, O(n) space</p>
+    <h1>Two Sum</h1>
+    <p class="lede">Given an array of integers and a target, find the two numbers that add up to it — and return their indices.</p>
+
+    <div class="hero-example">
+      <div class="hero-col">
+        <div class="cap">nums (target = 9)</div>
+        <div class="track-row" id="heroIn"></div>
+      </div>
+      <div class="hero-arrow">→</div>
+      <div class="hero-col">
+        <div class="cap">Return [0, 1]</div>
+        <div class="track-row" id="heroOut"></div>
+      </div>
+    </div>
+
+    <ul class="rules">
+      <li><strong>Exactly one answer.</strong> The array is guaranteed to have exactly one valid pair.</li>
+      <li><strong>Can't reuse an element.</strong> The two indices you return must be different — even if the values are equal.</li>
+      <li><strong>Return indices, not values.</strong> The order of the returned pair doesn't matter.</li>
+      <li><strong>Values can repeat or go negative.</strong> <code>[3, 3]</code> and negative numbers are both fair game.</li>
+    </ul>
+  </section>
+
+  <section>
+    <p class="eyebrow">The trap</p>
+    <h2>Why checking every pair is O(n²)</h2>
+    <p class="prose-narrow">The obvious move is a nested loop: for each element, scan the rest of the array looking for a partner that completes the sum. It works, but for every one of n elements you scan up to n more — O(n²) comparisons.</p>
+    <p class="prose-narrow">The optimal version never looks backward with a second loop. It remembers what it's already seen, so by the time the second half of a pair shows up, the first half is already waiting in a map.</p>
+    <div class="stats">
+      <div class="stat-card">
+        <h3>Check every pair</h3>
+        <div class="stat-value">O(n²) time</div>
+        <p>A nested loop compares every element to every other element.</p>
+      </div>
+      <div class="stat-card optimal">
+        <h3>One-pass hash map</h3>
+        <div class="stat-value">O(n) time · O(n) space</div>
+        <p>One forward pass. Trade memory for speed — check the map, then remember.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="builder-section">
+    <p class="eyebrow">Your turn</p>
+    <h2>Build an array to test</h2>
+    <p class="prose-narrow">Drag tiles from the palette to insert them, drag array tiles to reorder or remove them, and set a target below.</p>
+
+    <div class="builder-block">
+      <div class="builder-label">Palette — click to append, drag to insert</div>
+      <div class="palette" id="palette" role="group" aria-label="Number tiles to add"></div>
+    </div>
+
+    <div class="array-zone">
+      <div class="builder-label">Your array (max 10 elements)</div>
+      <div class="array-track" id="arrayTrack" role="list" aria-label="Your array, drag tiles to reorder"></div>
+      <div class="trash-zone" id="trashZone">drag a tile here to remove it</div>
+    </div>
+
+    <div class="val-picker">
+      <label for="targetInput">Target:</label>
+      <input type="number" id="targetInput" value="9">
+      <span class="hint">any integer, including negative</span>
+    </div>
+
+    <div class="presets">
+      <div class="builder-label">Or load an example</div>
+      <div class="btn-row">
+        <button data-preset="2,7,11,15" data-target="9">Example 1</button>
+        <button data-preset="3,2,4" data-target="6">Example 2</button>
+        <button data-preset="3,3" data-target="6">Duplicate values</button>
+        <button data-preset="-3,4,3,90" data-target="0">Negative numbers</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="viz-section">
+    <p class="eyebrow">Watch it solve</p>
+    <h2>One pass, one map</h2>
+    <p class="prose-narrow">For each value, ask: have I already seen its complement (<code>target − value</code>)? If yes, that's the pair — return both indices immediately. If no, remember this value's index and keep scanning. One pass is enough because by the time a match exists, one half of the pair is already sitting in the map.</p>
+
+    <div class="viz-card">
+      <div class="viz-head">
+        <span class="phase-chip" id="phaseChip">Ready</span>
+        <span class="step-counter" id="stepCounter">Step 0 / 0</span>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label">nums — scanning left to right</div>
+        <div class="track-wrap"><div class="track-flip-anchor" id="anchorA">
+          <div class="track-row" id="trackA"></div>
+          <div class="idx-row" id="idxA"></div>
+        </div></div>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label">Seen so far — value → index</div>
+        <div class="chip-row" id="mapTrack"></div>
+      </div>
+
+      <div class="narration" id="narration"><span class="prompt">›</span><span id="narrationText">Press "Next" or "Play" to begin.</span></div>
+
+      <div class="controls">
+        <div class="btn-row">
+          <button id="btnReset" class="ghost">⟲ Reset</button>
+          <button id="btnPrev">◀ Prev</button>
+          <button id="btnNext">Next ▶</button>
+          <button id="btnPlay" class="primary">▶ Play</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Edge cases worth knowing</p>
+    <h2>Duplicates and negatives don't need special-casing</h2>
+    <p class="prose-narrow">Because the map is only checked <em>before</em> the current value is inserted, an element can never pair with itself — even when two elements share a value. And since the map keys on the actual number, negative values work exactly the same way as positive ones.</p>
+    <div class="aside">
+      <p><strong>Duplicate values:</strong> <code>[3, 3]</code>, target = 6.</p>
+      <p><code>i=0</code> reads 3. Complement = 6 − 3 = 3. The map is still empty — not found. Remember 3 → 0.</p>
+      <p><code>i=1</code> reads 3. Complement = 3 again. This time the map already has 3 → 0 from the <em>previous</em> element — found! Return <code>[0, 1]</code>. The second 3 never sees itself in the map, only the first one.</p>
+    </div>
+    <div class="aside">
+      <p><strong>Negative numbers:</strong> <code>[-3, 4, 3, 90]</code>, target = 0.</p>
+      <p><code>i=0</code> reads -3. Complement = 0 − (-3) = 3. Not in the map — remember -3 → 0.</p>
+      <p><code>i=1</code> reads 4. Complement = -4. Not in the map — remember 4 → 1.</p>
+      <p><code>i=2</code> reads 3. Complement = -3. -3 → 0 is already in the map — found! Return <code>[0, 2]</code>: nums[0] + nums[2] = -3 + 3 = 0.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Recap</p>
+    <h2>Complexity</h2>
+    <div class="stats">
+      <div class="stat-card optimal">
+        <h3>Time</h3>
+        <div class="stat-value">O(n)</div>
+        <p>A single forward pass visits each element exactly once.</p>
+      </div>
+      <div class="stat-card optimal">
+        <h3>Space</h3>
+        <div class="stat-value">O(n)</div>
+        <p>The map can hold up to n − 1 entries right before the match is found.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Based on <a href="https://leetcode.com/problems/two-sum/" target="_blank" rel="noopener">LeetCode 1 — Two Sum</a>.
+  </footer>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const MAX_N = 10;
+  let idCounter = 0;
+  const makeTile = (value) => ({ id: 't' + (idCounter++), value });
+
+  let tiles = [2,7,11,15].map(makeTile);
+  let targetVal = 9;
+  let analysis = null;
+  let stepIndex = -1;
+  let playing = false;
+  let playTimer = null;
+  const speed = 1000;
+  let draggedTileId = null;
+  let draggedPaletteValue = null;
+
+  function analyze(vals, target){
+    const n = vals.length;
+    const seen = {};
+    const steps = [];
+    for (let i = 0; i < n; i++){
+      const value = vals[i];
+      const complement = target - value;
+      const found = Object.prototype.hasOwnProperty.call(seen, complement);
+      const matchIndex = found ? seen[complement] : null;
+      steps.push({ phase:'scan', i, value, complement, found, matchIndex });
+      if (found){
+        steps.push({ phase:'done', found:true, pair:[matchIndex, i] });
+        return { vals, n, target, steps, result:[matchIndex, i] };
+      }
+      seen[value] = i;
+    }
+    steps.push({ phase:'done', found:false, pair:null });
+    return { vals, n, target, steps, result:null };
+  }
+
+  function computeState(idx){
+    if (!analysis) return { map:[], reading:-1, targets:[], done:false, notFoundDone:false };
+    if (idx < 0) return { map:[], reading:-1, targets:[], done:false, notFoundDone:false };
+    const step = analysis.steps[idx];
+    if (step.phase === 'done'){
+      if (step.found){
+        const map = [];
+        for (let k = 0; k < step.pair[1]; k++) map.push({ value: analysis.vals[k], index:k });
+        return { map, reading:-1, targets: step.pair, done:true, notFoundDone:false };
+      }
+      const map = analysis.vals.map((v,i) => ({ value:v, index:i }));
+      return { map, reading:-1, targets:[], done:true, notFoundDone:true };
+    }
+    const map = [];
+    for (let k = 0; k < step.i; k++) map.push({ value: analysis.vals[k], index:k });
+    if (step.found) return { map, reading: step.i, targets:[step.matchIndex, step.i], done:false, notFoundDone:false };
+    return { map, reading: step.i, targets:[], done:false, notFoundDone:false };
+  }
+
+  function narrate(a, idx){
+    if (idx < 0) return `Press "Next" or "Play" to scan left to right, checking each value's complement against the map.`;
+    const s = a.steps[idx];
+    if (s.phase === 'scan'){
+      if (s.found){
+        return `Read index ${s.i} → value ${s.value}. Complement needed: ${a.target} − ${s.value} = ${s.complement}. Found it — ${s.complement} was seen at index ${s.matchIndex}. Return [${s.matchIndex}, ${s.i}].`;
+      }
+      return `Read index ${s.i} → value ${s.value}. Complement needed: ${a.target} − ${s.value} = ${s.complement}. Not in the map yet — remember ${s.value} at index ${s.i}.`;
+    }
+    if (s.found){
+      return `Done. nums[${s.pair[0]}] + nums[${s.pair[1]}] = ${a.target}. Returned [${s.pair[0]}, ${s.pair[1]}].`;
+    }
+    return `Done scanning — no pair in this array sums to ${a.target}.`;
+  }
+
+  function makeCell(value, extraClass){
+    const d = document.createElement('div');
+    d.className = 'cell' + (extraClass ? ' ' + extraClass : '');
+    if (value !== null && value !== undefined) d.textContent = value;
+    return d;
+  }
+  function makeIdx(i){
+    const d = document.createElement('div');
+    d.className = 'idx';
+    d.textContent = i;
+    return d;
+  }
+  function makeOp(text){
+    const d = document.createElement('div');
+    d.className = 'hero-op';
+    d.textContent = text;
+    return d;
+  }
+
+  function renderHero(){
+    const inArr = [2,7,11,15];
+    const heroIn = document.getElementById('heroIn');
+    const heroOut = document.getElementById('heroOut');
+    heroIn.innerHTML = ''; heroOut.innerHTML = '';
+    inArr.forEach((v,i) => heroIn.appendChild(makeCell(v, (i === 0 || i === 1) ? 'target' : '')));
+    heroOut.appendChild(makeCell(2, 'target'));
+    heroOut.appendChild(makeOp('+'));
+    heroOut.appendChild(makeCell(7, 'target'));
+    heroOut.appendChild(makeOp('= 9'));
+  }
+
+  function renderPalette(){
+    const pal = document.getElementById('palette');
+    pal.innerHTML = '';
+    for (let v = 0; v <= 9; v++){
+      const b = document.createElement('button');
+      b.className = 'palette-tile';
+      b.type = 'button';
+      b.textContent = v;
+      b.dataset.v = v;
+      b.setAttribute('draggable', 'true');
+      b.setAttribute('aria-label', `Add ${v} to your array`);
+      b.addEventListener('click', () => appendTile(v));
+      b.addEventListener('dragstart', (e) => {
+        draggedPaletteValue = v;
+        e.dataTransfer.effectAllowed = 'copy';
+        e.dataTransfer.setData('text/plain', 'palette:' + v);
+      });
+      b.addEventListener('dragend', () => { draggedPaletteValue = null; });
+      pal.appendChild(b);
+    }
+  }
+
+  function flip(container, mutate){
+    if (REDUCE_MOTION){ mutate(); return; }
+    const before = new Map();
+    [...container.children].forEach(el => { if (el.dataset && el.dataset.id) before.set(el.dataset.id, el.getBoundingClientRect()); });
+    mutate();
+    requestAnimationFrame(() => {
+      [...container.children].forEach(el => {
+        const id = el.dataset && el.dataset.id;
+        if (!id) return;
+        const b = before.get(id);
+        if (!b){
+          el.animate([{ opacity:0, transform:'scale(0.6)' }, { opacity:1, transform:'scale(1)' }], { duration:220, easing:'ease-out' });
+          return;
+        }
+        const a = el.getBoundingClientRect();
+        const dx = b.left - a.left, dy = b.top - a.top;
+        if (dx || dy) el.animate([{ transform:`translate(${dx}px, ${dy}px)` }, { transform:'translate(0,0)' }], { duration:260, easing:'cubic-bezier(.2,.8,.2,1)' });
+      });
+    });
+  }
+
+  function appendTile(v){
+    if (tiles.length >= MAX_N) return flashFull();
+    flip(document.getElementById('arrayTrack'), () => { tiles.push(makeTile(v)); renderArrayTrack(); });
+    afterArrayChange();
+  }
+  function insertTileAt(v, index){
+    if (tiles.length >= MAX_N) return flashFull();
+    flip(document.getElementById('arrayTrack'), () => { tiles.splice(index, 0, makeTile(v)); renderArrayTrack(); });
+    afterArrayChange();
+  }
+  function removeTileById(id){
+    const track = document.getElementById('arrayTrack');
+    const el = track.querySelector(`[data-id="${id}"]`);
+    const finish = () => {
+      flip(track, () => { tiles = tiles.filter(t => t.id !== id); renderArrayTrack(); });
+      afterArrayChange();
+    };
+    if (el && !REDUCE_MOTION){
+      el.animate([{ opacity:1, transform:'scale(1)' }, { opacity:0, transform:'scale(0.5)' }], { duration:160, easing:'ease-in' }).onfinish = finish;
+    } else finish();
+  }
+  function flashFull(){
+    document.getElementById('arrayTrack').animate([{ background:'var(--danger-soft)' }, { background:'transparent' }], { duration:500 });
+  }
+
+  function positionOfClientX(clientX){
+    const track = document.getElementById('arrayTrack');
+    const kids = [...track.children].filter(c => c.classList.contains('tile'));
+    for (let i = 0; i < kids.length; i++){
+      const r = kids[i].getBoundingClientRect();
+      if (clientX < r.left + r.width / 2) return i;
+    }
+    return kids.length;
+  }
+
+  function renderArrayTrack(){
+    const track = document.getElementById('arrayTrack');
+    track.innerHTML = '';
+    if (tiles.length === 0){
+      const hint = document.createElement('div');
+      hint.className = 'empty-hint';
+      hint.textContent = 'Empty — add a tile from the palette above.';
+      track.appendChild(hint);
+    }
+    tiles.forEach((t, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'tile';
+      wrap.dataset.id = t.id;
+      wrap.setAttribute('draggable', 'true');
+      wrap.setAttribute('role', 'listitem');
+      wrap.setAttribute('tabindex', '0');
+      wrap.setAttribute('aria-label', `Value ${t.value}, position ${i + 1} of ${tiles.length}. Arrow keys to move, Delete to remove.`);
+
+      const cell = makeCell(t.value);
+      wrap.appendChild(cell);
+
+      const rm = document.createElement('button');
+      rm.className = 'remove';
+      rm.type = 'button';
+      rm.textContent = '×';
+      rm.setAttribute('aria-label', `Remove value ${t.value}`);
+      rm.addEventListener('click', (e) => { e.stopPropagation(); removeTileById(t.id); });
+      wrap.appendChild(rm);
+
+      wrap.addEventListener('dragstart', (e) => {
+        draggedTileId = t.id;
+        wrap.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', 'tile:' + t.id);
+      });
+      wrap.addEventListener('dragend', () => {
+        wrap.classList.remove('dragging');
+        draggedTileId = null;
+        document.getElementById('trashZone').classList.remove('active-drop');
+      });
+      wrap.addEventListener('keydown', (e) => {
+        const idx = tiles.findIndex(x => x.id === t.id);
+        if (e.key === 'ArrowLeft' && idx > 0){
+          e.preventDefault();
+          flip(track, () => { [tiles[idx-1], tiles[idx]] = [tiles[idx], tiles[idx-1]]; renderArrayTrack(); });
+          afterArrayChange();
+          requestAnimationFrame(() => track.querySelector(`[data-id="${t.id}"]`).focus());
+        } else if (e.key === 'ArrowRight' && idx < tiles.length - 1){
+          e.preventDefault();
+          flip(track, () => { [tiles[idx], tiles[idx+1]] = [tiles[idx+1], tiles[idx]]; renderArrayTrack(); });
+          afterArrayChange();
+          requestAnimationFrame(() => track.querySelector(`[data-id="${t.id}"]`).focus());
+        } else if (e.key === 'Delete' || e.key === 'Backspace'){
+          e.preventDefault();
+          removeTileById(t.id);
+        }
+      });
+
+      track.appendChild(wrap);
+    });
+  }
+
+  function setupTrackDropZone(){
+    const track = document.getElementById('arrayTrack');
+    track.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = draggedPaletteValue !== null ? 'copy' : 'move';
+      track.classList.add('drop-hover');
+      if (draggedTileId !== null){
+        const targetIndex = positionOfClientX(e.clientX);
+        const currentIndex = tiles.findIndex(t => t.id === draggedTileId);
+        if (currentIndex !== -1 && targetIndex !== currentIndex && targetIndex !== currentIndex + 1){
+          const adjTarget = targetIndex > currentIndex ? targetIndex - 1 : targetIndex;
+          if (adjTarget !== currentIndex){
+            flip(track, () => {
+              const [moved] = tiles.splice(currentIndex, 1);
+              tiles.splice(adjTarget, 0, moved);
+              renderArrayTrack();
+            });
+          }
+        }
+      }
+    });
+    track.addEventListener('dragleave', (e) => { if (e.target === track) track.classList.remove('drop-hover'); });
+    track.addEventListener('drop', (e) => {
+      e.preventDefault();
+      track.classList.remove('drop-hover');
+      if (draggedPaletteValue !== null){
+        insertTileAt(draggedPaletteValue, positionOfClientX(e.clientX));
+      } else if (draggedTileId !== null){
+        afterArrayChange();
+      }
+    });
+
+    const trash = document.getElementById('trashZone');
+    trash.addEventListener('dragover', (e) => { if (draggedTileId !== null){ e.preventDefault(); trash.classList.add('active-drop'); } });
+    trash.addEventListener('dragleave', () => trash.classList.remove('active-drop'));
+    trash.addEventListener('drop', (e) => {
+      e.preventDefault();
+      trash.classList.remove('active-drop');
+      if (draggedTileId !== null) removeTileById(draggedTileId);
+    });
+  }
+
+  function afterArrayChange(){
+    stepIndex = -1;
+    stopPlaying();
+    analysis = analyze(tiles.map(t => t.value), targetVal);
+    renderViz();
+  }
+
+  function renderTrackA(){
+    const trackA = document.getElementById('trackA');
+    const idxA = document.getElementById('idxA');
+    trackA.innerHTML = ''; idxA.innerHTML = '';
+    if (!analysis) return;
+    const state = computeState(stepIndex);
+    analysis.vals.forEach((v, i) => {
+      let cls = '';
+      if (state.targets.includes(i)) cls = 'target';
+      else if (i === state.reading) cls = 'reading';
+      else if (state.map.some(m => m.index === i)) cls = 'kept';
+      else if (state.notFoundDone) cls = 'skipped';
+      trackA.appendChild(makeCell(v, cls));
+      idxA.appendChild(makeIdx(i));
+    });
+  }
+
+  function renderMap(){
+    const mapTrack = document.getElementById('mapTrack');
+    mapTrack.innerHTML = '';
+    if (!analysis) return;
+    const state = computeState(stepIndex);
+    if (state.map.length === 0){
+      const hint = document.createElement('div');
+      hint.className = 'chip-empty';
+      hint.textContent = 'empty — nothing seen yet';
+      mapTrack.appendChild(hint);
+      return;
+    }
+    state.map.forEach(entry => {
+      const chip = document.createElement('div');
+      chip.className = 'map-chip' + (state.targets.includes(entry.index) ? ' hit' : '');
+      chip.innerHTML = `${entry.value}<span class="arrow">→</span>${entry.index}`;
+      mapTrack.appendChild(chip);
+    });
+  }
+
+  function positionCaret(caretEl, track, index){
+    const cellEl = track.children[index];
+    if (!cellEl){ caretEl.style.display = 'none'; return; }
+    caretEl.style.display = '';
+    caretEl.style.left = (cellEl.offsetLeft + cellEl.offsetWidth / 2) + 'px';
+  }
+
+  function renderCaret(){
+    let needCaret = document.getElementById('needCaret');
+    const anchorA = document.getElementById('anchorA');
+    if (!needCaret){
+      needCaret = document.createElement('div');
+      needCaret.id = 'needCaret'; needCaret.className = 'caret';
+      anchorA.appendChild(needCaret);
+    }
+    if (!analysis || stepIndex < 0 || stepIndex >= analysis.steps.length) { needCaret.style.display = 'none'; return; }
+    const s = analysis.steps[stepIndex];
+    if (s.phase !== 'scan'){ needCaret.style.display = 'none'; return; }
+    needCaret.textContent = `need ${s.complement}`;
+    positionCaret(needCaret, document.getElementById('trackA'), s.i);
+  }
+
+  function renderPhaseAndCounter(){
+    const chip = document.getElementById('phaseChip');
+    const counter = document.getElementById('stepCounter');
+    if (!analysis){ chip.textContent = 'Ready'; chip.className = 'phase-chip'; counter.textContent = 'Step 0 / 0'; return; }
+    const total = analysis.steps.length;
+    if (stepIndex < 0){ chip.textContent = 'Ready'; chip.className = 'phase-chip'; }
+    else {
+      const s = analysis.steps[stepIndex];
+      if (s.phase === 'scan'){ chip.textContent = 'Scanning'; chip.className = 'phase-chip scan'; }
+      else if (s.found){ chip.textContent = 'Found'; chip.className = 'phase-chip found'; }
+      else { chip.textContent = 'No match'; chip.className = 'phase-chip nomatch'; }
+    }
+    counter.textContent = `Step ${stepIndex + 1} / ${total}`;
+  }
+
+  function renderNarration(){
+    document.getElementById('narrationText').textContent = analysis ? narrate(analysis, stepIndex) : 'Build an array above to begin.';
+  }
+
+  function renderControls(){
+    const atStart = stepIndex < 0;
+    const atEnd = !analysis || stepIndex >= analysis.steps.length - 1;
+    document.getElementById('btnPrev').disabled = atStart;
+    document.getElementById('btnNext').disabled = atEnd;
+    document.getElementById('btnPlay').disabled = atEnd;
+    document.getElementById('btnPlay').textContent = playing ? '⏸ Pause' : '▶ Play';
+  }
+
+  function renderViz(){
+    renderTrackA();
+    renderMap();
+    renderPhaseAndCounter();
+    renderNarration();
+    renderControls();
+    requestAnimationFrame(renderCaret);
+  }
+
+  function goNext(){
+    if (!analysis || stepIndex >= analysis.steps.length - 1) return stopPlaying();
+    stepIndex++;
+    renderViz();
+    if (analysis && stepIndex >= analysis.steps.length - 1) stopPlaying();
+  }
+  function goPrev(){
+    if (stepIndex < 0) return;
+    stepIndex--;
+    renderViz();
+  }
+  function doReset(){ stepIndex = -1; stopPlaying(); renderViz(); }
+  function startPlaying(){
+    if (!analysis || stepIndex >= analysis.steps.length - 1) return;
+    playing = true;
+    renderControls();
+    playTimer = setInterval(() => {
+      goNext();
+      if (!analysis || stepIndex >= analysis.steps.length - 1) stopPlaying();
+    }, speed);
+  }
+  function stopPlaying(){ playing = false; if (playTimer) clearInterval(playTimer); playTimer = null; renderControls(); }
+
+  function wireEvents(){
+    setupTrackDropZone();
+    document.querySelectorAll('[data-preset]').forEach(b => {
+      b.addEventListener('click', () => {
+        const vals = b.dataset.preset.split(',').map(Number);
+        targetVal = Number(b.dataset.target);
+        document.getElementById('targetInput').value = targetVal;
+        tiles = vals.map(makeTile);
+        renderArrayTrack();
+        afterArrayChange();
+      });
+    });
+    document.getElementById('targetInput').addEventListener('input', (e) => {
+      const v = Number(e.target.value);
+      if (!Number.isNaN(v)){ targetVal = v; afterArrayChange(); }
+    });
+    document.getElementById('btnNext').addEventListener('click', () => { stopPlaying(); goNext(); });
+    document.getElementById('btnPrev').addEventListener('click', () => { stopPlaying(); goPrev(); });
+    document.getElementById('btnReset').addEventListener('click', doReset);
+    document.getElementById('btnPlay').addEventListener('click', () => { playing ? stopPlaying() : startPlaying(); });
+    window.addEventListener('resize', () => requestAnimationFrame(renderCaret));
+  }
+
+  renderHero();
+  renderPalette();
+  renderArrayTrack();
+  wireEvents();
+  afterArrayChange();
+})();
+</script>
