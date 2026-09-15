@@ -22,11 +22,11 @@ def two_sum(nums, tar)
   map = Hash.new
 
   nums.each_with_index do |num, i|
-    map[num] = i
     com = tar - num
     return [i, map[com]] if map[com] != nil
   end
 
+  map[num] = i
   nil
 end
 

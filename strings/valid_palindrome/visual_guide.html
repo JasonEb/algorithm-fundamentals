@@ -1,0 +1,625 @@
+<title>Valid Palindrome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root{
+    --paper:#EDF1F2;
+    --paper-raised:#F8FAFB;
+    --ink:#1B2A3A;
+    --ink-soft:#4C6070;
+    --ink-faint:#8494A0;
+    --line:rgba(27,42,58,0.16);
+    --line-soft:rgba(27,42,58,0.09);
+    --read:#1F7A8C;
+    --read-soft:rgba(31,122,140,0.14);
+    --write:#B85C1E;
+    --write-soft:rgba(184,92,30,0.14);
+    --danger:#A6402E;
+    --danger-soft:rgba(166,64,46,0.14);
+    --shadow:0 1px 2px rgba(27,42,58,0.07), 0 10px 28px rgba(27,42,58,0.07);
+    --cell-w:52px;
+    --cell-gap:8px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) {
+      --paper:#101A22;
+      --paper-raised:#16232D;
+      --ink:#E7ECEE;
+      --ink-soft:#9FB0BB;
+      --ink-faint:#5E727D;
+      --line:rgba(231,236,238,0.16);
+      --line-soft:rgba(231,236,238,0.08);
+      --read:#5FC3D6;
+      --read-soft:rgba(95,195,214,0.16);
+      --write:#E38A4C;
+      --write-soft:rgba(227,138,76,0.16);
+      --danger:#E07A63;
+      --danger-soft:rgba(224,122,99,0.16);
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#101A22;
+    --paper-raised:#16232D;
+    --ink:#E7ECEE;
+    --ink-soft:#9FB0BB;
+    --ink-faint:#5E727D;
+    --line:rgba(231,236,238,0.16);
+    --line-soft:rgba(231,236,238,0.08);
+    --read:#5FC3D6;
+    --read-soft:rgba(95,195,214,0.16);
+    --write:#E38A4C;
+    --write-soft:rgba(227,138,76,0.16);
+    --danger:#E07A63;
+    --danger-soft:rgba(224,122,99,0.16);
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  ::selection{ background:var(--read-soft); }
+
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0/100% 28px,
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0/28px 100%,
+      var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4', Georgia, 'Times New Roman', serif;
+    font-size:1.05rem;
+    line-height:1.65;
+  }
+
+  h1,h2,h3,.ui{ font-family:'IBM Plex Sans', system-ui, sans-serif; }
+  .mono, code, .cell, .caret, .narration, .stat-value, button, .step-counter{
+    font-family:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  }
+  a{ color:var(--read); }
+
+  main{ max-width: 900px; margin: 0 auto; padding: 4.5rem 1.5rem 6rem; }
+  section{ padding: 3.2rem 0; }
+  section + section{ border-top: 1px dashed var(--line); }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.12em;
+    text-transform:uppercase; color:var(--read); margin: 0 0 0.9rem;
+  }
+  h1{ font-size:clamp(2.1rem, 5.2vw, 3.3rem); line-height:1.05; margin:0 0 1rem; font-weight:700; letter-spacing:-0.01em; text-wrap:balance; }
+  h2{ font-size:clamp(1.4rem, 3vw, 1.85rem); margin: 0 0 1.1rem; font-weight:600; letter-spacing:-0.005em; text-wrap:balance; }
+  h3{ font-size:1.05rem; margin:0 0 0.6rem; font-weight:600; }
+  p{ max-width:66ch; color:var(--ink); }
+  p.lede{ font-size:1.2rem; color:var(--ink-soft); max-width:56ch; }
+  .prose-narrow{ max-width:62ch; }
+
+  .rules{ list-style:none; margin:1.6rem 0 0; padding:0; display:grid; gap:0.7rem; }
+  .rules li{ display:flex; gap:0.8rem; align-items:baseline; font-size:0.98rem; color:var(--ink-soft); }
+  .rules li::before{ content:"—"; color:var(--read); font-family:'IBM Plex Mono',monospace; flex:none; }
+  .rules strong{ color:var(--ink); font-weight:600; }
+
+  .track-row{ display:flex; gap:var(--cell-gap); position:relative; align-items:center; flex-wrap:wrap; }
+  .cell{
+    width:var(--cell-w); height:var(--cell-w); flex:none;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:600; font-size:1.05rem;
+    background:var(--paper-raised); border:1.5px solid var(--line); border-radius:6px;
+    color:var(--ink); position:relative;
+    transition: background .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease, opacity .25s ease;
+  }
+  .cell.punct{ opacity:0.4; font-style:italic; border-style:dashed; }
+  .cell.kept{ box-shadow: inset 0 0 0 2px var(--read-soft); border-color:var(--read); }
+  .cell.reading{ border-color:var(--read); box-shadow: 0 0 0 3px var(--read-soft); }
+  .cell.target{ border-color:var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
+  .idx-row{ display:flex; gap:var(--cell-gap); margin-top:0.35rem; flex-wrap:wrap; }
+  .idx{ width:var(--cell-w); flex:none; text-align:center; font-size:0.68rem; color:var(--ink-faint); letter-spacing:0.02em; }
+  .track-wrap{ overflow-x:auto; padding-bottom:2px; }
+  .track-flip-anchor{ position:relative; }
+
+  .caret{
+    position:absolute; top:-1.55rem; transform:translateX(-50%);
+    font-size:0.62rem; letter-spacing:0.06em; text-transform:uppercase;
+    padding:0.15rem 0.4rem; border-radius:4px; white-space:nowrap; pointer-events:none;
+    transition: left .35s cubic-bezier(.2,.8,.2,1);
+    background:var(--read-soft); color:var(--read);
+  }
+  .caret::after{ content:""; position:absolute; left:50%; bottom:-4px; transform:translateX(-50%); border:4px solid transparent; border-top-color: var(--read-soft); }
+
+  .hero-example{ margin-top:2.2rem; }
+  .hero-example .cap{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-faint); margin-bottom:0.5rem; }
+  .hero-result{ display:flex; align-items:center; gap:0.8rem; margin-top:1rem; }
+  .bool-result{
+    font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:1.3rem; padding:0.6rem 1rem;
+    border-radius:8px; background:var(--read-soft); color:var(--read);
+  }
+
+  .stats{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.8rem; }
+  .stat-card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem; box-shadow:var(--shadow); }
+  .stat-card h3{ font-family:'IBM Plex Sans',sans-serif; font-size:0.95rem; color:var(--ink-soft); font-weight:500; }
+  .stat-value{ font-size:1.5rem; font-weight:700; margin:0.3rem 0; }
+  .stat-card.optimal .stat-value{ color:var(--read); }
+  .stat-card p{ font-size:0.86rem; color:var(--ink-faint); margin:0; }
+  @media (max-width:560px){ .stats{ grid-template-columns:1fr; } }
+
+  button{
+    font-size:0.82rem; border-radius:7px; border:1px solid var(--line);
+    background:var(--paper-raised); color:var(--ink); padding:0.5rem 0.85rem; cursor:pointer;
+    transition: border-color .15s ease, background .15s ease, color .15s ease, opacity .15s ease;
+  }
+  button:hover:not(:disabled){ border-color:var(--read); color:var(--read); }
+  button:focus-visible, input:focus-visible{ outline:2px solid var(--read); outline-offset:2px; }
+  button:disabled{ opacity:0.4; cursor:not-allowed; }
+  button.primary{ background:var(--read); border-color:var(--read); color:var(--paper); }
+  button.primary:hover:not(:disabled){ color:var(--paper); opacity:0.88; }
+  button.ghost{ background:transparent; }
+  .btn-row{ display:flex; flex-wrap:wrap; gap:0.55rem; align-items:center; }
+
+  .builder-block{ margin-top:1.8rem; }
+  .builder-label{ font-size:0.78rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.6rem; }
+  .str-input{
+    width:100%; max-width:520px; padding:0.65rem 0.9rem; border-radius:8px; border:1px solid var(--line);
+    background:var(--paper-raised); color:var(--ink); font-size:1rem; font-family:'IBM Plex Mono',monospace;
+  }
+  .presets{ margin-top:1.3rem; }
+
+  .viz-card{ margin-top:2rem; background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:1.6rem 1.6rem 1.4rem; box-shadow:var(--shadow); }
+  .viz-head{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.3rem; }
+  .phase-chip{ font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.28rem 0.65rem; border-radius:20px; font-weight:600; background:var(--line-soft); color:var(--ink-soft); }
+  .phase-chip.scan{ background:var(--read-soft); color:var(--read); }
+  .phase-chip.found{ background:var(--read-soft); color:var(--read); }
+  .phase-chip.nomatch{ background:var(--danger-soft); color:var(--danger); }
+  .step-counter{ font-size:0.78rem; color:var(--ink-faint); }
+
+  .track-label{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.5rem; }
+  .track-block + .track-block{ margin-top:1.9rem; }
+
+  .code-panel{
+    background:var(--paper); border:1px solid var(--line); border-radius:8px;
+    padding:0.9rem 0; overflow-x:auto;
+  }
+  .code-line{
+    padding:0.1rem 1rem 0.1rem 0.85rem; white-space:pre; font-size:0.85rem; color:var(--ink);
+    border-left:3px solid transparent; transition: background .3s ease, border-color .3s ease;
+  }
+  .code-line.active-loop{ background:var(--read-soft); border-left-color:var(--read); }
+  .code-line.active-return{ background:var(--danger-soft); border-left-color:var(--danger); }
+  .code-line.active-remember{ background:var(--write-soft); border-left-color:var(--write); }
+
+  .narration{ margin-top:1.5rem; background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:0.85rem 1rem; font-size:0.86rem; color:var(--ink); min-height:2.6em; display:flex; align-items:center; }
+  .narration .prompt{ color:var(--read); margin-right:0.6rem; flex:none; }
+
+  .controls{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-top:1.2rem; }
+
+  .aside{
+    margin-top:1.6rem; border-left:3px solid var(--write); background:var(--paper-raised);
+    padding:0.95rem 1.2rem; border-radius:0 8px 8px 0; font-size:0.92rem; color:var(--ink-soft);
+  }
+  .aside p{ max-width:none; margin:0.4rem 0 0; }
+  .aside p:first-child{ margin-top:0; }
+  .aside strong{ color:var(--ink); }
+
+  footer{ padding-top:3.2rem; text-align:center; color:var(--ink-faint); font-size:0.82rem; }
+  footer a{ color:var(--ink-faint); text-decoration:underline; }
+
+  @media (prefers-reduced-motion: reduce){ *{ transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; } }
+</style>
+
+<main>
+
+  <section class="hero">
+    <p class="eyebrow">Two Pointers · Converging Inward · O(n) time, O(1) space</p>
+    <h1>Valid Palindrome</h1>
+    <p class="lede">A genuinely different shape from everything else in this series: instead of two pointers moving the same direction, these start at opposite ends and walk toward each other.</p>
+
+    <div class="hero-example">
+      <div class="cap">s = "A man, a plan, a canal: Panama"</div>
+      <div class="track-wrap"><div class="track-row" id="heroIn"></div></div>
+      <div class="hero-result"><div class="bool-result">true</div></div>
+    </div>
+
+    <ul class="rules">
+      <li><strong>Case doesn't matter.</strong> Uppercase and lowercase letters are treated as equal.</li>
+      <li><strong>Only letters and digits count.</strong> Spaces, punctuation, everything else is ignored entirely.</li>
+      <li><strong>Empty-after-filtering is a palindrome.</strong> A string of nothing but punctuation returns <code>true</code>.</li>
+      <li><strong>Up to 2×10⁵ characters.</strong> Whatever approach you pick needs to handle real scale.</li>
+    </ul>
+  </section>
+
+  <section>
+    <p class="eyebrow">The trap</p>
+    <h2>Why "clean it, then reverse it" costs more than it looks like</h2>
+    <p class="prose-narrow">The obvious move: build a cleaned, lowercased copy of the string, reverse it, and compare the two. It's O(n) time — no nested loop this time — but it allocates two entire new strings just to answer a yes/no question.</p>
+    <p class="prose-narrow">The optimal version never builds a copy at all. Two pointers read the <em>original</em> string from both ends inward, skipping anything that doesn't count, comparing what's left as they go.</p>
+
+    <div class="track-label" style="margin-top:1.6rem;">Ruby — the naive version</div>
+    <div class="code-panel">
+      <div class="code-line">def valid_palindrome_naive(s)</div>
+      <div class="code-line">  cleaned = s.downcase.gsub(/[^a-z0-9]/, '')</div>
+      <div class="code-line">  cleaned == cleaned.reverse</div>
+      <div class="code-line">end</div>
+    </div>
+
+    <div class="aside">
+      <p><strong>Mnemonic: "Clean, flip, compare."</strong> Three steps, three passes over the data, two new strings built along the way — correct, but not free.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <h3>Clean, then reverse</h3>
+        <div class="stat-value">O(n) time · O(n) space</div>
+        <p>Correct and simple, but it builds two full copies of the string.</p>
+      </div>
+      <div class="stat-card optimal">
+        <h3>Two pointers, converging</h3>
+        <div class="stat-value">O(n) time · O(1) space</div>
+        <p>Reads the original string in place. No copies, ever.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="builder-section">
+    <p class="eyebrow">Your turn</p>
+    <h2>Type a string to test</h2>
+    <p class="prose-narrow">Unlike the array problems in this series, the input here is free text — so instead of dragging number tiles, just type directly.</p>
+
+    <div class="builder-block">
+      <div class="builder-label">Your string</div>
+      <input type="text" class="str-input" id="strInput" value="A man, a plan, a canal: Panama">
+    </div>
+
+    <div class="presets">
+      <div class="builder-label">Or load an example</div>
+      <div class="btn-row">
+        <button data-preset="A man, a plan, a canal: Panama">Example 1</button>
+        <button data-preset="race a car">Example 2</button>
+        <button data-preset=" ">Example 3 (blank)</button>
+        <button data-preset="0P">Digit + letter</button>
+        <button data-preset="ab_a">Underscore</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="viz-section">
+    <p class="eyebrow">Watch it solve</p>
+    <h2>left and right walk toward each other</h2>
+    <p class="prose-narrow">Each pointer skips forward past anything that isn't a letter or digit. Once both are sitting on real characters, compare them (case-folded). A mismatch means it's not a palindrome — stop immediately. A match means move both pointers inward by one and keep going. The pointers meeting or crossing without ever mismatching means it's a palindrome.</p>
+
+    <div class="viz-card">
+      <div class="viz-head">
+        <span class="phase-chip" id="phaseChip">Ready</span>
+        <span class="step-counter" id="stepCounter">Step 0 / 0</span>
+      </div>
+
+      <div class="aside">
+        <p><strong>Mnemonic: "Meet in the middle."</strong> Skip what doesn't count, on both sides, before you compare — then walk inward until the pointers meet.</p>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label">Code — the line that just ran</div>
+        <div class="code-panel" id="codePanel"></div>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label">s — converging from both ends</div>
+        <div class="track-wrap"><div class="track-flip-anchor" id="anchorA">
+          <div class="track-row" id="trackA"></div>
+          <div class="idx-row" id="idxA"></div>
+        </div></div>
+      </div>
+
+      <div class="narration" id="narration"><span class="prompt">›</span><span id="narrationText">Press "Next" or "Play" to begin.</span></div>
+
+      <div class="controls">
+        <div class="btn-row">
+          <button id="btnReset" class="ghost">⟲ Reset</button>
+          <button id="btnPrev">◀ Prev</button>
+          <button id="btnNext">Next ▶</button>
+          <button id="btnPlay" class="primary">▶ Play</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Recap</p>
+    <h2>Complexity</h2>
+    <div class="stats">
+      <div class="stat-card optimal">
+        <h3>Time</h3>
+        <div class="stat-value">O(n)</div>
+        <p>Each character is visited by at most one of the two pointers.</p>
+      </div>
+      <div class="stat-card optimal">
+        <h3>Space</h3>
+        <div class="stat-value">O(1)</div>
+        <p>Just <code>left</code> and <code>right</code> — no copy of the string is ever built.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Based on <a href="https://leetcode.com/problems/valid-palindrome/" target="_blank" rel="noopener">LeetCode 125 — Valid Palindrome</a>.
+  </footer>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let currentStr = 'A man, a plan, a canal: Panama';
+  let analysis = null;
+  let stepIndex = -1;
+  let playing = false;
+  let playTimer = null;
+  const speed = 700;
+
+  const isAlnum = (c) => /^[a-zA-Z0-9]$/.test(c);
+
+  function analyze(str){
+    const n = str.length;
+    let left = 0, right = n - 1;
+    const steps = [];
+    while (left < right){
+      if (!isAlnum(str[left])){
+        steps.push({ type:'skip-left', left, right });
+        left++;
+        continue;
+      }
+      if (!isAlnum(str[right])){
+        steps.push({ type:'skip-right', left, right });
+        right--;
+        continue;
+      }
+      const match = str[left].toLowerCase() === str[right].toLowerCase();
+      steps.push({ type:'compare', left, right, match, chL:str[left], chR:str[right] });
+      if (!match){
+        steps.push({ type:'done', result:false, left, right });
+        return { str, n, steps, result:false };
+      }
+      left++; right--;
+    }
+    steps.push({ type:'done', result:true, left, right });
+    return { str, n, steps, result:true };
+  }
+
+  function narrate(a, idx){
+    if (idx < 0) return `Press "Next" or "Play" to begin — left starts at 0, right starts at the last index.`;
+    const s = a.steps[idx];
+    if (s.type === 'skip-left') return `Left at index ${s.left} → '${a.str[s.left]}' isn't a letter or digit — skip it, left moves to ${s.left + 1}.`;
+    if (s.type === 'skip-right') return `Right at index ${s.right} → '${a.str[s.right]}' isn't a letter or digit — skip it, right moves to ${s.right - 1}.`;
+    if (s.type === 'compare'){
+      return s.match
+        ? `Compare index ${s.left} ('${s.chL}') with index ${s.right} ('${s.chR}') — same letter once lowercased. Keep going: both pointers move inward.`
+        : `Compare index ${s.left} ('${s.chL}') with index ${s.right} ('${s.chR}') — different once lowercased. Not a palindrome — return false.`;
+    }
+    return a.result
+      ? `Done. The pointers met without ever finding a mismatch — this is a palindrome. Return true.`
+      : `Done. A mismatch was found — returned false.`;
+  }
+
+  const CODE_LINES = [
+    'def valid_palindrome(s)',
+    '  left = 0',
+    '  right = s.length - 1',
+    '',
+    '  while left < right',
+    '    while left < right && !s[left].match?(/[a-zA-Z0-9]/)',
+    '      left += 1',
+    '    end',
+    '',
+    '    while left < right && !s[right].match?(/[a-zA-Z0-9]/)',
+    '      right -= 1',
+    '    end',
+    '',
+    '    return false if s[left].downcase != s[right].downcase',
+    '',
+    '    left += 1',
+    '    right -= 1',
+    '  end',
+    '',
+    '  true',
+    'end',
+  ];
+
+  function activeLinesFor(idx){
+    if (!analysis || idx < 0) return {};
+    const s = analysis.steps[idx];
+    if (s.type === 'skip-left') return { 5:'active-loop', 6:'active-loop' };
+    if (s.type === 'skip-right') return { 9:'active-loop', 10:'active-loop' };
+    if (s.type === 'compare'){
+      return s.match ? { 13:'active-loop', 15:'active-remember', 16:'active-remember' } : { 13:'active-return' };
+    }
+    if (s.type === 'done') return s.result ? { 19:'active-loop' } : { 13:'active-return' };
+    return {};
+  }
+
+  function renderCode(){
+    const panel = document.getElementById('codePanel');
+    panel.innerHTML = '';
+    const active = activeLinesFor(stepIndex);
+    CODE_LINES.forEach((text, i) => {
+      const d = document.createElement('div');
+      d.className = 'code-line' + (active[i] ? ' ' + active[i] : '');
+      d.textContent = text || ' ';
+      panel.appendChild(d);
+    });
+  }
+
+  function makeCell(ch, extraClass){
+    const d = document.createElement('div');
+    d.className = 'cell' + (extraClass ? ' ' + extraClass : '');
+    d.textContent = ch === ' ' ? '␣' : ch;
+    return d;
+  }
+  function makeIdx(i){
+    const d = document.createElement('div');
+    d.className = 'idx';
+    d.textContent = i;
+    return d;
+  }
+
+  function renderHero(){
+    const s = 'A man, a plan, a canal: Panama';
+    const heroIn = document.getElementById('heroIn');
+    heroIn.innerHTML = '';
+    [...s].forEach(ch => heroIn.appendChild(makeCell(ch, isAlnum(ch) ? '' : 'punct')));
+  }
+
+  function currentPointers(idx){
+    if (!analysis) return { left:-1, right:-1 };
+    if (idx < 0) return { left: 0, right: analysis.n - 1 };
+    const s = analysis.steps[idx];
+    return { left: s.left, right: s.right };
+  }
+
+  function renderTrackA(){
+    const trackA = document.getElementById('trackA');
+    const idxA = document.getElementById('idxA');
+    trackA.innerHTML = ''; idxA.innerHTML = '';
+    if (!analysis) return;
+    const isDone = stepIndex >= 0 && analysis.steps[stepIndex].type === 'done';
+    const s = stepIndex >= 0 ? analysis.steps[stepIndex] : null;
+    [...analysis.str].forEach((ch, i) => {
+      let cls = isAlnum(ch) ? '' : 'punct';
+      if (s){
+        if ((s.type === 'skip-left' && i === s.left) || (s.type === 'skip-right' && i === s.right)){
+          cls += ' reading';
+        } else if (s.type === 'compare' && (i === s.left || i === s.right)){
+          cls += s.match ? ' kept' : ' target';
+        } else if (isDone && !analysis.result && (i === s.left || i === s.right)){
+          cls += ' target';
+        }
+      }
+      trackA.appendChild(makeCell(ch, cls.trim()));
+      idxA.appendChild(makeIdx(i));
+    });
+  }
+
+  function positionCaret(caretEl, track, index){
+    const cellEl = track.children[index];
+    if (!cellEl){ caretEl.style.display = 'none'; return; }
+    caretEl.style.display = '';
+    caretEl.style.left = (cellEl.offsetLeft + cellEl.offsetWidth / 2) + 'px';
+  }
+
+  function renderCarets(){
+    let leftCaret = document.getElementById('leftCaret');
+    let rightCaret = document.getElementById('rightCaret');
+    const anchorA = document.getElementById('anchorA');
+    if (!leftCaret){
+      leftCaret = document.createElement('div');
+      leftCaret.id = 'leftCaret'; leftCaret.className = 'caret'; leftCaret.textContent = 'left';
+      anchorA.appendChild(leftCaret);
+    }
+    if (!rightCaret){
+      rightCaret = document.createElement('div');
+      rightCaret.id = 'rightCaret'; rightCaret.className = 'caret'; rightCaret.textContent = 'right';
+      anchorA.appendChild(rightCaret);
+    }
+    const isFinalTrue = analysis && stepIndex >= 0 && analysis.steps[stepIndex].type === 'done' && analysis.result;
+    if (!analysis || stepIndex < 0 || isFinalTrue){
+      leftCaret.style.display = 'none';
+      rightCaret.style.display = 'none';
+      return;
+    }
+    const { left, right } = currentPointers(stepIndex);
+    positionCaret(leftCaret, document.getElementById('trackA'), left);
+    positionCaret(rightCaret, document.getElementById('trackA'), right);
+  }
+
+  function renderPhaseAndCounter(){
+    const chip = document.getElementById('phaseChip');
+    const counter = document.getElementById('stepCounter');
+    if (!analysis){ chip.textContent = 'Ready'; chip.className = 'phase-chip'; counter.textContent = 'Step 0 / 0'; return; }
+    const total = analysis.steps.length;
+    if (stepIndex < 0){ chip.textContent = 'Ready'; chip.className = 'phase-chip'; }
+    else {
+      const s = analysis.steps[stepIndex];
+      if (s.type === 'done'){
+        chip.textContent = s.result ? 'Palindrome' : 'Not a palindrome';
+        chip.className = 'phase-chip ' + (s.result ? 'found' : 'nomatch');
+      } else {
+        chip.textContent = 'Scanning'; chip.className = 'phase-chip scan';
+      }
+    }
+    counter.textContent = `Step ${stepIndex + 1} / ${total}`;
+  }
+
+  function renderNarration(){
+    document.getElementById('narrationText').textContent = analysis ? narrate(analysis, stepIndex) : 'Type a string above to begin.';
+  }
+
+  function renderControls(){
+    const atStart = stepIndex < 0;
+    const atEnd = !analysis || stepIndex >= analysis.steps.length - 1;
+    document.getElementById('btnPrev').disabled = atStart;
+    document.getElementById('btnNext').disabled = atEnd;
+    document.getElementById('btnPlay').disabled = atEnd;
+    document.getElementById('btnPlay').textContent = playing ? '⏸ Pause' : '▶ Play';
+  }
+
+  function renderViz(){
+    renderCode();
+    renderTrackA();
+    renderPhaseAndCounter();
+    renderNarration();
+    renderControls();
+    requestAnimationFrame(renderCarets);
+  }
+
+  function afterStringChange(){
+    stepIndex = -1;
+    stopPlaying();
+    analysis = analyze(currentStr);
+    renderViz();
+  }
+
+  function goNext(){
+    if (!analysis || stepIndex >= analysis.steps.length - 1) return stopPlaying();
+    stepIndex++;
+    renderViz();
+    if (analysis && stepIndex >= analysis.steps.length - 1) stopPlaying();
+  }
+  function goPrev(){
+    if (stepIndex < 0) return;
+    stepIndex--;
+    renderViz();
+  }
+  function doReset(){ stepIndex = -1; stopPlaying(); renderViz(); }
+  function startPlaying(){
+    if (!analysis || stepIndex >= analysis.steps.length - 1) return;
+    playing = true;
+    renderControls();
+    playTimer = setInterval(() => {
+      goNext();
+      if (!analysis || stepIndex >= analysis.steps.length - 1) stopPlaying();
+    }, speed);
+  }
+  function stopPlaying(){ playing = false; if (playTimer) clearInterval(playTimer); playTimer = null; renderControls(); }
+
+  function wireEvents(){
+    document.getElementById('strInput').addEventListener('input', (e) => {
+      currentStr = e.target.value;
+      afterStringChange();
+    });
+    document.querySelectorAll('[data-preset]').forEach(b => {
+      b.addEventListener('click', () => {
+        currentStr = b.dataset.preset;
+        document.getElementById('strInput').value = currentStr;
+        afterStringChange();
+      });
+    });
+    document.getElementById('btnNext').addEventListener('click', () => { stopPlaying(); goNext(); });
+    document.getElementById('btnPrev').addEventListener('click', () => { stopPlaying(); goPrev(); });
+    document.getElementById('btnReset').addEventListener('click', doReset);
+    document.getElementById('btnPlay').addEventListener('click', () => { playing ? stopPlaying() : startPlaying(); });
+    window.addEventListener('resize', () => requestAnimationFrame(renderCarets));
+  }
+
+  renderHero();
+  wireEvents();
+  afterStringChange();
+})();
+</script>

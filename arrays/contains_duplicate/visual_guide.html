@@ -1,4 +1,4 @@
-<title>Two Sum</title>
+<title>Contains Duplicate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
 <style>
@@ -14,8 +14,6 @@
     --read-soft:rgba(31,122,140,0.14);
     --write:#B85C1E;
     --write-soft:rgba(184,92,30,0.14);
-    --target-bg:#1B2A3A;
-    --target-text:#EDF1F2;
     --danger:#A6402E;
     --danger-soft:rgba(166,64,46,0.14);
     --shadow:0 1px 2px rgba(27,42,58,0.07), 0 10px 28px rgba(27,42,58,0.07);
@@ -36,8 +34,6 @@
       --read-soft:rgba(95,195,214,0.16);
       --write:#E38A4C;
       --write-soft:rgba(227,138,76,0.16);
-      --target-bg:#E7ECEE;
-      --target-text:#101A22;
       --danger:#E07A63;
       --danger-soft:rgba(224,122,99,0.16);
       --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
@@ -56,8 +52,6 @@
     --read-soft:rgba(95,195,214,0.16);
     --write:#E38A4C;
     --write-soft:rgba(227,138,76,0.16);
-    --target-bg:#E7ECEE;
-    --target-text:#101A22;
     --danger:#E07A63;
     --danger-soft:rgba(224,122,99,0.16);
     --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
@@ -80,7 +74,7 @@
   }
 
   h1,h2,h3,.ui{ font-family:'IBM Plex Sans', system-ui, sans-serif; }
-  .mono, code, .cell, .caret, .narration, .stat-value, button, .step-counter, .map-chip{
+  .mono, code, .cell, .caret, .narration, .stat-value, button, .step-counter{
     font-family:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
   }
   a{ color:var(--read); }
@@ -115,28 +109,20 @@
     transition: background .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease, opacity .25s ease;
   }
   .cell.empty{ background:transparent; border-style:dashed; color:var(--ink-faint); }
-  .cell.skipped{ opacity:0.35; }
   .cell.kept{ box-shadow: inset 0 0 0 2px var(--read-soft); }
   .cell.reading{ border-color:var(--read); box-shadow: 0 0 0 3px var(--read-soft); }
   .cell.target{ border-color:var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
-  .hero-op{ font-size:1.3rem; color:var(--ink-faint); flex:none; display:flex; align-items:center; }
   .idx-row{ display:flex; gap:var(--cell-gap); margin-top:0.35rem; }
   .idx{ width:var(--cell-w); flex:none; text-align:center; font-size:0.68rem; color:var(--ink-faint); letter-spacing:0.02em; }
   .track-wrap{ overflow-x:auto; padding-bottom:2px; }
-  .track-flip-anchor{ position:relative; }
-
-  .caret{
-    position:absolute; top:-1.55rem; transform:translateX(-50%);
-    font-size:0.62rem; letter-spacing:0.06em; text-transform:uppercase;
-    padding:0.15rem 0.4rem; border-radius:4px; white-space:nowrap; pointer-events:none;
-    transition: left .35s cubic-bezier(.2,.8,.2,1);
-    background:var(--read-soft); color:var(--read);
-  }
-  .caret::after{ content:""; position:absolute; left:50%; bottom:-4px; transform:translateX(-50%); border:4px solid transparent; border-top-color: var(--read-soft); }
 
   .hero-example{ margin-top:2.2rem; display:flex; align-items:center; gap:1.4rem; flex-wrap:wrap; }
   .hero-arrow{ color:var(--ink-faint); font-size:1.4rem; flex:none; }
   .hero-col .cap{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-faint); margin-bottom:0.5rem; }
+  .bool-result{
+    font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:1.3rem; padding:0.6rem 1rem;
+    border-radius:8px; background:var(--danger-soft); color:var(--danger);
+  }
 
   .stats{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.8rem; }
   .stat-card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem; box-shadow:var(--shadow); }
@@ -152,7 +138,7 @@
     transition: border-color .15s ease, background .15s ease, color .15s ease, opacity .15s ease;
   }
   button:hover:not(:disabled){ border-color:var(--read); color:var(--read); }
-  button:focus-visible, .cell:focus-visible, .palette-tile:focus-visible, input:focus-visible{ outline:2px solid var(--read); outline-offset:2px; }
+  button:focus-visible, .cell:focus-visible, .palette-tile:focus-visible{ outline:2px solid var(--read); outline-offset:2px; }
   button:disabled{ opacity:0.4; cursor:not-allowed; }
   button.primary{ background:var(--read); border-color:var(--read); color:var(--paper); }
   button.primary:hover:not(:disabled){ color:var(--paper); opacity:0.88; }
@@ -195,35 +181,26 @@
   }
   .trash-zone.active-drop{ border-color:var(--danger); color:var(--danger); background:var(--danger-soft); }
 
-  .val-picker{ display:flex; align-items:center; gap:0.7rem; margin-top:1.2rem; flex-wrap:wrap; }
-  .val-picker label{ font-size:0.85rem; color:var(--ink-soft); }
-  .val-picker input{
-    width:5.5rem; padding:0.4rem 0.6rem; border-radius:7px; border:1px solid var(--line);
-    background:var(--paper-raised); color:var(--ink); font-size:1rem; text-align:center;
-  }
-  .val-picker .hint{ font-size:0.78rem; color:var(--ink-faint); }
-
   .presets{ margin-top:1.3rem; }
 
   .viz-card{ margin-top:2rem; background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:1.6rem 1.6rem 1.4rem; box-shadow:var(--shadow); }
   .viz-head{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.3rem; }
   .phase-chip{ font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.28rem 0.65rem; border-radius:20px; font-weight:600; background:var(--line-soft); color:var(--ink-soft); }
   .phase-chip.scan{ background:var(--read-soft); color:var(--read); }
-  .phase-chip.found{ background:var(--target-bg); color:var(--target-text); }
-  .phase-chip.nomatch{ background:var(--danger-soft); color:var(--danger); }
+  .phase-chip.found{ background:var(--danger-soft); color:var(--danger); }
+  .phase-chip.nomatch{ background:var(--ink); color:var(--paper); }
   .step-counter{ font-size:0.78rem; color:var(--ink-faint); }
 
   .track-label{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.5rem; }
   .track-block + .track-block{ margin-top:1.9rem; }
 
   .chip-row{ display:flex; flex-wrap:wrap; gap:0.5rem; min-height: calc(var(--cell-w) + 4px); align-items:center; }
-  .map-chip{
+  .set-chip{
     padding:0.45rem 0.75rem; border-radius:20px; border:1.5px solid var(--line); background:var(--paper);
     font-weight:600; font-size:0.9rem; color:var(--ink);
     transition: border-color .25s ease, box-shadow .25s ease, color .25s ease;
   }
-  .map-chip .arrow{ color:var(--ink-faint); margin:0 0.35rem; }
-  .map-chip.hit{ border-color:var(--danger); box-shadow:0 0 0 3px var(--danger-soft); color:var(--danger); }
+  .set-chip.hit{ border-color:var(--danger); box-shadow:0 0 0 3px var(--danger-soft); color:var(--danger); }
   .chip-empty{ font-size:0.85rem; color:var(--ink-faint); font-style:italic; }
 
   .code-panel{
@@ -261,54 +238,54 @@
 <main>
 
   <section class="hero">
-    <p class="eyebrow">Hash Map · O(n) time, O(n) space</p>
-    <h1>Two Sum</h1>
-    <p class="lede">Given an array of integers and a target, find the two numbers that add up to it — and return their indices.</p>
+    <p class="eyebrow">Hash Set · O(n) time, O(n) space</p>
+    <h1>Contains Duplicate</h1>
+    <p class="lede">The simplest question you can ask a hash set: have I seen this before? No target, no complement, no indices to return — just remember, and check.</p>
 
     <div class="hero-example">
       <div class="hero-col">
-        <div class="cap">nums (target = 9)</div>
+        <div class="cap">nums</div>
         <div class="track-row" id="heroIn"></div>
       </div>
       <div class="hero-arrow">→</div>
       <div class="hero-col">
-        <div class="cap">Return [0, 1]</div>
-        <div class="track-row" id="heroOut"></div>
+        <div class="cap">Result</div>
+        <div class="bool-result">true</div>
       </div>
     </div>
 
     <ul class="rules">
-      <li><strong>Exactly one answer.</strong> The array is guaranteed to have exactly one valid pair.</li>
-      <li><strong>Can't reuse an element.</strong> The two indices you return must be different — even if the values are equal.</li>
-      <li><strong>Return indices, not values.</strong> The order of the returned pair doesn't matter.</li>
-      <li><strong>Values can repeat or go negative.</strong> <code>[3, 3]</code> and negative numbers are both fair game.</li>
+      <li><strong>Return a boolean.</strong> Not an index, not a pair — just <code>true</code> or <code>false</code>.</li>
+      <li><strong>"At least twice" is enough.</strong> Three or more of the same value still counts.</li>
+      <li><strong>Every element distinct → false.</strong> The only way to get <code>false</code> is if nothing repeats at all.</li>
+      <li><strong>Values can be any integer</strong>, including negative and very large ones — the array itself can hold up to 10⁵ elements.</li>
     </ul>
   </section>
 
   <section>
     <p class="eyebrow">The trap</p>
     <h2>Why checking every pair is O(n²)</h2>
-    <p class="prose-narrow">The obvious move is a nested loop: for each element, scan the rest of the array looking for a partner that completes the sum. It works, but for every one of n elements you scan up to n more — O(n²) comparisons.</p>
-    <p class="prose-narrow">The optimal version never looks backward with a second loop. It remembers what it's already seen, so by the time the second half of a pair shows up, the first half is already waiting in a map.</p>
+    <p class="prose-narrow">Same shape as Two Sum's naive version: for each element, scan the rest of the array looking for a match. It works, but it's a nested loop — O(n²) comparisons.</p>
+    <p class="prose-narrow">The optimal version trades that second loop for memory: check a set for the current value, and if it's not there, add it. One pass, one question asked per element.</p>
 
     <div class="track-label" style="margin-top:1.6rem;">Ruby — the naive version</div>
     <div class="code-panel">
-      <div class="code-line">def two_sum_naive(nums, target)</div>
+      <div class="code-line">def contains_duplicate_naive(nums)</div>
       <div class="code-line">  (0...nums.length).each do |i|</div>
       <div class="code-line">    (i + 1...nums.length).each do |j|</div>
-      <div class="code-line">      return [i, j] if nums[i] + nums[j] == target</div>
+      <div class="code-line">      return true if nums[i] == nums[j]</div>
       <div class="code-line">    end</div>
       <div class="code-line">  end</div>
       <div class="code-line"> </div>
-      <div class="code-line">  nil</div>
+      <div class="code-line">  false</div>
       <div class="code-line">end</div>
     </div>
-    <p class="prose-narrow" style="margin-top:0.9rem; font-size:0.9rem; color:var(--ink-faint);"><code>j</code> always starts at <code>i + 1</code> — that's what guarantees an element never pairs with itself, and why every pair only gets checked once instead of twice.</p>
 
     <div class="aside">
-      <p><strong>Mnemonic: "Two loops, one skip."</strong></p>
-      <p>Two nested loops — <code>i</code> and <code>j</code> — and one skip: <code>j</code> always starts one past <code>i</code>, never at or before it.</p>
+      <p><strong>Mnemonic: "Two loops, one skip."</strong> Same as Two Sum's naive version, and for the same reason — <code>j</code> starts one past <code>i</code>, so nothing ever gets compared to itself.</p>
     </div>
+
+    <p class="prose-narrow" style="margin-top:1.2rem; font-size:0.9rem; color:var(--ink-faint);">A common middle ground: sort <code>nums</code> first, then check every adjacent pair — duplicates end up next to each other. That's O(n log n) time and no extra space, better than the nested loop but still short of the hash set below.</p>
 
     <div class="stats">
       <div class="stat-card">
@@ -317,9 +294,9 @@
         <p>A nested loop compares every element to every other element.</p>
       </div>
       <div class="stat-card optimal">
-        <h3>One-pass hash map</h3>
+        <h3>One-pass hash set</h3>
         <div class="stat-value">O(n) time · O(n) space</div>
-        <p>One forward pass. Trade memory for speed — check the map, then remember.</p>
+        <p>One forward pass. Check the set, then remember.</p>
       </div>
     </div>
   </section>
@@ -327,7 +304,7 @@
   <section id="builder-section">
     <p class="eyebrow">Your turn</p>
     <h2>Build an array to test</h2>
-    <p class="prose-narrow">Drag tiles from the palette to insert them, drag array tiles to reorder or remove them, and set a target below.</p>
+    <p class="prose-narrow">Drag tiles from the palette to insert them, or drag array tiles to reorder or remove them.</p>
 
     <div class="builder-block">
       <div class="builder-label">Palette — click to append, drag to insert</div>
@@ -340,30 +317,22 @@
       <div class="trash-zone" id="trashZone">drag a tile here to remove it</div>
     </div>
 
-    <div class="val-picker">
-      <label for="targetInput">Target:</label>
-      <input type="number" id="targetInput" value="9">
-      <span class="hint">any integer, including negative</span>
-    </div>
-
     <div class="presets">
       <div class="builder-label">Or load an example</div>
       <div class="btn-row">
-        <button data-preset="2,7,11,15" data-target="9">Example 1</button>
-        <button data-preset="3,2,4" data-target="6">Example 2</button>
-        <button data-preset="3,3" data-target="6">Duplicate values</button>
-        <button data-preset="-3,4,3,90" data-target="0">Negative numbers</button>
-        <button data-preset="0,4,0,5" data-target="0">Zero involved</button>
-        <button data-preset="1,2,3" data-target="100">No match</button>
-        <button data-preset="1,5,3,8,2,9,4,7" data-target="11">Longer array</button>
+        <button data-preset="1,2,3,1">Example 1</button>
+        <button data-preset="1,2,3,4">Example 2</button>
+        <button data-preset="1,1,1,3,3,4,3,2,4,2">Example 3</button>
+        <button data-preset="-1,-2,-3,-1">Negative numbers</button>
+        <button data-preset="5,5,5,5">All the same</button>
       </div>
     </div>
   </section>
 
   <section id="viz-section">
     <p class="eyebrow">Watch it solve</p>
-    <h2>One pass, one map</h2>
-    <p class="prose-narrow">For each value, ask: have I already seen its complement (<code>target − value</code>)? If yes, that's the pair — return both indices immediately. If no, remember this value's index and keep scanning. One pass is enough because by the time a match exists, one half of the pair is already sitting in the map.</p>
+    <h2>One pass, one set</h2>
+    <p class="prose-narrow">For each value, ask: have I already seen this? If yes, stop — return <code>true</code> immediately. If no, remember it and keep scanning. Getting all the way through the array without a single hit means everything was distinct — <code>false</code>.</p>
 
     <div class="viz-card">
       <div class="viz-head">
@@ -372,8 +341,7 @@
       </div>
 
       <div class="aside">
-        <p><strong>Mnemonic: "Ask before you add."</strong></p>
-        <p>Ask the map for your complement first. Only add yourself to the map after asking — that order is what stops a value from ever matching itself.</p>
+        <p><strong>Mnemonic: "Ask before you add."</strong> Same rule as Two Sum, simpler here — there's no arithmetic to ask about, just "is this value already in the set?"</p>
       </div>
 
       <div class="track-block">
@@ -383,15 +351,15 @@
 
       <div class="track-block">
         <div class="track-label">nums — scanning left to right</div>
-        <div class="track-wrap"><div class="track-flip-anchor" id="anchorA">
+        <div class="track-wrap">
           <div class="track-row" id="trackA"></div>
           <div class="idx-row" id="idxA"></div>
-        </div></div>
+        </div>
       </div>
 
       <div class="track-block">
-        <div class="track-label">Seen so far — value → index</div>
-        <div class="chip-row" id="mapTrack"></div>
+        <div class="track-label">Seen so far</div>
+        <div class="chip-row" id="setTrack"></div>
       </div>
 
       <div class="narration" id="narration"><span class="prompt">›</span><span id="narrationText">Press "Next" or "Play" to begin.</span></div>
@@ -408,23 +376,6 @@
   </section>
 
   <section>
-    <p class="eyebrow">Edge cases worth knowing</p>
-    <h2>Duplicates and negatives don't need special-casing</h2>
-    <p class="prose-narrow">Because the map is only checked <em>before</em> the current value is inserted, an element can never pair with itself — even when two elements share a value. And since the map keys on the actual number, negative values work exactly the same way as positive ones.</p>
-    <div class="aside">
-      <p><strong>Duplicate values:</strong> <code>[3, 3]</code>, target = 6.</p>
-      <p><code>i=0</code> reads 3. Complement = 6 − 3 = 3. The map is still empty — not found. Remember 3 → 0.</p>
-      <p><code>i=1</code> reads 3. Complement = 3 again. This time the map already has 3 → 0 from the <em>previous</em> element — found! Return <code>[0, 1]</code>. The second 3 never sees itself in the map, only the first one.</p>
-    </div>
-    <div class="aside">
-      <p><strong>Negative numbers:</strong> <code>[-3, 4, 3, 90]</code>, target = 0.</p>
-      <p><code>i=0</code> reads -3. Complement = 0 − (-3) = 3. Not in the map — remember -3 → 0.</p>
-      <p><code>i=1</code> reads 4. Complement = -4. Not in the map — remember 4 → 1.</p>
-      <p><code>i=2</code> reads 3. Complement = -3. -3 → 0 is already in the map — found! Return <code>[0, 2]</code>: nums[0] + nums[2] = -3 + 3 = 0.</p>
-    </div>
-  </section>
-
-  <section>
     <p class="eyebrow">Recap</p>
     <h2>Complexity</h2>
     <div class="stats">
@@ -436,13 +387,13 @@
       <div class="stat-card optimal">
         <h3>Space</h3>
         <div class="stat-value">O(n)</div>
-        <p>The map can hold up to n − 1 entries right before the match is found.</p>
+        <p>The set can hold up to n − 1 entries right before a match is found.</p>
       </div>
     </div>
   </section>
 
   <footer>
-    Based on <a href="https://leetcode.com/problems/two-sum/" target="_blank" rel="noopener">LeetCode 1 — Two Sum</a>.
+    Based on <a href="https://leetcode.com/problems/contains-duplicate/" target="_blank" rel="noopener">LeetCode 217 — Contains Duplicate</a>.
   </footer>
 </main>
 
@@ -454,68 +405,96 @@
   let idCounter = 0;
   const makeTile = (value) => ({ id: 't' + (idCounter++), value });
 
-  let tiles = [2,7,11,15].map(makeTile);
-  let targetVal = 9;
+  let tiles = [1,2,3,1].map(makeTile);
   let analysis = null;
   let stepIndex = -1;
   let playing = false;
   let playTimer = null;
-  const speed = 1000;
+  const speed = 900;
   let draggedTileId = null;
   let draggedPaletteValue = null;
 
-  function analyze(vals, target){
+  function analyze(vals){
     const n = vals.length;
     const seen = {};
     const steps = [];
     for (let i = 0; i < n; i++){
       const value = vals[i];
-      const complement = target - value;
-      const found = Object.prototype.hasOwnProperty.call(seen, complement);
-      const matchIndex = found ? seen[complement] : null;
-      steps.push({ phase:'scan', i, value, complement, found, matchIndex });
+      const found = Object.prototype.hasOwnProperty.call(seen, value);
+      const matchIndex = found ? seen[value] : null;
+      steps.push({ phase:'scan', i, value, found, matchIndex });
       if (found){
-        steps.push({ phase:'done', found:true, pair:[matchIndex, i] });
-        return { vals, n, target, steps, result:[matchIndex, i] };
+        steps.push({ phase:'done', result:true, pair:[matchIndex, i] });
+        return { vals, n, steps, result:true };
       }
       seen[value] = i;
     }
-    steps.push({ phase:'done', found:false, pair:null });
-    return { vals, n, target, steps, result:null };
+    steps.push({ phase:'done', result:false });
+    return { vals, n, steps, result:false };
   }
 
   function computeState(idx){
-    if (!analysis) return { map:[], reading:-1, targets:[], done:false, notFoundDone:false };
-    if (idx < 0) return { map:[], reading:-1, targets:[], done:false, notFoundDone:false };
+    if (!analysis || idx < 0) return { set:[], reading:-1, targets:[], done:false };
     const step = analysis.steps[idx];
     if (step.phase === 'done'){
-      if (step.found){
-        const map = [];
-        for (let k = 0; k < step.pair[1]; k++) map.push({ value: analysis.vals[k], index:k });
-        return { map, reading:-1, targets: step.pair, done:true, notFoundDone:false };
+      if (step.result){
+        const set = [];
+        for (let k = 0; k < step.pair[1]; k++) set.push({ value: analysis.vals[k], index:k });
+        return { set, reading:-1, targets: step.pair, done:true };
       }
-      const map = analysis.vals.map((v,i) => ({ value:v, index:i }));
-      return { map, reading:-1, targets:[], done:true, notFoundDone:true };
+      const set = analysis.vals.map((v,i) => ({ value:v, index:i }));
+      return { set, reading:-1, targets:[], done:true };
     }
-    const map = [];
-    for (let k = 0; k < step.i; k++) map.push({ value: analysis.vals[k], index:k });
-    if (step.found) return { map, reading: step.i, targets:[step.matchIndex, step.i], done:false, notFoundDone:false };
-    return { map, reading: step.i, targets:[], done:false, notFoundDone:false };
+    const set = [];
+    for (let k = 0; k < step.i; k++) set.push({ value: analysis.vals[k], index:k });
+    if (step.found) return { set, reading: step.i, targets:[step.matchIndex, step.i], done:false };
+    return { set, reading: step.i, targets:[], done:false };
   }
 
   function narrate(a, idx){
-    if (idx < 0) return `Press "Next" or "Play" to scan left to right, checking each value's complement against the map.`;
+    if (idx < 0) return `Press "Next" or "Play" to scan left to right, checking each value against what's already been seen.`;
     const s = a.steps[idx];
     if (s.phase === 'scan'){
-      if (s.found){
-        return `Read index ${s.i} → value ${s.value}. Complement needed: ${a.target} − ${s.value} = ${s.complement}. Found it — ${s.complement} was seen at index ${s.matchIndex}. Return [${s.matchIndex}, ${s.i}].`;
-      }
-      return `Read index ${s.i} → value ${s.value}. Complement needed: ${a.target} − ${s.value} = ${s.complement}. Not in the map yet — remember ${s.value} at index ${s.i}.`;
+      return s.found
+        ? `Read index ${s.i} → value ${s.value}. Already seen at index ${s.matchIndex} — duplicate found. Return true.`
+        : `Read index ${s.i} → value ${s.value}. Not seen yet — remember it and keep scanning.`;
     }
-    if (s.found){
-      return `Done. nums[${s.pair[0]}] + nums[${s.pair[1]}] = ${a.target}. Returned [${s.pair[0]}, ${s.pair[1]}].`;
-    }
-    return `Done scanning — no pair in this array sums to ${a.target}.`;
+    return s.result ? `Done. A duplicate was found — returned true.` : `Done scanning. Every value was distinct — returned false.`;
+  }
+
+  const CODE_LINES = [
+    { text: 'def contains_duplicate(nums)', kind: 'none' },
+    { text: '  seen = {}', kind: 'none' },
+    { text: '', kind: 'none' },
+    { text: '  nums.each do |value|', kind: 'loop' },
+    { text: '    if seen.key?(value)', kind: 'loop' },
+    { text: '      return true', kind: 'return' },
+    { text: '    end', kind: 'none' },
+    { text: '', kind: 'none' },
+    { text: '    seen[value] = true', kind: 'remember' },
+    { text: '  end', kind: 'none' },
+    { text: '', kind: 'none' },
+    { text: '  false', kind: 'nomatch' },
+    { text: 'end', kind: 'none' },
+  ];
+
+  function activeKindsFor(idx){
+    if (!analysis || idx < 0) return [];
+    const s = analysis.steps[idx];
+    if (s.phase === 'scan') return s.found ? ['loop', 'return'] : ['loop', 'remember'];
+    return s.result ? ['return'] : ['nomatch'];
+  }
+
+  function renderCode(){
+    const panel = document.getElementById('codePanel');
+    panel.innerHTML = '';
+    const active = activeKindsFor(stepIndex);
+    CODE_LINES.forEach(line => {
+      const d = document.createElement('div');
+      d.className = 'code-line' + (active.includes(line.kind) ? ' active-' + line.kind : '');
+      d.textContent = line.text || ' ';
+      panel.appendChild(d);
+    });
   }
 
   function makeCell(value, extraClass){
@@ -530,23 +509,12 @@
     d.textContent = i;
     return d;
   }
-  function makeOp(text){
-    const d = document.createElement('div');
-    d.className = 'hero-op';
-    d.textContent = text;
-    return d;
-  }
 
   function renderHero(){
-    const inArr = [2,7,11,15];
+    const inArr = [1,2,3,1];
     const heroIn = document.getElementById('heroIn');
-    const heroOut = document.getElementById('heroOut');
-    heroIn.innerHTML = ''; heroOut.innerHTML = '';
-    inArr.forEach((v,i) => heroIn.appendChild(makeCell(v, (i === 0 || i === 1) ? 'target' : '')));
-    heroOut.appendChild(makeCell(2, 'target'));
-    heroOut.appendChild(makeOp('+'));
-    heroOut.appendChild(makeCell(7, 'target'));
-    heroOut.appendChild(makeOp('= 9'));
+    heroIn.innerHTML = '';
+    inArr.forEach((v,i) => heroIn.appendChild(makeCell(v, (i === 0 || i === 3) ? 'target' : '')));
   }
 
   function renderPalette(){
@@ -645,8 +613,7 @@
       wrap.setAttribute('tabindex', '0');
       wrap.setAttribute('aria-label', `Value ${t.value}, position ${i + 1} of ${tiles.length}. Arrow keys to move, Delete to remove.`);
 
-      const cell = makeCell(t.value);
-      wrap.appendChild(cell);
+      wrap.appendChild(makeCell(t.value));
 
       const rm = document.createElement('button');
       rm.className = 'remove';
@@ -734,45 +701,8 @@
   function afterArrayChange(){
     stepIndex = -1;
     stopPlaying();
-    analysis = analyze(tiles.map(t => t.value), targetVal);
+    analysis = analyze(tiles.map(t => t.value));
     renderViz();
-  }
-
-  const CODE_LINES = [
-    { text: 'def two_sum(nums, target)', kind: 'none' },
-    { text: '  seen = {}', kind: 'none' },
-    { text: '', kind: 'none' },
-    { text: '  nums.each_with_index do |value, i|', kind: 'loop' },
-    { text: '    complement = target - value', kind: 'loop' },
-    { text: '', kind: 'none' },
-    { text: '    if seen.key?(complement)', kind: 'loop' },
-    { text: '      return [seen[complement], i]', kind: 'return' },
-    { text: '    end', kind: 'none' },
-    { text: '', kind: 'none' },
-    { text: '    seen[value] = i', kind: 'remember' },
-    { text: '  end', kind: 'none' },
-    { text: '', kind: 'none' },
-    { text: '  nil', kind: 'nomatch' },
-    { text: 'end', kind: 'none' },
-  ];
-
-  function activeKindsFor(idx){
-    if (!analysis || idx < 0) return [];
-    const s = analysis.steps[idx];
-    if (s.phase === 'scan') return s.found ? ['loop', 'return'] : ['loop', 'remember'];
-    return s.found ? ['return'] : ['nomatch'];
-  }
-
-  function renderCode(){
-    const panel = document.getElementById('codePanel');
-    panel.innerHTML = '';
-    const active = activeKindsFor(stepIndex);
-    CODE_LINES.forEach(line => {
-      const d = document.createElement('div');
-      d.className = 'code-line' + (active.includes(line.kind) ? ' active-' + line.kind : '');
-      d.textContent = line.text || ' ';
-      panel.appendChild(d);
-    });
   }
 
   function renderTrackA(){
@@ -785,53 +715,30 @@
       let cls = '';
       if (state.targets.includes(i)) cls = 'target';
       else if (i === state.reading) cls = 'reading';
-      else if (state.map.some(m => m.index === i)) cls = 'kept';
-      else if (state.notFoundDone) cls = 'skipped';
+      else if (state.set.some(m => m.index === i)) cls = 'kept';
       trackA.appendChild(makeCell(v, cls));
       idxA.appendChild(makeIdx(i));
     });
   }
 
-  function renderMap(){
-    const mapTrack = document.getElementById('mapTrack');
-    mapTrack.innerHTML = '';
+  function renderSet(){
+    const setTrack = document.getElementById('setTrack');
+    setTrack.innerHTML = '';
     if (!analysis) return;
     const state = computeState(stepIndex);
-    if (state.map.length === 0){
+    if (state.set.length === 0){
       const hint = document.createElement('div');
       hint.className = 'chip-empty';
       hint.textContent = 'empty — nothing seen yet';
-      mapTrack.appendChild(hint);
+      setTrack.appendChild(hint);
       return;
     }
-    state.map.forEach(entry => {
+    state.set.forEach(entry => {
       const chip = document.createElement('div');
-      chip.className = 'map-chip' + (state.targets.includes(entry.index) ? ' hit' : '');
-      chip.innerHTML = `${entry.value}<span class="arrow">→</span>${entry.index}`;
-      mapTrack.appendChild(chip);
+      chip.className = 'set-chip' + (state.targets.includes(entry.index) ? ' hit' : '');
+      chip.textContent = entry.value;
+      setTrack.appendChild(chip);
     });
-  }
-
-  function positionCaret(caretEl, track, index){
-    const cellEl = track.children[index];
-    if (!cellEl){ caretEl.style.display = 'none'; return; }
-    caretEl.style.display = '';
-    caretEl.style.left = (cellEl.offsetLeft + cellEl.offsetWidth / 2) + 'px';
-  }
-
-  function renderCaret(){
-    let needCaret = document.getElementById('needCaret');
-    const anchorA = document.getElementById('anchorA');
-    if (!needCaret){
-      needCaret = document.createElement('div');
-      needCaret.id = 'needCaret'; needCaret.className = 'caret';
-      anchorA.appendChild(needCaret);
-    }
-    if (!analysis || stepIndex < 0 || stepIndex >= analysis.steps.length) { needCaret.style.display = 'none'; return; }
-    const s = analysis.steps[stepIndex];
-    if (s.phase !== 'scan'){ needCaret.style.display = 'none'; return; }
-    needCaret.textContent = `need ${s.complement}`;
-    positionCaret(needCaret, document.getElementById('trackA'), s.i);
   }
 
   function renderPhaseAndCounter(){
@@ -843,7 +750,7 @@
     else {
       const s = analysis.steps[stepIndex];
       if (s.phase === 'scan'){ chip.textContent = 'Scanning'; chip.className = 'phase-chip scan'; }
-      else if (s.found){ chip.textContent = 'Found'; chip.className = 'phase-chip found'; }
+      else if (s.result){ chip.textContent = 'Found'; chip.className = 'phase-chip found'; }
       else { chip.textContent = 'No match'; chip.className = 'phase-chip nomatch'; }
     }
     counter.textContent = `Step ${stepIndex + 1} / ${total}`;
@@ -865,11 +772,10 @@
   function renderViz(){
     renderCode();
     renderTrackA();
-    renderMap();
+    renderSet();
     renderPhaseAndCounter();
     renderNarration();
     renderControls();
-    requestAnimationFrame(renderCaret);
   }
 
   function goNext(){
@@ -900,22 +806,15 @@
     document.querySelectorAll('[data-preset]').forEach(b => {
       b.addEventListener('click', () => {
         const vals = b.dataset.preset.split(',').map(Number);
-        targetVal = Number(b.dataset.target);
-        document.getElementById('targetInput').value = targetVal;
         tiles = vals.map(makeTile);
         renderArrayTrack();
         afterArrayChange();
       });
     });
-    document.getElementById('targetInput').addEventListener('input', (e) => {
-      const v = Number(e.target.value);
-      if (!Number.isNaN(v)){ targetVal = v; afterArrayChange(); }
-    });
     document.getElementById('btnNext').addEventListener('click', () => { stopPlaying(); goNext(); });
     document.getElementById('btnPrev').addEventListener('click', () => { stopPlaying(); goPrev(); });
     document.getElementById('btnReset').addEventListener('click', doReset);
     document.getElementById('btnPlay').addEventListener('click', () => { playing ? stopPlaying() : startPlaying(); });
-    window.addEventListener('resize', () => requestAnimationFrame(renderCaret));
   }
 
   renderHero();
