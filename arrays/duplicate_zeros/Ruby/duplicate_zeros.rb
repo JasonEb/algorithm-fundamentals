@@ -82,3 +82,53 @@ def duplicate_zeros(arr)
 
     arr
 end
+
+# cuttoff fix
+def duplicate_zeros(arr)
+    rdx = 0
+    wdx = arr.length - 1
+    count = 0
+    cutoff = false
+
+    # walk forward
+    while (rdx < arr.length)
+        num = arr[rdx]
+
+        if (num == 0)
+            count += 2
+        else
+            count += 1
+        end
+
+        if (count >= arr.length)
+            cutoff = count > arr.length
+            break
+        end
+
+        rdx += 1
+    end
+
+    # walk backwards
+    while (rdx >= 0)
+        num = arr[rdx]
+
+        if num == 0
+            if cutoff
+                arr[wdx] = 0
+                wdx -= 1
+                cutoff = false
+            else
+                arr[wdx] = 0
+                arr[wdx - 1] = 0
+                wdx -= 2
+            end
+        else
+            arr[wdx] = num
+            wdx -= 1
+        end
+
+        rdx -= 1
+    end
+
+    nil
+end

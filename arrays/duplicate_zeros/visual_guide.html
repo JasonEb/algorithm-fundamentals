@@ -437,6 +437,31 @@
   .lang-tabs button[aria-selected="true"]{ background:var(--read); border-color:var(--read); color:var(--paper); }
   .lang-tabs button[aria-selected="true"]:hover{ color:var(--paper); opacity:0.9; }
 
+  /* ---------- top-solutions comparison ---------- */
+  .style-compare{ display:grid; grid-template-columns:1fr 1fr; gap:1.3rem; margin-top:1.8rem; }
+  @media (max-width:640px){ .style-compare{ grid-template-columns:1fr; } }
+  .style-panel h3{ font-family:'IBM Plex Sans',sans-serif; font-size:0.95rem; margin-bottom:0.6rem; }
+  .style-panel .tag{
+    font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; padding:0.15rem 0.5rem;
+    border-radius:20px; font-weight:600; background:var(--read-soft); color:var(--read); margin-bottom:0.6rem; display:inline-block;
+  }
+  .code-panel{
+    background:var(--paper); border:1px solid var(--line); border-radius:8px;
+    padding:0.9rem 0; overflow-x:auto;
+  }
+  .code-line{
+    padding:0.1rem 1rem 0.1rem 0.85rem; white-space:pre; font-size:0.83rem; color:var(--ink);
+    border-left:3px solid transparent; font-family:'IBM Plex Mono',monospace;
+  }
+  .code-line.hl-decide{ background:var(--write-soft); border-left-color:var(--write); }
+  .code-line.hl-write{ background:var(--read-soft); border-left-color:var(--read); }
+
+  .trace-table{ margin-top:1.2rem; width:100%; border-collapse:collapse; font-size:0.86rem; }
+  .trace-table th, .trace-table td{ padding:0.5rem 0.7rem; text-align:left; border-bottom:1px solid var(--line); font-family:'IBM Plex Mono',monospace; }
+  .trace-table th{ color:var(--ink-faint); font-weight:600; text-transform:uppercase; font-size:0.68rem; letter-spacing:0.06em; }
+  .trace-table td.match{ color:var(--read); font-weight:600; }
+  .trace-wrap{ overflow-x:auto; }
+
   footer{ padding-top:3.2rem; text-align:center; color:var(--ink-faint); font-size:0.82rem; }
   footer a{ color:var(--ink-faint); text-decoration:underline; }
 
@@ -589,6 +614,83 @@
         <div class="mini-caption" id="miniBackwardCaption">Array: [0, 1, 2, 3]</div>
         <button id="playBackward">▶ Play backward pass</button>
       </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Checking your work against the wild</p>
+    <h2>Is "cutoff" even a real thing?</h2>
+    <p class="prose-narrow">Short answer: the <em>concept</em> is real and required — some zero really does only get 1 of its 2 slots, and if you treat it like a normal zero the array gets destroyed (we proved that with an actual trace earlier). What's not universal is expressing that as a named boolean. Most upvoted LeetCode solutions for this problem never write anything called <code>cutoff</code> at all — they get the identical effect a different way: a bounds check on <em>every single write</em>, instead of deciding once up front.</p>
+
+    <div class="style-compare">
+      <div class="style-panel">
+        <span class="tag">Decide once, remember it</span>
+        <h3>Explicit flag</h3>
+        <div class="code-panel">
+          <div class="code-line">read = boundary</div>
+          <div class="code-line">write = n - 1</div>
+          <div class="code-line"> </div>
+          <div class="code-line">while read >= 0</div>
+          <div class="code-line">  if arr[read] == 0</div>
+          <div class="code-line hl-decide">    if cutoff</div>
+          <div class="code-line hl-write">      arr[write] = 0</div>
+          <div class="code-line">      write -= 1</div>
+          <div class="code-line hl-decide">      cutoff = false</div>
+          <div class="code-line">    else</div>
+          <div class="code-line hl-write">      arr[write] = 0; arr[write-1] = 0</div>
+          <div class="code-line">      write -= 2</div>
+          <div class="code-line">    end</div>
+          <div class="code-line">  else</div>
+          <div class="code-line hl-write">    arr[write] = arr[read]</div>
+          <div class="code-line">    write -= 1</div>
+          <div class="code-line">  end</div>
+          <div class="code-line">  read -= 1</div>
+          <div class="code-line">end</div>
+        </div>
+      </div>
+      <div class="style-panel">
+        <span class="tag">Check every time, no memory</span>
+        <h3>Bounds check (common in the wild)</h3>
+        <div class="code-panel">
+          <div class="code-line">shift = arr.count(0)</div>
+          <div class="code-line"> </div>
+          <div class="code-line">(n - 1).downto(0) do |i|</div>
+          <div class="code-line">  shift -= 1 if arr[i] == 0</div>
+          <div class="code-line"> </div>
+          <div class="code-line hl-decide">  if i + shift < n</div>
+          <div class="code-line hl-write">    arr[i + shift] = arr[i]</div>
+          <div class="code-line"> </div>
+          <div class="code-line hl-decide">    if arr[i] == 0 && i + shift + 1 < n</div>
+          <div class="code-line hl-write">      arr[i + shift + 1] = 0</div>
+          <div class="code-line">    end</div>
+          <div class="code-line">  end</div>
+          <div class="code-line">end</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="prose-narrow" style="margin-top:1.4rem;">Both, on <code>[8, 4, 5, 0, 0, 0, 0, 7]</code>, produce <code>[8, 4, 5, 0, 0, 0, 0, 0]</code> — I ran both to confirm. Here's every step of pass two, side by side, walking the same original indices backward:</p>
+
+    <div class="trace-wrap">
+      <table class="trace-table">
+        <thead>
+          <tr><th>i</th><th>value</th><th>Explicit flag</th><th>Bounds check</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>7</td><td>7</td><td>never visited — read starts at the boundary (5), not the end</td><td>shift=4, 7+4=11 ≥ 8 → no write (out of bounds)</td></tr>
+          <tr><td>6</td><td>0</td><td>never visited</td><td>shift=3, 6+3=9 ≥ 8 → no write</td></tr>
+          <tr class="match"><td>5</td><td>0</td><td class="match">cutoff → write index 7 <strong>only</strong></td><td class="match">shift=2, 5+2=7 &lt; 8 → write index 7 <strong>only</strong></td></tr>
+          <tr><td>4</td><td>0</td><td>normal zero → write 6 and 5</td><td>shift=1, 4+1=5 &lt; 8 → write 5 and 6</td></tr>
+          <tr><td>3</td><td>0</td><td>normal zero → write 4 and 3</td><td>shift=0, 3+0=3 &lt; 8 → write 3 and 4</td></tr>
+          <tr><td>2</td><td>5</td><td>write index 2</td><td>2+0=2 &lt; 8 → write index 2</td></tr>
+          <tr><td>1</td><td>4</td><td>write index 1</td><td>write index 1</td></tr>
+          <tr><td>0</td><td>8</td><td>write index 0</td><td>write index 0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <p>Row <code>i = 5</code> is the whole argument in one line: both styles write <strong>once</strong>, not twice, for that specific zero — one because a flag told it to, the other because <code>7 &lt; 8</code> but <code>8 &lt; 8</code> is false. Same decision, two different ways of asking the question. The flag version also never bothers visiting indices 6 and 7 at all, since it computes the boundary up front instead of discovering it via failed bounds checks — a small efficiency difference, not a correctness one.</p>
     </div>
   </section>
 
