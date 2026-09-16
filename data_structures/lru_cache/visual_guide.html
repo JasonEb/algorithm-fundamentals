@@ -1,0 +1,614 @@
+<title>LRU Cache</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root{
+    --paper:#EDF1F2; --paper-raised:#F8FAFB; --ink:#1B2A3A; --ink-soft:#4C6070; --ink-faint:#8494A0;
+    --line:rgba(27,42,58,0.16); --line-soft:rgba(27,42,58,0.09);
+    --read:#1F7A8C; --read-soft:rgba(31,122,140,0.14);
+    --write:#B85C1E; --write-soft:rgba(184,92,30,0.14);
+    --danger:#A6402E; --danger-soft:rgba(166,64,46,0.14);
+    --shadow:0 1px 2px rgba(27,42,58,0.07), 0 10px 28px rgba(27,42,58,0.07);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) {
+      --paper:#101A22; --paper-raised:#16232D; --ink:#E7ECEE; --ink-soft:#9FB0BB; --ink-faint:#5E727D;
+      --line:rgba(231,236,238,0.16); --line-soft:rgba(231,236,238,0.08);
+      --read:#5FC3D6; --read-soft:rgba(95,195,214,0.16);
+      --write:#E38A4C; --write-soft:rgba(227,138,76,0.16);
+      --danger:#E07A63; --danger-soft:rgba(224,122,99,0.16);
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#101A22; --paper-raised:#16232D; --ink:#E7ECEE; --ink-soft:#9FB0BB; --ink-faint:#5E727D;
+    --line:rgba(231,236,238,0.16); --line-soft:rgba(231,236,238,0.08);
+    --read:#5FC3D6; --read-soft:rgba(95,195,214,0.16);
+    --write:#E38A4C; --write-soft:rgba(227,138,76,0.16);
+    --danger:#E07A63; --danger-soft:rgba(224,122,99,0.16);
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box;}
+  ::selection{ background:var(--read-soft); }
+  body{
+    margin:0;
+    background: linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0/100% 28px,
+                linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0/28px 100%, var(--paper);
+    color:var(--ink); font-family:'Source Serif 4', Georgia, serif; font-size:1.05rem; line-height:1.65;
+  }
+  h1,h2,h3{ font-family:'IBM Plex Sans', system-ui, sans-serif; }
+  code, .mono, .cell, .caret, .narration, .stat-value, button, .step-counter{ font-family:'IBM Plex Mono', ui-monospace, monospace; }
+  a{ color:var(--read); }
+  main{ max-width:900px; margin:0 auto; padding:4.5rem 1.5rem 6rem; }
+  section{ padding:3.2rem 0; }
+  section + section{ border-top:1px dashed var(--line); }
+  .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--read); margin:0 0 0.9rem; }
+  h1{ font-size:clamp(2.1rem,5.2vw,3.3rem); line-height:1.05; margin:0 0 1rem; font-weight:700; letter-spacing:-0.01em; text-wrap:balance; }
+  h2{ font-size:clamp(1.4rem,3vw,1.85rem); margin:0 0 1.1rem; font-weight:600; text-wrap:balance; }
+  h3{ font-size:1.05rem; margin:0 0 0.6rem; font-weight:600; }
+  p{ max-width:66ch; color:var(--ink); }
+  p.lede{ font-size:1.2rem; color:var(--ink-soft); max-width:56ch; }
+  .prose-narrow{ max-width:62ch; }
+  .rules{ list-style:none; margin:1.6rem 0 0; padding:0; display:grid; gap:0.7rem; }
+  .rules li{ display:flex; gap:0.8rem; align-items:baseline; font-size:0.98rem; color:var(--ink-soft); }
+  .rules li::before{ content:"—"; color:var(--read); font-family:'IBM Plex Mono',monospace; flex:none; }
+  .rules strong{ color:var(--ink); font-weight:600; }
+  .stats{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.8rem; }
+  .stat-card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem; box-shadow:var(--shadow); }
+  .stat-card h3{ font-family:'IBM Plex Sans',sans-serif; font-size:0.95rem; color:var(--ink-soft); font-weight:500; }
+  .stat-value{ font-size:1.5rem; font-weight:700; margin:0.3rem 0; }
+  .stat-card.optimal .stat-value{ color:var(--read); }
+  .stat-card p{ font-size:0.86rem; color:var(--ink-faint); margin:0; }
+  @media (max-width:560px){ .stats{ grid-template-columns:1fr; } }
+  button{ font-size:0.82rem; border-radius:7px; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); padding:0.5rem 0.85rem; cursor:pointer; transition:border-color .15s,background .15s,color .15s,opacity .15s; }
+  button:hover:not(:disabled){ border-color:var(--read); color:var(--read); }
+  button:focus-visible{ outline:2px solid var(--read); outline-offset:2px; }
+  button:disabled{ opacity:0.4; cursor:not-allowed; }
+  button.primary{ background:var(--read); border-color:var(--read); color:var(--paper); }
+  button.primary:hover:not(:disabled){ color:var(--paper); opacity:0.88; }
+  button.ghost{ background:transparent; }
+  .btn-row{ display:flex; flex-wrap:wrap; gap:0.55rem; align-items:center; }
+  .viz-card{ margin-top:2rem; background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:1.6rem 1.6rem 1.4rem; box-shadow:var(--shadow); }
+  .viz-head{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.3rem; }
+  .phase-chip{ font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.28rem 0.65rem; border-radius:20px; font-weight:600; background:var(--line-soft); color:var(--ink-soft); }
+  .phase-chip.get{ background:var(--read-soft); color:var(--read); }
+  .phase-chip.put{ background:var(--write-soft); color:var(--write); }
+  .phase-chip.evict{ background:var(--danger-soft); color:var(--danger); }
+  .step-counter{ font-size:0.78rem; color:var(--ink-faint); }
+  .track-label{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.5rem; }
+  .track-block + .track-block{ margin-top:1.9rem; }
+  .code-panel{ background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:0.9rem 0; overflow-x:auto; }
+  .code-line{ padding:0.1rem 1rem 0.1rem 0.85rem; white-space:pre; font-size:0.83rem; color:var(--ink); border-left:3px solid transparent; transition:background .3s,border-color .3s; }
+  .code-line.active-loop{ background:var(--read-soft); border-left-color:var(--read); }
+  .code-line.active-return{ background:var(--danger-soft); border-left-color:var(--danger); }
+  .code-line.active-remember{ background:var(--write-soft); border-left-color:var(--write); }
+  .chip-row{ display:flex; flex-wrap:wrap; gap:0.5rem; min-height:2.6rem; align-items:center; }
+  .lru-chip{
+    padding:0.5rem 0.85rem; border-radius:8px; border:1.5px solid var(--line); background:var(--paper);
+    font-weight:600; font-size:0.9rem; color:var(--ink); font-family:'IBM Plex Mono',monospace;
+    transition:border-color .25s,box-shadow .25s,color .25s;
+  }
+  .lru-chip.touched{ border-color:var(--read); box-shadow:0 0 0 3px var(--read-soft); color:var(--read); }
+  .lru-chip.evicted{ border-color:var(--danger); box-shadow:0 0 0 3px var(--danger-soft); color:var(--danger); text-decoration:line-through; opacity:0.7; }
+  .chip-empty{ font-size:0.85rem; color:var(--ink-faint); font-style:italic; }
+  .lru-order-label{ display:flex; justify-content:space-between; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); margin-top:0.4rem; }
+  .call-list{ display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:1rem; }
+  .call-chip{ padding:0.3rem 0.6rem; border-radius:6px; border:1px solid var(--line); font-size:0.8rem; font-family:'IBM Plex Mono',monospace; color:var(--ink-faint); }
+  .call-chip.current{ border-color:var(--read); color:var(--read); background:var(--read-soft); font-weight:600; }
+  .call-chip.past{ color:var(--ink-soft); }
+  .narration{ margin-top:1.5rem; background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:0.85rem 1rem; font-size:0.86rem; color:var(--ink); min-height:2.6em; display:flex; align-items:center; }
+  .narration .prompt{ color:var(--read); margin-right:0.6rem; flex:none; }
+  .controls{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-top:1.2rem; }
+  .aside{ margin-top:1.6rem; border-left:3px solid var(--write); background:var(--paper-raised); padding:0.95rem 1.2rem; border-radius:0 8px 8px 0; font-size:0.92rem; color:var(--ink-soft); }
+  .aside p{ max-width:none; margin:0.4rem 0 0; }
+  .aside p:first-child{ margin-top:0; }
+  .aside strong{ color:var(--ink); }
+  .bug-list{ list-style:none; margin:1.2rem 0 0; padding:0; display:flex; flex-direction:column; gap:1.1rem; }
+  .bug-list li{ background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:0.95rem 1.15rem; border-left:3px solid var(--danger); }
+  .bug-list h3{ font-family:'IBM Plex Sans',sans-serif; font-size:0.95rem; margin:0 0 0.4rem; }
+  .bug-list p{ margin:0.3rem 0 0; font-size:0.9rem; color:var(--ink-soft); max-width:none; }
+  footer{ padding-top:3.2rem; text-align:center; color:var(--ink-faint); font-size:0.82rem; }
+  footer a{ color:var(--ink-faint); text-decoration:underline; }
+  @media (prefers-reduced-motion: reduce){ *{ transition-duration:0.001ms !important; } }
+</style>
+
+<main>
+
+  <section class="hero">
+    <p class="eyebrow">Hash + Recency Order · O(1) get and put</p>
+    <h1>LRU Cache</h1>
+    <p class="lede">A fixed-size cache that remembers only what's been used recently — every real caching layer you've ever touched (browser cache, CDN edge cache, a Redis eviction policy) uses some version of this exact idea.</p>
+
+    <ul class="rules">
+      <li><strong>Fixed capacity.</strong> Set once, at construction — never changes.</li>
+      <li><strong><code>get(key)</code></strong> returns the value if present, else <code>-1</code> — and counts as "using" that key.</li>
+      <li><strong><code>put(key, value)</code></strong> inserts or updates — also counts as "using" that key.</li>
+      <li><strong>Over capacity → evict the least recently used key</strong>, not the oldest-inserted one. Those aren't the same thing once a key gets reused.</li>
+      <li><strong>Both operations must be O(1) average time</strong> — not O(log n), not O(n). That's the whole design constraint.</li>
+    </ul>
+  </section>
+
+  <section>
+    <p class="eyebrow">The trap</p>
+    <h2>Why a plain hash isn't enough — except in Ruby</h2>
+    <p class="prose-narrow">A hash alone gives you O(1) lookup, but it doesn't remember <em>order of use</em> — so finding "the least recently used key" means scanning everything, O(n). That's why the textbook answer in most languages is a hash <em>plus</em> a doubly-linked list: the hash gives O(1) lookup, the linked list gives O(1) "move this to the front" and O(1) "evict from the back," and every node lives in both structures at once.</p>
+    <p class="prose-narrow">Ruby sidesteps needing the second structure entirely: <strong>Ruby's Hash preserves insertion order</strong>, and re-inserting an existing key moves it to the end without changing anywhere else. Delete a key, then set it again, and it jumps to the "most recent" end for free.</p>
+    <div class="stats">
+      <div class="stat-card">
+        <h3>Hash + linear scan for LRU</h3>
+        <div class="stat-value">O(1) get · O(n) put</div>
+        <p>Finding the least-recently-used entry means checking every key.</p>
+      </div>
+      <div class="stat-card optimal">
+        <h3>Ruby Hash, delete + re-insert</h3>
+        <div class="stat-value">O(1) get · O(1) put</div>
+        <p>No linked list needed — order is already tracked for you.</p>
+      </div>
+    </div>
+    <div class="aside">
+      <p><strong>Mnemonic: "Touch it, move it to the back."</strong> Every <code>get</code> or <code>put</code> on an existing key deletes and re-inserts it — nothing else changes. The front of the hash is always the least recently used; the back is always the most recent.</p>
+    </div>
+  </section>
+
+  <section id="viz-section">
+    <p class="eyebrow">Watch it solve</p>
+    <h2>Step through a real call sequence</h2>
+    <p class="prose-narrow">Each step is one method call. Watch which line runs, and watch the cache's key order — the leftmost key is always the one that gets evicted next.</p>
+
+    <div class="viz-card">
+      <div class="viz-head">
+        <span class="phase-chip" id="phaseChip">Ready</span>
+        <span class="step-counter" id="stepCounter">Step 0 / 0</span>
+      </div>
+
+      <div class="btn-row" style="margin-bottom:1.2rem;">
+        <button data-preset="official">Official example (capacity 2)</button>
+        <button data-preset="cap1">Capacity 1</button>
+        <button data-preset="refresh">Update refreshes recency</button>
+      </div>
+
+      <div class="call-list" id="callList"></div>
+
+      <div class="track-block">
+        <div class="track-label">Code — the line that just ran</div>
+        <div class="code-panel" id="codePanel"></div>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label">Cache contents, oldest (evict next) → newest</div>
+        <div class="chip-row" id="chipRow"></div>
+      </div>
+
+      <div class="narration" id="narration"><span class="prompt">›</span><span id="narrationText">Press "Next" or "Play" to begin.</span></div>
+
+      <div class="controls">
+        <div class="btn-row">
+          <button id="btnReset" class="ghost">⟲ Reset</button>
+          <button id="btnPrev">◀ Prev</button>
+          <button id="btnNext">Next ▶</button>
+          <button id="btnPlay" class="primary">▶ Play</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">If Ruby's Hash didn't do this for you</p>
+    <h2>The classic hash + doubly-linked-list approach</h2>
+    <p class="prose-narrow">This is what most languages need, and it's a fair follow-up question even in Ruby — "what if you couldn't rely on insertion order?" A doubly-linked list tracks recency directly: one end is most-recently-used, the other is least. The hash maps each key to a direct reference to its <em>node</em> in that list, not to the value — that's what makes O(1) both ways possible.</p>
+    <p class="prose-narrow">Once you hold a direct pointer to a node, splicing it out of wherever it sits takes O(1) — but only because the list is <strong>doubly</strong> linked. Removing a node means reconnecting its neighbors to each other (<code>prev.next = node.next</code> and <code>next.prev = node.prev</code>), and that needs the node's <code>prev</code> pointer directly. A singly-linked list only gives you <code>next</code> — finding what points *to* a node would mean scanning from the head, which is exactly the O(n) cost this whole structure exists to avoid.</p>
+
+    <div class="track-label" style="margin-top:1.6rem;">Ruby — same interface, no reliance on Hash ordering</div>
+    <div class="code-panel">
+      <div class="code-line">class Node</div>
+      <div class="code-line">  attr_accessor :key, :value, :prev, :next</div>
+      <div class="code-line"> </div>
+      <div class="code-line">  def initialize(key = nil, value = nil)</div>
+      <div class="code-line">    @key = key</div>
+      <div class="code-line">    @value = value</div>
+      <div class="code-line">  end</div>
+      <div class="code-line">end</div>
+      <div class="code-line"> </div>
+      <div class="code-line">class LRUCache</div>
+      <div class="code-line">  def initialize(capacity)</div>
+      <div class="code-line">    @capacity = capacity</div>
+      <div class="code-line">    @map = {}</div>
+      <div class="code-line">    @head = Node.new   # sentinel: most-recently-used side</div>
+      <div class="code-line">    @tail = Node.new   # sentinel: least-recently-used side</div>
+      <div class="code-line">    @head.next = @tail</div>
+      <div class="code-line">    @tail.prev = @head</div>
+      <div class="code-line">  end</div>
+      <div class="code-line"> </div>
+      <div class="code-line">  def get(key)</div>
+      <div class="code-line">    return -1 unless @map.key?(key)</div>
+      <div class="code-line"> </div>
+      <div class="code-line">    node = @map[key]</div>
+      <div class="code-line">    remove(node)</div>
+      <div class="code-line">    insert_at_front(node)</div>
+      <div class="code-line">    node.value</div>
+      <div class="code-line">  end</div>
+      <div class="code-line"> </div>
+      <div class="code-line">  def put(key, value)</div>
+      <div class="code-line">    if @map.key?(key)</div>
+      <div class="code-line">      node = @map[key]</div>
+      <div class="code-line">      node.value = value</div>
+      <div class="code-line">      remove(node)</div>
+      <div class="code-line">      insert_at_front(node)</div>
+      <div class="code-line">    else</div>
+      <div class="code-line">      node = Node.new(key, value)</div>
+      <div class="code-line">      @map[key] = node</div>
+      <div class="code-line">      insert_at_front(node)</div>
+      <div class="code-line"> </div>
+      <div class="code-line">      if @map.size > @capacity</div>
+      <div class="code-line">        lru = @tail.prev</div>
+      <div class="code-line">        remove(lru)</div>
+      <div class="code-line">        @map.delete(lru.key)</div>
+      <div class="code-line">      end</div>
+      <div class="code-line">    end</div>
+      <div class="code-line"> </div>
+      <div class="code-line">    nil</div>
+      <div class="code-line">  end</div>
+      <div class="code-line"> </div>
+      <div class="code-line">  private</div>
+      <div class="code-line"> </div>
+      <div class="code-line">  def remove(node)</div>
+      <div class="code-line">    node.prev.next = node.next</div>
+      <div class="code-line">    node.next.prev = node.prev</div>
+      <div class="code-line">  end</div>
+      <div class="code-line"> </div>
+      <div class="code-line">  def insert_at_front(node)</div>
+      <div class="code-line">    node.next = @head.next</div>
+      <div class="code-line">    node.prev = @head</div>
+      <div class="code-line">    @head.next.prev = node</div>
+      <div class="code-line">    @head.next = node</div>
+      <div class="code-line">  end</div>
+      <div class="code-line">end</div>
+    </div>
+
+    <div class="aside">
+      <p><strong><code>@head.next</code> is always the most-recently-used entry; <code>@tail.prev</code> is always the one to evict.</strong> I verified this exact implementation against the official example, the capacity-1 case, and the update-refreshes-recency case — all three pass identically to the ordered-Hash version above. The sentinel <code>@head</code>/<code>@tail</code> nodes are what let <code>insert_at_front</code> and <code>remove</code> stay branch-free: there's no "is the list empty" special case, because the sentinels always give every real node something to link against.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Naming the behavior, not just the pointers</p>
+    <h2>Refactor: methods that describe what <code>get</code> and <code>put</code> are doing</h2>
+    <p class="prose-narrow">The version above works, but <code>remove(node)</code> followed by <code>insert_at_front(node)</code> shows up twice — once in <code>get</code>, once in <code>put</code>'s update branch — with no name for what that pair of calls actually means: <em>this node was just used</em>. Pulling it into its own method turns two lines of pointer-splicing into one line that says what happened.</p>
+
+    <div class="track-label" style="margin-top:1.6rem;">Ruby — same behavior, three named steps</div>
+    <div class="code-panel">
+      <div class="code-line">def get(key)</div>
+      <div class="code-line">  return -1 unless @map.key?(key)</div>
+      <div class="code-line"> </div>
+      <div class="code-line">  node = @map[key]</div>
+      <div class="code-line">  move_to_front(node)</div>
+      <div class="code-line">  node.value</div>
+      <div class="code-line">end</div>
+      <div class="code-line"> </div>
+      <div class="code-line">def put(key, value)</div>
+      <div class="code-line">  if @map.key?(key)</div>
+      <div class="code-line">    node = @map[key]</div>
+      <div class="code-line">    node.value = value</div>
+      <div class="code-line">    move_to_front(node)</div>
+      <div class="code-line">  else</div>
+      <div class="code-line">    insert_new(key, value)</div>
+      <div class="code-line">    evict_if_over_capacity</div>
+      <div class="code-line">  end</div>
+      <div class="code-line"> </div>
+      <div class="code-line">  nil</div>
+      <div class="code-line">end</div>
+      <div class="code-line"> </div>
+      <div class="code-line">private</div>
+      <div class="code-line"> </div>
+      <div class="code-line">def move_to_front(node)</div>
+      <div class="code-line">  remove(node)</div>
+      <div class="code-line">  insert_at_front(node)</div>
+      <div class="code-line">end</div>
+      <div class="code-line"> </div>
+      <div class="code-line">def insert_new(key, value)</div>
+      <div class="code-line">  node = Node.new(key, value)</div>
+      <div class="code-line">  @map[key] = node</div>
+      <div class="code-line">  insert_at_front(node)</div>
+      <div class="code-line">end</div>
+      <div class="code-line"> </div>
+      <div class="code-line">def evict_if_over_capacity</div>
+      <div class="code-line">  return unless @map.size > @capacity</div>
+      <div class="code-line"> </div>
+      <div class="code-line">  lru = @tail.prev</div>
+      <div class="code-line">  remove(lru)</div>
+      <div class="code-line">  @map.delete(lru.key)</div>
+      <div class="code-line">end</div>
+      <div class="code-line"> </div>
+      <div class="code-line"># remove(node) and insert_at_front(node) are unchanged from above.</div>
+    </div>
+
+    <div class="aside">
+      <p><strong>Read <code>get</code> and <code>put</code> out loud now:</strong> "find it, mark it used, return its value" — and "if it exists, update it and mark it used; otherwise insert it and evict if that pushed us over capacity." The pointer mechanics haven't changed at all — <code>remove</code> and <code>insert_at_front</code> are byte-for-byte what they were — they've just been pushed down a level so they stop competing with the public method's own logic for your attention. Verified against all three call sequences above; identical results before and after the refactor.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Bugs worth knowing before they bite you</p>
+    <h2>Common mistakes</h2>
+    <ul class="bug-list">
+      <li>
+        <h3>Ruby's implicit return leaks internal values out of <code>put</code>.</h3>
+        <p>If the last line executed in <code>put</code> is <code>@cache.delete(oldest_key)</code> (which happens exactly when an eviction fires), the method returns the <em>evicted value</em> instead of <code>nil</code> — because Ruby methods return whatever their last expression evaluated to. I caught this by actually running the code: <code>put</code> was returning <code>2</code> instead of <code>nil</code> on the exact call where eviction happened. Fix: put an explicit <code>nil</code> as the last line of the method.</p>
+      </li>
+      <li>
+        <h3><code>@cache.keys.first</code> is O(n), not O(1).</h3>
+        <p><code>.keys</code> builds a brand-new array of <em>every</em> key before you ever call <code>.first</code> on it — silently turning your O(1) eviction into O(n). Use <code>@cache.first</code> directly, which returns the first <code>[key, value]</code> pair without materializing the rest.</p>
+      </li>
+      <li>
+        <h3>Forgetting that <code>put</code> on an existing key must also refresh recency.</h3>
+        <p>Updating a key's value counts as "using" it, same as <code>get</code> does. If <code>put</code> only overwrites the value without deleting-and-reinserting the key first, that key keeps its old position — and can get evicted even though it was just touched.</p>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <p class="eyebrow">Recap</p>
+    <h2>Complexity, and where this goes next</h2>
+    <div class="stats">
+      <div class="stat-card optimal">
+        <h3>Time</h3>
+        <div class="stat-value">O(1)</div>
+        <p><code>get</code> and <code>put</code> are each a constant number of hash operations.</p>
+      </div>
+      <div class="stat-card optimal">
+        <h3>Space</h3>
+        <div class="stat-value">O(capacity)</div>
+        <p>The cache never holds more than <code>capacity</code> entries at once.</p>
+      </div>
+    </div>
+    <div class="aside">
+      <p><strong>Likely follow-ups if this comes up in an interview:</strong> "What if this needed to be thread-safe?" (a mutex around get/put, or a concurrent-safe structure). "What if entries needed to expire after a fixed time, not just by capacity?" (store a timestamp alongside each value, check it in <code>get</code>). "What about LFU instead of LRU?" (evict by frequency of use instead of recency — genuinely harder, needs a frequency-bucketed structure). "How would you do this in a language without an ordered hash?" — that's exactly where the hash + doubly-linked-list textbook answer comes back in.</p>
+    </div>
+  </section>
+
+  <footer>
+    Based on <a href="https://leetcode.com/problems/lru-cache/" target="_blank" rel="noopener">LeetCode 146 — LRU Cache</a>.
+  </footer>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  const PRESETS = {
+    official: { capacity: 2, calls: [
+      {op:'put',key:1,value:1},{op:'put',key:2,value:2},{op:'get',key:1},
+      {op:'put',key:3,value:3},{op:'get',key:2},{op:'put',key:4,value:4},
+      {op:'get',key:1},{op:'get',key:3},{op:'get',key:4},
+    ]},
+    cap1: { capacity: 1, calls: [
+      {op:'put',key:1,value:1},{op:'put',key:2,value:2},
+      {op:'get',key:1},{op:'get',key:2},
+    ]},
+    refresh: { capacity: 2, calls: [
+      {op:'put',key:1,value:1},{op:'put',key:2,value:2},{op:'put',key:1,value:10},
+      {op:'put',key:3,value:3},{op:'get',key:2},{op:'get',key:1},{op:'get',key:3},
+    ]},
+  };
+
+  let capacity = 2;
+  let calls = PRESETS.official.calls;
+  let steps = [];
+  let stepIndex = -1;
+  let playing = false;
+  let playTimer = null;
+  const speed = 1100;
+
+  function simulate(cap, callList){
+    const state = new Map();
+    return callList.map(call => {
+      if (call.op === 'get'){
+        let result;
+        const found = state.has(call.key);
+        if (found){
+          const v = state.get(call.key);
+          state.delete(call.key);
+          state.set(call.key, v);
+          result = v;
+        } else {
+          result = -1;
+        }
+        return { op:'get', key:call.key, found, result, cacheAfter:[...state.entries()], evictedKey:null };
+      }
+      const existed = state.has(call.key);
+      if (existed) state.delete(call.key);
+      state.set(call.key, call.value);
+      let evictedKey = null;
+      if (state.size > cap){
+        evictedKey = state.keys().next().value;
+        state.delete(evictedKey);
+      }
+      return { op:'put', key:call.key, value:call.value, existed, evictedKey, cacheAfter:[...state.entries()] };
+    });
+  }
+
+  function narrate(idx){
+    if (idx < 0) return `Press "Next" or "Play" to begin — capacity is ${capacity}.`;
+    const s = steps[idx];
+    if (s.op === 'get'){
+      return s.found
+        ? `get(${s.key}) → found, returns ${s.result}. Key ${s.key} moves to the most-recently-used end.`
+        : `get(${s.key}) → not in the cache, returns -1.`;
+    }
+    let msg = s.existed
+      ? `put(${s.key}, ${s.value}) → key already existed, value updated and moved to most-recently-used.`
+      : `put(${s.key}, ${s.value}) → new key inserted at the most-recently-used end.`;
+    if (s.evictedKey !== null) msg += ` Over capacity — evicts key ${s.evictedKey} (the least recently used).`;
+    return msg;
+  }
+
+  const CODE_LINES = [
+    'class LRUCache',
+    '  def initialize(capacity)',
+    '    @capacity = capacity',
+    '    @cache = {}',
+    '  end',
+    '',
+    '  def get(key)',
+    '    return -1 unless @cache.key?(key)',
+    '',
+    '    value = @cache.delete(key)',
+    '    @cache[key] = value',
+    '    value',
+    '  end',
+    '',
+    '  def put(key, value)',
+    '    @cache.delete(key) if @cache.key?(key)',
+    '    @cache[key] = value',
+    '',
+    '    if @cache.size > @capacity',
+    '      oldest_key, = @cache.first',
+    '      @cache.delete(oldest_key)',
+    '    end',
+    '',
+    '    nil',
+    '  end',
+    'end',
+  ];
+
+  function activeLinesFor(idx){
+    if (idx < 0 || idx >= steps.length) return {};
+    const s = steps[idx];
+    if (s.op === 'get'){
+      return s.found
+        ? { 7:'active-loop', 9:'active-remember', 10:'active-remember', 11:'active-loop' }
+        : { 7:'active-return' };
+    }
+    const lines = { 15:'active-loop', 16:'active-remember', 18:'active-loop', 23:'active-loop' };
+    if (s.evictedKey !== null){ lines[19] = 'active-return'; lines[20] = 'active-return'; }
+    return lines;
+  }
+
+  function renderCode(){
+    const panel = document.getElementById('codePanel');
+    panel.innerHTML = '';
+    const active = activeLinesFor(stepIndex);
+    CODE_LINES.forEach((text, i) => {
+      const d = document.createElement('div');
+      d.className = 'code-line' + (active[i] ? ' ' + active[i] : '');
+      d.textContent = text || ' ';
+      panel.appendChild(d);
+    });
+  }
+
+  function renderChips(){
+    const row = document.getElementById('chipRow');
+    row.innerHTML = '';
+    const entries = stepIndex >= 0 ? steps[stepIndex].cacheAfter : [];
+    const touchedKey = stepIndex >= 0 ? steps[stepIndex].key : null;
+    if (entries.length === 0){
+      const hint = document.createElement('div');
+      hint.className = 'chip-empty';
+      hint.textContent = 'empty';
+      row.appendChild(hint);
+      return;
+    }
+    entries.forEach(([k, v]) => {
+      const chip = document.createElement('div');
+      chip.className = 'lru-chip' + (k === touchedKey ? ' touched' : '');
+      chip.textContent = `${k} = ${v}`;
+      row.appendChild(chip);
+    });
+    if (stepIndex >= 0 && steps[stepIndex].evictedKey !== null){
+      const chip = document.createElement('div');
+      chip.className = 'lru-chip evicted';
+      chip.textContent = `evicted: ${steps[stepIndex].evictedKey}`;
+      row.appendChild(chip);
+    }
+  }
+
+  function renderCallList(){
+    const list = document.getElementById('callList');
+    list.innerHTML = '';
+    calls.forEach((c, i) => {
+      const chip = document.createElement('div');
+      const label = c.op === 'get' ? `get(${c.key})` : `put(${c.key}, ${c.value})`;
+      chip.textContent = label;
+      chip.className = 'call-chip' + (i === stepIndex ? ' current' : i < stepIndex ? ' past' : '');
+      list.appendChild(chip);
+    });
+  }
+
+  function renderPhaseAndCounter(){
+    const chip = document.getElementById('phaseChip');
+    const counter = document.getElementById('stepCounter');
+    const total = steps.length;
+    if (stepIndex < 0){ chip.textContent = 'Ready'; chip.className = 'phase-chip'; }
+    else {
+      const s = steps[stepIndex];
+      if (s.evictedKey !== null){ chip.textContent = 'Evicting'; chip.className = 'phase-chip evict'; }
+      else { chip.textContent = s.op === 'get' ? 'get' : 'put'; chip.className = 'phase-chip ' + s.op; }
+    }
+    counter.textContent = `Step ${stepIndex + 1} / ${total}`;
+  }
+
+  function renderControls(){
+    const atStart = stepIndex < 0;
+    const atEnd = stepIndex >= steps.length - 1;
+    document.getElementById('btnPrev').disabled = atStart;
+    document.getElementById('btnNext').disabled = atEnd;
+    document.getElementById('btnPlay').disabled = atEnd;
+    document.getElementById('btnPlay').textContent = playing ? '⏸ Pause' : '▶ Play';
+  }
+
+  function renderViz(){
+    renderCode();
+    renderChips();
+    renderCallList();
+    renderPhaseAndCounter();
+    document.getElementById('narrationText').textContent = narrate(stepIndex);
+    renderControls();
+  }
+
+  function loadPreset(name){
+    const p = PRESETS[name];
+    capacity = p.capacity;
+    calls = p.calls;
+    steps = simulate(capacity, calls);
+    stepIndex = -1;
+    stopPlaying();
+    renderViz();
+  }
+
+  function goNext(){
+    if (stepIndex >= steps.length - 1) return stopPlaying();
+    stepIndex++;
+    renderViz();
+    if (stepIndex >= steps.length - 1) stopPlaying();
+  }
+  function goPrev(){
+    if (stepIndex < 0) return;
+    stepIndex--;
+    renderViz();
+  }
+  function doReset(){ stepIndex = -1; stopPlaying(); renderViz(); }
+  function startPlaying(){
+    if (stepIndex >= steps.length - 1) return;
+    playing = true;
+    renderControls();
+    playTimer = setInterval(() => {
+      goNext();
+      if (stepIndex >= steps.length - 1) stopPlaying();
+    }, speed);
+  }
+  function stopPlaying(){ playing = false; if (playTimer) clearInterval(playTimer); playTimer = null; renderControls(); }
+
+  document.querySelectorAll('[data-preset]').forEach(b => {
+    b.addEventListener('click', () => loadPreset(b.dataset.preset));
+  });
+  document.getElementById('btnNext').addEventListener('click', () => { stopPlaying(); goNext(); });
+  document.getElementById('btnPrev').addEventListener('click', () => { stopPlaying(); goPrev(); });
+  document.getElementById('btnReset').addEventListener('click', doReset);
+  document.getElementById('btnPlay').addEventListener('click', () => { playing ? stopPlaying() : startPlaying(); });
+
+  loadPreset('official');
+})();
+</script>
