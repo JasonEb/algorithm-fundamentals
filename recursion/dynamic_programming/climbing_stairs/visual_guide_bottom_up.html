@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Climbing Stairs Bottom-Up</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root{
+    --paper:#EDF1F2;
+    --paper-raised:#F8FAFB;
+    --ink:#1B2A3A;
+    --ink-soft:#4C6070;
+    --ink-faint:#8494A0;
+    --line:rgba(27,42,58,0.16);
+    --line-soft:rgba(27,42,58,0.09);
+    --read:#1F7A8C;
+    --read-soft:rgba(31,122,140,0.14);
+    --write:#B85C1E;
+    --write-soft:rgba(184,92,30,0.14);
+    --danger:#A6402E;
+    --danger-soft:rgba(166,64,46,0.14);
+    --shadow:0 1px 2px rgba(27,42,58,0.07), 0 10px 28px rgba(27,42,58,0.07);
+    --cell-w:52px;
+    --cell-gap:8px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) {
+      --paper:#101A22;
+      --paper-raised:#16232D;
+      --ink:#E7ECEE;
+      --ink-soft:#9FB0BB;
+      --ink-faint:#5E727D;
+      --line:rgba(231,236,238,0.16);
+      --line-soft:rgba(231,236,238,0.08);
+      --read:#5FC3D6;
+      --read-soft:rgba(95,195,214,0.16);
+      --write:#E38A4C;
+      --write-soft:rgba(227,138,76,0.16);
+      --danger:#E07A63;
+      --danger-soft:rgba(224,122,99,0.16);
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#101A22;
+    --paper-raised:#16232D;
+    --ink:#E7ECEE;
+    --ink-soft:#9FB0BB;
+    --ink-faint:#5E727D;
+    --line:rgba(231,236,238,0.16);
+    --line-soft:rgba(231,236,238,0.08);
+    --read:#5FC3D6;
+    --read-soft:rgba(95,195,214,0.16);
+    --write:#E38A4C;
+    --write-soft:rgba(227,138,76,0.16);
+    --danger:#E07A63;
+    --danger-soft:rgba(224,122,99,0.16);
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  ::selection{ background:var(--read-soft); }
+
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0/100% 28px,
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0/28px 100%,
+      var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4', Georgia, 'Times New Roman', serif;
+    font-size:1.05rem;
+    line-height:1.65;
+  }
+
+  h1,h2,h3,.ui{ font-family:'IBM Plex Sans', system-ui, sans-serif; }
+  .mono, code, .narration, .stat-value, button, .step-counter{
+    font-family:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  }
+  a{ color:var(--read); }
+
+  main{ max-width: 900px; margin: 0 auto; padding: 4.5rem 1.5rem 6rem; }
+  section{ padding: 3.2rem 0; }
+  section + section{ border-top: 1px dashed var(--line); }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.12em;
+    text-transform:uppercase; color:var(--read); margin: 0 0 0.9rem;
+  }
+  h1{ font-size:clamp(2.1rem, 5.2vw, 3.3rem); line-height:1.05; margin:0 0 1rem; font-weight:700; letter-spacing:-0.01em; text-wrap:balance; }
+  h2{ font-size:clamp(1.4rem, 3vw, 1.85rem); margin: 0 0 1.1rem; font-weight:600; letter-spacing:-0.005em; text-wrap:balance; }
+  h3{ font-size:1.05rem; margin:0 0 0.6rem; font-weight:600; }
+  p{ max-width:66ch; color:var(--ink); }
+  p.lede{ font-size:1.2rem; color:var(--ink-soft); max-width:56ch; }
+  .prose-narrow{ max-width:62ch; }
+  code{ font-size:0.9em; }
+  .cap{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-faint); margin-bottom:0.5rem; }
+
+  /* ---------- tiles ---------- */
+  .tile-row{ display:flex; gap:var(--cell-gap); align-items:flex-start; flex-wrap:wrap; }
+  .tiles-scroll{ overflow-x:auto; padding-bottom:2px; }
+  .col{ display:flex; flex-direction:column; align-items:center; gap:0.3rem; width:var(--cell-w); flex:none; }
+  .col .idx{ font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--ink-faint); }
+  .col .lbl{ font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:var(--ink-faint); white-space:nowrap; }
+  .cell{
+    width:var(--cell-w); height:var(--cell-w); flex:none;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:1.05rem;
+    background:var(--paper-raised); border:1.5px solid var(--line); border-radius:6px; color:var(--ink);
+    transition: background .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease, opacity .25s ease;
+  }
+  .cell.unknown{ color:var(--ink-faint); border-style:dashed; opacity:0.7; }
+  .cell.zero{ color:var(--ink-faint); }
+  .cell.live{ }
+  .cell.stale{ opacity:0.4; border-style:dashed; }
+  .cell.gone{ color:var(--ink-faint); border-style:dashed; opacity:0.3; }
+  .cell.read{ border-color:var(--read); box-shadow:0 0 0 3px var(--read-soft); }
+  .cell.write{ border-color:var(--write); background:var(--write-soft); box-shadow:0 0 0 3px var(--write-soft); }
+  .cell.answer{ border-color:var(--read); background:var(--read-soft); color:var(--read); }
+  .cell.expected{ opacity:0.55; }
+  .cell.current{ opacity:1; border-color:var(--ink-soft); box-shadow:0 0 0 3px var(--line-soft); }
+  .cell.wrong{ opacity:1; border-color:var(--danger); background:var(--danger-soft); color:var(--danger); }
+  .chips{ display:flex; flex-direction:column; align-items:center; gap:0.2rem; min-height:2.6rem; }
+  .chip{
+    font-family:'IBM Plex Mono',monospace; font-size:0.6rem; letter-spacing:0.04em; text-transform:uppercase;
+    padding:0.1rem 0.35rem; border-radius:4px; white-space:nowrap;
+    background:var(--read-soft); color:var(--read);
+  }
+  .chip.write{ background:var(--write-soft); color:var(--write); }
+  .chip.wrong{ background:var(--danger-soft); color:var(--danger); }
+
+  .hero-example{ margin-top:2.2rem; }
+  .arrow-note{ margin-top:0.8rem; font-family:'IBM Plex Mono',monospace; font-size:0.78rem; color:var(--ink-soft); }
+  .arrow-note b{ color:var(--read); font-weight:600; }
+
+  .rules{ list-style:none; margin:1.6rem 0 0; padding:0; display:grid; gap:0.7rem; }
+  .rules li{ display:flex; gap:0.8rem; align-items:baseline; font-size:0.98rem; color:var(--ink-soft); }
+  .rules li::before{ content:"\203A"; color:var(--read); font-family:'IBM Plex Mono',monospace; flex:none; }
+  .rules strong{ color:var(--ink); font-weight:600; }
+
+  /* ---------- direction comparison ---------- */
+  .dirs{ display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-top:1.6rem; }
+  .dir{ background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; padding:1.1rem 1.2rem; box-shadow:var(--shadow); }
+  .dir h3{ font-size:0.95rem; color:var(--ink-soft); font-weight:500; margin-bottom:0.2rem; }
+  .dir .head{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:1rem; margin:0 0 0.8rem; }
+  .dir.down .head{ color:var(--danger); }
+  .dir.up .head{ color:var(--read); }
+  .dir .tile-row{ gap:4px; flex-wrap:nowrap; }
+  .dir .col{ width:34px; }
+  .dir .cell{ width:34px; height:34px; font-size:0.72rem; border-radius:5px; }
+  .dir .col .lbl{ font-size:0.6rem; }
+  .dir p{ font-size:0.85rem; color:var(--ink-soft); margin:0.8rem 0 0; max-width:none; }
+  @media (max-width:760px){ .dirs{ grid-template-columns:1fr; } }
+
+  /* ---------- steps to convert ---------- */
+  .conv{ display:grid; gap:0.7rem; margin-top:1.6rem; counter-reset:conv; }
+  .conv-item{
+    display:grid; grid-template-columns:2rem 1fr; gap:0.9rem; align-items:baseline;
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:0.85rem 1.1rem; box-shadow:var(--shadow);
+  }
+  .conv-item .n{ font-family:'IBM Plex Mono',monospace; font-weight:700; color:var(--read); }
+  .conv-item strong{ font-family:'IBM Plex Sans',sans-serif; }
+  .conv-item p{ margin:0.15rem 0 0; font-size:0.9rem; color:var(--ink-soft); max-width:none; }
+
+  /* ---------- buttons, viz card ---------- */
+  button{
+    font-size:0.82rem; border-radius:7px; border:1px solid var(--line);
+    background:var(--paper-raised); color:var(--ink); padding:0.5rem 0.85rem; cursor:pointer;
+    transition: border-color .15s ease, background .15s ease, color .15s ease, opacity .15s ease;
+  }
+  button:hover:not(:disabled){ border-color:var(--read); color:var(--read); }
+  button:focus-visible{ outline:2px solid var(--read); outline-offset:2px; }
+  button:disabled{ opacity:0.4; cursor:not-allowed; }
+  button.primary{ background:var(--read); border-color:var(--read); color:var(--paper); }
+  button.primary:hover:not(:disabled){ color:var(--paper); opacity:0.88; }
+  button.ghost{ background:transparent; }
+  button[aria-pressed="true"]{ background:var(--read-soft); border-color:var(--read); color:var(--read); font-weight:600; }
+  .btn-row{ display:flex; flex-wrap:wrap; gap:0.55rem; align-items:center; }
+
+  .builder-block{ margin-top:1.8rem; display:flex; gap:2rem; flex-wrap:wrap; }
+  .builder-label{ font-size:0.78rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.6rem; }
+
+  .viz-card{ margin-top:2rem; background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:1.6rem 1.6rem 1.4rem; box-shadow:var(--shadow); }
+  .viz-head{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.3rem; }
+  .phase-chip{ font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.28rem 0.65rem; border-radius:20px; font-weight:600; background:var(--line-soft); color:var(--ink-soft); }
+  .phase-chip.scan{ background:var(--read-soft); color:var(--read); }
+  .phase-chip.found{ background:var(--read-soft); color:var(--read); }
+  .phase-chip.cache{ background:var(--write-soft); color:var(--write); }
+  .phase-chip.nomatch{ background:var(--danger-soft); color:var(--danger); }
+  .step-counter{ font-size:0.78rem; color:var(--ink-faint); }
+
+  .track-label{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.5rem; }
+  .track-block + .track-block{ margin-top:1.7rem; }
+
+  .code-panel{
+    background:var(--paper); border:1px solid var(--line); border-radius:8px;
+    padding:0.9rem 0; overflow-x:auto; font-family:'IBM Plex Mono',monospace;
+  }
+  .code-line{
+    padding:0.1rem 1rem 0.1rem 0.85rem; white-space:pre; font-size:0.85rem; color:var(--ink);
+    border-left:3px solid transparent; transition: background .3s ease, border-color .3s ease;
+  }
+  .code-line.active-loop{ background:var(--read-soft); border-left-color:var(--read); }
+  .code-line.active-return{ background:var(--danger-soft); border-left-color:var(--danger); }
+  .code-line.active-remember{ background:var(--write-soft); border-left-color:var(--write); }
+
+  .vars{ display:flex; gap:0.8rem; flex-wrap:wrap; }
+  .var{
+    min-width:5.6rem; padding:0.5rem 0.8rem; border:1px solid var(--line); border-radius:8px; background:var(--paper);
+    font-family:'IBM Plex Mono',monospace; transition: border-color .25s ease, background .25s ease, opacity .25s ease;
+  }
+  .var .name{ font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); }
+  .var .val{ font-size:1.3rem; font-weight:700; }
+  .var.read{ border-color:var(--read); background:var(--read-soft); }
+  .var.write{ border-color:var(--write); background:var(--write-soft); }
+  .var.wrong{ border-color:var(--danger); background:var(--danger-soft); color:var(--danger); }
+  .var.stale{ opacity:0.45; }
+  .vars-note{ font-family:'IBM Plex Mono',monospace; font-size:0.8rem; color:var(--ink-faint); }
+
+  .legend{ display:flex; gap:1.1rem; flex-wrap:wrap; margin-top:0.9rem; font-size:0.74rem; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; }
+  .legend .sw{ display:inline-block; width:12px; height:12px; border-radius:3px; border:1.5px solid var(--line); vertical-align:-2px; margin-right:0.35rem; }
+  .legend .sw.read{ border-color:var(--read); background:var(--read-soft); }
+  .legend .sw.write{ border-color:var(--write); background:var(--write-soft); }
+  .legend .sw.stale{ border-style:dashed; opacity:0.5; }
+  .legend .sw.current{ border-color:var(--ink-soft); }
+  .legend .sw.wrong{ border-color:var(--danger); background:var(--danger-soft); }
+
+  .narration{ margin-top:1.5rem; background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:0.85rem 1rem; font-size:0.86rem; color:var(--ink); min-height:2.6em; display:flex; align-items:center; }
+  .narration .prompt{ color:var(--read); margin-right:0.6rem; flex:none; }
+
+  .controls{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-top:1.2rem; }
+
+  .aside{
+    margin-top:1.6rem; border-left:3px solid var(--write); background:var(--paper-raised);
+    padding:0.95rem 1.2rem; border-radius:0 8px 8px 0; font-size:0.92rem; color:var(--ink-soft);
+  }
+  .aside p{ max-width:none; margin:0.4rem 0 0; color:var(--ink-soft); }
+  .aside p:first-child{ margin-top:0; }
+  .aside strong{ color:var(--ink); }
+
+  /* ---------- tables, stats ---------- */
+  .stats{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.8rem; }
+  .stat-card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem; box-shadow:var(--shadow); }
+  .stat-card h3{ font-family:'IBM Plex Sans',sans-serif; font-size:0.95rem; color:var(--ink-soft); font-weight:500; }
+  .stat-value{ font-size:1.35rem; font-weight:700; margin:0.3rem 0; }
+  .stat-card.optimal .stat-value{ color:var(--read); }
+  .stat-card.slow .stat-value{ color:var(--danger); }
+  .stat-card p{ font-size:0.86rem; color:var(--ink-faint); margin:0; }
+  @media (max-width:560px){ .stats{ grid-template-columns:1fr; } }
+
+  .table-wrap{ overflow-x:auto; }
+  table.grid{ width:100%; border-collapse:collapse; margin-top:1.6rem; font-size:0.88rem; background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; overflow:hidden; box-shadow:var(--shadow); }
+  table.grid th, table.grid td{ padding:0.65rem 0.85rem; text-align:left; border-bottom:1px solid var(--line-soft); vertical-align:top; }
+  table.grid th{ font-family:'IBM Plex Sans',sans-serif; font-weight:500; font-size:0.78rem; color:var(--ink-soft); background:var(--paper); }
+  table.grid td{ font-family:'IBM Plex Mono',monospace; font-size:0.82rem; }
+  table.grid td:first-child{ font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:0.88rem; }
+  table.grid tr:last-child td{ border-bottom:none; }
+  table.grid td.ok{ color:var(--read); font-weight:600; }
+  table.grid td.bad{ color:var(--danger); font-weight:600; }
+
+  footer{ padding-top:3.2rem; text-align:center; color:var(--ink-faint); font-size:0.82rem; }
+  footer a{ color:var(--ink-faint); text-decoration:underline; }
+
+  @media (max-width:560px){
+    main{ padding:3rem 1rem 4rem; }
+    .viz-card{ padding:1.1rem 1rem; }
+  }
+  @media (prefers-reduced-motion: reduce){ *{ transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; } }
+</style>
+</head>
+<body>
+<main>
+
+  <section class="hero">
+    <p class="eyebrow">Dynamic Programming · Bottom-up (tabulation) · O(n) time, O(1) space</p>
+    <h1>Climbing Stairs, Bottom-Up</h1>
+    <p class="lede">The recurrence stays the same. What changes is the direction: instead of starting at n and waiting on smaller answers, start at the base cases and build up to n with a loop.</p>
+
+    <div class="hero-example">
+      <div class="cap">n = 5: fill the table left to right</div>
+      <div class="tiles-scroll"><div class="tile-row" id="heroRow"></div></div>
+      <div class="arrow-note"><b>ways[i] = ways[i - 1] + ways[i - 2]</b> &nbsp;for every i from 2 up to n</div>
+    </div>
+
+    <ul class="rules">
+      <li><strong>Same answers.</strong> Both directions compute the same values, 1, 1, 2, 3, 5, 8 and so on. Only the order differs.</li>
+      <li><strong>No recursion.</strong> A loop replaces the call stack, so there is no depth limit to hit.</li>
+      <li><strong>Only two values are ever read.</strong> That is what lets the table shrink to two variables.</li>
+    </ul>
+  </section>
+
+  <section>
+    <p class="eyebrow">Two directions</p>
+    <h2>Same subproblems, opposite order</h2>
+    <p class="prose-narrow">Top-down starts at the question, <code>f(5)</code>, and keeps asking for smaller values until it reaches the base cases, then answers flow back up. Bottom-up skips the asking: it begins at the base cases and never needs to ask anything, because every value it needs is already in the table.</p>
+
+    <div class="dirs">
+      <div class="dir down">
+        <h3>Top-down (recursion + memo)</h3>
+        <p class="head">ask down, answers return up</p>
+        <div class="tile-row" id="dirDown"></div>
+        <p>Starts at f(5). Each call waits until f(4) and f(3) come back. The call stack grows to about n frames.</p>
+      </div>
+      <div class="dir up">
+        <h3>Bottom-up (loop)</h3>
+        <p class="head">start at the base, build up</p>
+        <div class="tile-row" id="dirUp"></div>
+        <p>Starts at f(0). Each value is computed from the two before it. Nothing waits, and there is no stack.</p>
+      </div>
+    </div>
+
+    <div class="aside">
+      <p><strong>About memory.</strong> Recursion is not a memory leak: every frame is released when its call returns. It does use stack space proportional to the depth, so the memoized version is O(n) space, and Ruby raises <code>SystemStackError</code> at roughly 10,000 to 12,000 nested calls (measured on Ruby 3.3). For n up to 45 that limit is never close. The bottom-up version has no such limit at all.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">The conversion</p>
+    <h2>Five steps from recursion to a loop</h2>
+    <div class="conv">
+      <div class="conv-item"><span class="n">1</span><div><strong>Find the dependency direction.</strong><p>f(n) needs f(n-1) and f(n-2). Both are smaller values of n, so nothing depends on a larger n.</p></div></div>
+      <div class="conv-item"><span class="n">2</span><div><strong>Compute in that order.</strong><p>Since answers only depend on smaller ones, go from the base cases up to n. The recursion went the other way and waited.</p></div></div>
+      <div class="conv-item"><span class="n">3</span><div><strong>Store results by state.</strong><p>An array indexed by n replaces the memo hash. Slot i holds the number of ways to reach step i.</p></div></div>
+      <div class="conv-item"><span class="n">4</span><div><strong>Handle the base cases by hand.</strong><p>The loop cannot look at index -1, so ways[0] and ways[1] are set directly and the loop starts at 2.</p></div></div>
+      <div class="conv-item"><span class="n">5</span><div><strong>Shrink the storage.</strong><p>Each step reads only the previous two slots. Keep those two in variables and drop the array.</p></div></div>
+    </div>
+  </section>
+
+  <section id="viz-section">
+    <p class="eyebrow">Watch it run</p>
+    <h2>Fill the table, then shrink it to two variables</h2>
+    <p class="prose-narrow">Pick n and a version, then step through. In the table version, faded dashed cells will never be read again, which is the hint for the second version. In the two-variable version the row shows a window of two cells sliding along. The third option shows a common bug in the update order.</p>
+
+    <div class="builder-block">
+      <div>
+        <div class="builder-label">Stairs (n)</div>
+        <div class="btn-row" id="nButtons"></div>
+      </div>
+      <div>
+        <div class="builder-label">Version</div>
+        <div class="btn-row" id="modeButtons"></div>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <div class="viz-head">
+        <span class="phase-chip" id="phaseChip">Ready</span>
+        <span class="step-counter" id="stepCounter">Step 0 / 0</span>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label">Code, the line that just ran</div>
+        <div class="code-panel" id="codePanel"></div>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label" id="rowLabel">ways, one slot per step number</div>
+        <div class="tiles-scroll"><div class="tile-row" id="tiles"></div></div>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <div class="track-block" id="varsBlock">
+        <div class="track-label">Variables</div>
+        <div class="vars" id="vars"></div>
+      </div>
+
+      <div class="narration" id="narration" aria-live="polite"><span class="prompt">›</span><span id="narrationText">Press "Next" or "Play" to begin.</span></div>
+
+      <div class="controls">
+        <div class="btn-row">
+          <button id="btnReset" class="ghost">⟲ Reset</button>
+          <button id="btnPrev">◀ Prev</button>
+          <button id="btnNext">Next ▶</button>
+          <button id="btnPlay" class="primary">▶ Play</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">The update-order trap</p>
+    <h2>Why the shift has to use a temporary</h2>
+    <p class="prose-narrow">When you replace the table with <code>prev</code> and <code>curr</code>, the order of the assignments matters. Writing <code>prev = curr</code> and then <code>curr = prev + curr</code> reads a <code>prev</code> that was just overwritten, so <code>curr</code> gets added to itself. The results double at every step.</p>
+
+    <div class="table-wrap">
+      <table class="grid">
+        <thead><tr><th>i</th><th>Correct ways[i]</th><th>Wrong update order</th><th>Result</th></tr></thead>
+        <tbody id="trapBody"></tbody>
+      </table>
+    </div>
+
+    <div class="aside">
+      <p><strong>Why the tests can miss it.</strong> The wrong order gives the right answer for n = 2 (1 + 1 = 2), so a driver that only checks n = 1 and 2 passes. It first fails at n = 3. Keep n = 3, 4, and 5 in your checks.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Before you trust it</p>
+    <h2>A short checklist</h2>
+    <ul class="rules">
+      <li><strong>n = 1.</strong> The array version needs a slot at index 1, and the loop <code>(2..n)</code> should run zero times. The two-variable version needs an early return.</li>
+      <li><strong>n = 2 and n = 3.</strong> These are the first values that use the loop, and 3 is where the wrong update order first fails.</li>
+      <li><strong>Compare with the recursion.</strong> Keep the naive version as <code>climb_stairs_naive</code> and check that both agree for n = 1 to 20.</li>
+      <li><strong>n = 45.</strong> The answer is 1,836,311,903 and it should return instantly.</li>
+    </ul>
+  </section>
+
+  <section>
+    <p class="eyebrow">Recap</p>
+    <h2>Complexity</h2>
+    <div class="stats">
+      <div class="stat-card optimal">
+        <h3>Bottom-up table</h3>
+        <div class="stat-value">O(n) time · O(n) space</div>
+        <p>One pass, one array of n + 1 slots.</p>
+      </div>
+      <div class="stat-card optimal">
+        <h3>Two variables</h3>
+        <div class="stat-value">O(n) time · O(1) space</div>
+        <p>The same pass, keeping only the last two values.</p>
+      </div>
+    </div>
+    <div class="aside">
+      <p><strong>The same move works elsewhere.</strong> House Robber has <code>best[i] = max(best[i - 1], best[i - 2] + nums[i])</code>. It also reads only the previous two entries, so it rolls into two variables the same way.</p>
+    </div>
+  </section>
+
+  <footer>
+    Companion to <a href="visual_guide.html">the recursion guide</a>. Based on <a href="https://leetcode.com/problems/climbing-stairs/" target="_blank" rel="noopener">LeetCode 70, Climbing Stairs</a>.
+  </footer>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  const MAX_N = 10;
+  const speed = 800;
+
+  let n = 5;
+  let mode = 'table';
+  let model = null;
+  let stepIndex = -1;
+  let playing = false;
+  let playTimer = null;
+
+  const $ = (id) => document.getElementById(id);
+  function el(tag, cls, text){
+    const d = document.createElement(tag);
+    if (cls) d.className = cls;
+    if (text !== undefined) d.textContent = text;
+    return d;
+  }
+
+  function correctTable(k){
+    const t = [1, 1];
+    for (let i = 2; i <= k; i++) t.push(t[i - 1] + t[i - 2]);
+    return t.slice(0, k + 1);
+  }
+
+  /* ---------- code for each version ---------- */
+
+  const CODE = {
+    table: [
+      'def climb_stairs(n)',
+      '  ways = Array.new(n + 1, 0)',
+      '  ways[0] = 1',
+      '  ways[1] = 1',
+      '',
+      '  (2..n).each do |i|',
+      '    ways[i] = ways[i - 1] + ways[i - 2]',
+      '  end',
+      '',
+      '  ways[n]',
+      'end',
+    ],
+    two: [
+      'def climb_stairs(n)',
+      '  return 1 if n <= 1',
+      '',
+      '  prev = 1   # ways[i - 2]',
+      '  curr = 1   # ways[i - 1]',
+      '',
+      '  (2..n).each do',
+      '    nxt  = prev + curr',
+      '    prev = curr',
+      '    curr = nxt',
+      '  end',
+      '',
+      '  curr',
+      'end',
+    ],
+    bug: [
+      'def climb_stairs(n)',
+      '  return 1 if n <= 1',
+      '',
+      '  prev = 1',
+      '  curr = 1',
+      '',
+      '  (2..n).each do',
+      '    prev = curr',
+      '    curr = prev + curr   # prev was just overwritten',
+      '  end',
+      '',
+      '  curr',
+      'end',
+    ],
+  };
+
+  const MODES = [
+    { id: 'table', label: 'Table (array)' },
+    { id: 'two',   label: 'Two variables' },
+    { id: 'bug',   label: 'Wrong update order' },
+  ];
+
+  /* ---------- step builders ---------- */
+
+  const blankCells = (k) => Array.from({ length: k + 1 }, () => ({ v: null, cls: 'unknown', chips: [] }));
+
+  function tableSteps(k){
+    const steps = [];
+    const vals = new Array(k + 1).fill(null);
+    const written = new Array(k + 1).fill(false);
+    let allocated = false;
+    const base = () => Array.from({ length: k + 1 }, (_, i) => ({
+      v: allocated ? vals[i] : null,
+      cls: !allocated ? 'unknown' : (written[i] ? 'live' : 'zero'),
+      chips: [],
+    }));
+
+    allocated = true; vals.fill(0);
+    steps.push({ lines: { 1: 'active-loop' }, phase: 'Setup', pcls: 'scan', cells: base(), vars: null,
+      text: `Make a table with n + 1 = ${k + 1} slots, one for each step number 0 to ${k}. Every slot starts at 0, meaning "not filled yet".` });
+
+    vals[0] = 1; written[0] = true;
+    let cells = base(); cells[0].cls = 'write';
+    steps.push({ lines: { 2: 'active-remember' }, phase: 'Setup', pcls: 'scan', cells, vars: null,
+      text: 'Base case: standing on the ground counts as one way (do nothing). ways[0] = 1.' });
+
+    vals[1] = 1; written[1] = true;
+    cells = base(); cells[1].cls = 'write';
+    steps.push({ lines: { 3: 'active-remember' }, phase: 'Setup', pcls: 'scan', cells, vars: null,
+      text: 'Base case: one way to reach step 1, a single 1-step. The recursion got this as f(0) + f(-1) = 1 + 0. A loop cannot look at index -1, so it is set by hand.' });
+
+    for (let i = 2; i <= k; i++){
+      const a = vals[i - 1], b = vals[i - 2];
+      vals[i] = a + b; written[i] = true;
+      cells = base();
+      for (let j = 0; j < i - 2; j++) cells[j].cls = 'stale';
+      cells[i - 2].cls = 'read'; cells[i - 2].chips = [{ t: 'read' }];
+      cells[i - 1].cls = 'read'; cells[i - 1].chips = [{ t: 'read' }];
+      cells[i].cls = 'write'; cells[i].chips = [{ t: 'write', cls: 'write' }];
+      steps.push({ lines: { 5: 'active-loop', 6: 'active-remember' }, phase: 'Filling', pcls: 'scan', cells, vars: null,
+        text: `i = ${i}: ways[${i}] = ways[${i - 1}] + ways[${i - 2}] = ${a} + ${b} = ${vals[i]}.` +
+              (i >= 3 ? ` Slots below ${i - 2} are faded: nothing will read them again.` : '') });
+    }
+
+    cells = base(); cells[k].cls = 'answer';
+    steps.push({ lines: { 9: 'active-loop' }, phase: 'Done', pcls: 'found', cells, vars: null,
+      text: `Return ways[${k}] = ${vals[k]}: ${vals[k]} distinct way${vals[k] === 1 ? '' : 's'} to climb ${k} stair${k === 1 ? '' : 's'}.` });
+    return steps;
+  }
+
+  function windowCells(k, spec){
+    const keys = Object.keys(spec).map(Number);
+    const lo = Math.min.apply(null, keys);
+    return Array.from({ length: k + 1 }, (_, i) => {
+      if (spec[i]) return { v: spec[i].v, cls: spec[i].cls, chips: spec[i].chips || [] };
+      return i < lo ? { v: null, cls: 'gone', chips: [] } : { v: null, cls: 'unknown', chips: [] };
+    });
+  }
+
+  const V = (v, cls) => ({ v, cls: cls || '' });
+
+  function twoSteps(k){
+    const steps = [];
+    if (k <= 1){
+      const t = correctTable(k);
+      steps.push({ lines: { 1: 'active-return' }, phase: 'Done', pcls: 'found',
+        cells: t.map((v, i) => ({ v, cls: i === k ? 'answer' : 'live', chips: [] })), vars: null,
+        text: 'n <= 1: there is exactly one way, so return 1 immediately. The loop and the two variables are never needed.' });
+      return steps;
+    }
+    let prev = 1, curr = 1;
+    steps.push({ lines: { 3: 'active-remember' }, phase: 'Setup', pcls: 'scan',
+      cells: windowCells(k, { 0: { v: 1, cls: 'write', chips: [{ t: 'prev', cls: 'write' }] } }),
+      vars: { prev: V(1, 'write'), curr: V(null), nxt: V(null) },
+      text: 'prev starts as ways[0] = 1. There is no table any more, only variables.' });
+    steps.push({ lines: { 4: 'active-remember' }, phase: 'Setup', pcls: 'scan',
+      cells: windowCells(k, { 0: { v: 1, cls: 'live', chips: [{ t: 'prev' }] }, 1: { v: 1, cls: 'write', chips: [{ t: 'curr', cls: 'write' }] } }),
+      vars: { prev: V(1), curr: V(1, 'write'), nxt: V(null) },
+      text: 'curr starts as ways[1] = 1. The two variables are a window of size two over the table.' });
+
+    for (let i = 2; i <= k; i++){
+      const p = prev, c = curr, x = p + c;
+      steps.push({ lines: { 6: 'active-loop', 7: 'active-remember' }, phase: 'Computing', pcls: 'scan',
+        cells: windowCells(k, {
+          [i - 2]: { v: p, cls: 'read', chips: [{ t: 'prev' }] },
+          [i - 1]: { v: c, cls: 'read', chips: [{ t: 'curr' }] },
+          [i]:     { v: x, cls: 'write', chips: [{ t: 'nxt', cls: 'write' }] },
+        }),
+        vars: { prev: V(p, 'read'), curr: V(c, 'read'), nxt: V(x, 'write') },
+        text: `i = ${i}: nxt = prev + curr = ${p} + ${c} = ${x}. This is ways[${i}], held in a temporary so nothing is overwritten yet.` });
+
+      prev = c;
+      steps.push({ lines: { 8: 'active-remember' }, phase: 'Shifting', pcls: 'cache',
+        cells: windowCells(k, {
+          [i - 1]: { v: c, cls: 'read', chips: [{ t: 'prev' }, { t: 'curr' }] },
+          [i]:     { v: x, cls: 'live', chips: [{ t: 'nxt' }] },
+        }),
+        vars: { prev: V(prev, 'write'), curr: V(c), nxt: V(x) },
+        text: `prev = curr: prev becomes ${prev}. The old prev (${p}) is not needed again, so the window slides right.` });
+
+      curr = x;
+      steps.push({ lines: { 9: 'active-remember' }, phase: 'Shifting', pcls: 'cache',
+        cells: windowCells(k, {
+          [i - 1]: { v: prev, cls: 'live', chips: [{ t: 'prev' }] },
+          [i]:     { v: curr, cls: 'write', chips: [{ t: 'curr', cls: 'write' }, { t: 'nxt' }] },
+        }),
+        vars: { prev: V(prev), curr: V(curr, 'write'), nxt: V(x, 'stale') },
+        text: `curr = nxt: curr becomes ${curr}. The window now covers ways[${i - 1}] and ways[${i}].` });
+    }
+
+    steps.push({ lines: { 12: 'active-loop' }, phase: 'Done', pcls: 'found',
+      cells: windowCells(k, {
+        [k - 1]: { v: prev, cls: 'live', chips: [{ t: 'prev' }] },
+        [k]:     { v: curr, cls: 'answer', chips: [{ t: 'curr' }] },
+      }),
+      vars: { prev: V(prev), curr: V(curr, 'read'), nxt: V(null) },
+      text: `Return curr = ${curr}: ${curr} distinct ways to climb ${k} stairs, using two variables instead of a table.` });
+    return steps;
+  }
+
+  function bugSteps(k){
+    const steps = [];
+    const t = correctTable(k);
+    const expected = (cur, wrongIdx) => t.map((v, i) => ({
+      v, cls: i === cur ? (wrongIdx ? 'wrong' : 'current') : 'expected', chips: [],
+    }));
+    if (k <= 1){
+      steps.push({ lines: { 1: 'active-return' }, phase: 'Done', pcls: 'found',
+        cells: t.map((v, i) => ({ v, cls: i === k ? 'answer' : 'live', chips: [] })), vars: null,
+        text: 'n <= 1: return 1 immediately. The buggy loop never runs, so this input cannot show the bug.' });
+      return steps;
+    }
+    let prev = 1, curr = 1;
+    steps.push({ lines: { 3: 'active-remember' }, phase: 'Setup', pcls: 'scan',
+      cells: expected(-1, false), vars: { prev: V(1, 'write'), curr: V(null) },
+      text: 'prev = 1. The row shows the correct value of every ways[i] for comparison.' });
+    steps.push({ lines: { 4: 'active-remember' }, phase: 'Setup', pcls: 'scan',
+      cells: expected(-1, false), vars: { prev: V(1), curr: V(1, 'write') },
+      text: 'curr = 1. So far this is identical to the correct version.' });
+
+    let lastWrong = false;
+    for (let i = 2; i <= k; i++){
+      const oldPrev = prev, c = curr;
+      prev = c;
+      steps.push({ lines: { 6: 'active-loop', 7: 'active-remember' }, phase: 'Overwriting', pcls: 'cache',
+        cells: expected(i, false), vars: { prev: V(prev, 'wrong'), curr: V(curr) },
+        text: `i = ${i}: prev = curr overwrites prev. The old prev (${oldPrev}) is gone, and prev is now ${prev}, the same as curr.` });
+
+      curr = prev + curr;
+      const wrong = curr !== t[i];
+      lastWrong = wrong;
+      const cells = expected(i, wrong);
+      cells[i].chips = [{ t: `yours ${curr}`, cls: wrong ? 'wrong' : '' }];
+      steps.push({ lines: { 8: wrong ? 'active-return' : 'active-remember' }, phase: wrong ? 'Wrong' : 'Still matches', pcls: wrong ? 'nomatch' : 'found',
+        cells, vars: { prev: V(prev), curr: V(curr, wrong ? 'wrong' : 'write') },
+        text: wrong
+          ? `curr = prev + curr = ${prev} + ${prev} = ${curr}, but ways[${i}] should be ${t[i]}. prev was already overwritten, so curr was added to itself.`
+          : `curr = prev + curr = ${prev} + ${prev} = ${curr}, which happens to equal ways[${i}] = ${t[i]}. The bug is hidden here because both values are 1. It fails at the next i.` });
+    }
+    steps.push({ lines: { 11: lastWrong ? 'active-return' : 'active-loop' }, phase: lastWrong ? 'Wrong answer' : 'Done', pcls: lastWrong ? 'nomatch' : 'found',
+      cells: t.map((v, i) => ({ v, cls: i === k ? (lastWrong ? 'wrong' : 'answer') : 'expected', chips: i === k ? [{ t: `yours ${curr}`, cls: lastWrong ? 'wrong' : '' }] : [] })),
+      vars: { prev: V(prev), curr: V(curr, lastWrong ? 'wrong' : 'read') },
+      text: lastWrong
+        ? `Returns ${curr}, but the answer for n = ${k} is ${t[k]}. The doubling started at i = 3.`
+        : `Returns ${curr}, which is correct only because n = 2 is too small to expose the bug. Try n = 3.` });
+    return steps;
+  }
+
+  function buildModel(){
+    const steps = mode === 'table' ? tableSteps(n) : (mode === 'two' ? twoSteps(n) : bugSteps(n));
+    return { steps, code: CODE[mode] };
+  }
+
+  /* ---------- rendering ---------- */
+
+  function fillCode(panel, lines, active){
+    panel.innerHTML = '';
+    lines.forEach((text, i) => {
+      panel.appendChild(el('div', 'code-line' + (active && active[i] ? ' ' + active[i] : ''), text || ' '));
+    });
+  }
+
+  function renderTiles(cells){
+    const mount = $('tiles');
+    mount.innerHTML = '';
+    cells.forEach((c, i) => {
+      const col = el('div', 'col');
+      col.appendChild(el('div', 'idx', String(i)));
+      let text = String(c.v);
+      if (c.cls === 'unknown') text = '?';
+      else if (c.cls === 'gone') text = '·';
+      col.appendChild(el('div', 'cell ' + c.cls, text));
+      const chips = el('div', 'chips');
+      (c.chips || []).forEach(ch => chips.appendChild(el('span', 'chip ' + (ch.cls || ''), ch.t)));
+      col.appendChild(chips);
+      mount.appendChild(col);
+    });
+  }
+
+  function renderVars(vars){
+    const block = $('varsBlock');
+    const mount = $('vars');
+    mount.innerHTML = '';
+    if (mode === 'table'){
+      block.hidden = true;
+      return;
+    }
+    block.hidden = false;
+    const names = mode === 'two' ? ['prev', 'curr', 'nxt'] : ['prev', 'curr'];
+    names.forEach(name => {
+      const v = vars ? vars[name] : { v: null, cls: '' };
+      const box = el('div', 'var ' + (v.cls || ''));
+      box.appendChild(el('div', 'name', name));
+      box.appendChild(el('div', 'val', v.v === null ? '-' : String(v.v)));
+      mount.appendChild(box);
+    });
+  }
+
+  function renderLegend(){
+    const legend = $('legend');
+    legend.innerHTML = '';
+    const items = mode === 'table'
+      ? [['read', 'read this step'], ['write', 'written this step'], ['stale', 'never read again']]
+      : (mode === 'two'
+        ? [['read', 'read this step'], ['write', 'written this step'], ['stale', 'discarded or not reached yet']]
+        : [['current', 'correct value for the current i'], ['wrong', 'your value is wrong']]);
+    items.forEach(([cls, text]) => {
+      const s = el('span');
+      s.appendChild(el('i', 'sw ' + cls));
+      s.appendChild(document.createTextNode(text));
+      legend.appendChild(s);
+    });
+  }
+
+  function renderViz(){
+    const total = model.steps.length;
+    const step = stepIndex >= 0 ? model.steps[stepIndex] : null;
+    fillCode($('codePanel'), model.code, step ? step.lines : {});
+    renderTiles(step ? step.cells : blankCells(n));
+    renderVars(step ? step.vars : null);
+    renderLegend();
+    $('rowLabel').textContent = mode === 'table'
+      ? 'ways, one slot per step number'
+      : (mode === 'two' ? 'the table this replaces, and the window the two variables cover' : 'the correct values, for comparison');
+    const chip = $('phaseChip');
+    chip.textContent = step ? step.phase : 'Ready';
+    chip.className = 'phase-chip' + (step ? ' ' + step.pcls : '');
+    $('stepCounter').textContent = `Step ${stepIndex + 1} / ${total}`;
+    $('narrationText').textContent = step ? step.text : 'Press "Next" or "Play" to begin.';
+    $('btnPrev').disabled = stepIndex < 0;
+    $('btnNext').disabled = stepIndex >= total - 1;
+    $('btnPlay').disabled = stepIndex >= total - 1;
+    $('btnPlay').textContent = playing ? '⏸ Pause' : '▶ Play';
+  }
+
+  /* ---------- controls ---------- */
+
+  function rebuild(){
+    stopPlaying();
+    stepIndex = -1;
+    model = buildModel();
+    renderViz();
+  }
+  function goNext(){
+    if (stepIndex >= model.steps.length - 1) return stopPlaying();
+    stepIndex++;
+    renderViz();
+    if (stepIndex >= model.steps.length - 1) stopPlaying();
+  }
+  function goPrev(){
+    if (stepIndex < 0) return;
+    stepIndex--;
+    renderViz();
+  }
+  function doReset(){ stopPlaying(); stepIndex = -1; renderViz(); }
+  function startPlaying(){
+    if (stepIndex >= model.steps.length - 1) return;
+    playing = true;
+    renderViz();
+    playTimer = setInterval(goNext, speed);
+  }
+  function stopPlaying(){
+    playing = false;
+    if (playTimer) clearInterval(playTimer);
+    playTimer = null;
+    if (model) renderViz();
+  }
+
+  function syncPressed(){
+    document.querySelectorAll('[data-n]').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.n) === n)));
+    document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+  }
+
+  function buildButtons(){
+    const nRow = $('nButtons');
+    for (let k = 1; k <= MAX_N; k++){
+      const b = el('button', '', String(k));
+      b.dataset.n = String(k);
+      b.addEventListener('click', () => { n = k; syncPressed(); rebuild(); });
+      nRow.appendChild(b);
+    }
+    const mRow = $('modeButtons');
+    MODES.forEach(m => {
+      const b = el('button', '', m.label);
+      b.dataset.mode = m.id;
+      b.addEventListener('click', () => { mode = m.id; syncPressed(); rebuild(); });
+      mRow.appendChild(b);
+    });
+    syncPressed();
+  }
+
+  /* ---------- static sections ---------- */
+
+  function strip(mount, labels, values, cls){
+    labels.forEach((lab, i) => {
+      const col = el('div', 'col');
+      col.appendChild(el('div', 'lbl', lab));
+      col.appendChild(el('div', 'cell ' + cls, values[i] === null ? '?' : String(values[i])));
+      mount.appendChild(col);
+    });
+  }
+
+  function renderStatic(){
+    const t = correctTable(5);
+    t.forEach((v, i) => {
+      const col = el('div', 'col');
+      col.appendChild(el('div', 'idx', String(i)));
+      col.appendChild(el('div', 'cell ' + (i < 2 ? 'write' : 'live'), String(v)));
+      $('heroRow').appendChild(col);
+    });
+
+    strip($('dirDown'), ['f(5)', 'f(4)', 'f(3)', 'f(2)', 'f(1)', 'f(0)'], [null, null, null, null, null, null], 'unknown');
+    strip($('dirUp'), ['f(0)', 'f(1)', 'f(2)', 'f(3)', 'f(4)', 'f(5)'], t, 'live');
+
+    const body = $('trapBody');
+    const truth = correctTable(6);
+    let prev = 1, curr = 1;
+    for (let i = 2; i <= 6; i++){
+      prev = curr;
+      curr = prev + curr;
+      const ok = curr === truth[i];
+      const tr = el('tr');
+      tr.appendChild(el('td', '', String(i)));
+      tr.appendChild(el('td', '', String(truth[i])));
+      tr.appendChild(el('td', ok ? 'ok' : 'bad', String(curr)));
+      tr.appendChild(el('td', ok ? 'ok' : 'bad', ok ? 'matches' : 'wrong'));
+      body.appendChild(tr);
+    }
+  }
+
+  buildButtons();
+  renderStatic();
+  $('btnNext').addEventListener('click', () => { stopPlaying(); goNext(); });
+  $('btnPrev').addEventListener('click', () => { stopPlaying(); goPrev(); });
+  $('btnReset').addEventListener('click', doReset);
+  $('btnPlay').addEventListener('click', () => { playing ? stopPlaying() : startPlaying(); });
+  rebuild();
+})();
+</script>
+</body>
+</html>

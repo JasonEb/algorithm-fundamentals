@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dynamic Programming Template</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root{
+    --paper:#EDF1F2;
+    --paper-raised:#F8FAFB;
+    --ink:#1B2A3A;
+    --ink-soft:#4C6070;
+    --ink-faint:#8494A0;
+    --line:rgba(27,42,58,0.16);
+    --line-soft:rgba(27,42,58,0.09);
+    --read:#1F7A8C;
+    --read-soft:rgba(31,122,140,0.14);
+    --write:#B85C1E;
+    --write-soft:rgba(184,92,30,0.14);
+    --danger:#A6402E;
+    --danger-soft:rgba(166,64,46,0.14);
+    --shadow:0 1px 2px rgba(27,42,58,0.07), 0 10px 28px rgba(27,42,58,0.07);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) {
+      --paper:#101A22;
+      --paper-raised:#16232D;
+      --ink:#E7ECEE;
+      --ink-soft:#9FB0BB;
+      --ink-faint:#5E727D;
+      --line:rgba(231,236,238,0.16);
+      --line-soft:rgba(231,236,238,0.08);
+      --read:#5FC3D6;
+      --read-soft:rgba(95,195,214,0.16);
+      --write:#E38A4C;
+      --write-soft:rgba(227,138,76,0.16);
+      --danger:#E07A63;
+      --danger-soft:rgba(224,122,99,0.16);
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#101A22;
+    --paper-raised:#16232D;
+    --ink:#E7ECEE;
+    --ink-soft:#9FB0BB;
+    --ink-faint:#5E727D;
+    --line:rgba(231,236,238,0.16);
+    --line-soft:rgba(231,236,238,0.08);
+    --read:#5FC3D6;
+    --read-soft:rgba(95,195,214,0.16);
+    --write:#E38A4C;
+    --write-soft:rgba(227,138,76,0.16);
+    --danger:#E07A63;
+    --danger-soft:rgba(224,122,99,0.16);
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  ::selection{ background:var(--read-soft); }
+
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0/100% 28px,
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0/28px 100%,
+      var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4', Georgia, 'Times New Roman', serif;
+    font-size:1.05rem;
+    line-height:1.65;
+  }
+
+  h1,h2,h3,.ui{ font-family:'IBM Plex Sans', system-ui, sans-serif; }
+  .mono, code, .narration, button, .formula{
+    font-family:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  }
+  a{ color:var(--read); }
+
+  main{ max-width: 900px; margin: 0 auto; padding: 4.5rem 1.5rem 6rem; }
+  section{ padding: 3.2rem 0; }
+  section + section{ border-top: 1px dashed var(--line); }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.12em;
+    text-transform:uppercase; color:var(--read); margin: 0 0 0.9rem;
+  }
+  h1{ font-size:clamp(2.1rem, 5.2vw, 3.3rem); line-height:1.05; margin:0 0 1rem; font-weight:700; letter-spacing:-0.01em; text-wrap:balance; }
+  h2{ font-size:clamp(1.4rem, 3vw, 1.85rem); margin: 0 0 1.1rem; font-weight:600; letter-spacing:-0.005em; text-wrap:balance; }
+  h3{ font-size:1.05rem; margin:0 0 0.6rem; font-weight:600; }
+  p{ max-width:66ch; color:var(--ink); }
+  p.lede{ font-size:1.2rem; color:var(--ink-soft); max-width:56ch; }
+  .prose-narrow{ max-width:62ch; }
+  code{ font-size:0.9em; }
+  .cap{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-faint); margin-bottom:0.5rem; }
+
+  /* ---------- five parts ---------- */
+  .parts{ display:grid; grid-template-columns:repeat(5, 1fr); gap:0.7rem; margin-top:2.2rem; }
+  .part{
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:0.8rem 0.85rem;
+    box-shadow:var(--shadow);
+  }
+  .part .num{ font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--ink-faint); }
+  .part .name{ font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:1rem; margin:0.1rem 0 0.25rem; }
+  .part .q{ font-size:0.8rem; color:var(--ink-soft); line-height:1.4; }
+  .part.c-read .name{ color:var(--read); }
+  .part.c-danger .name{ color:var(--danger); }
+  .part.c-write .name{ color:var(--write); }
+  @media (max-width:820px){ .parts{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:460px){ .parts{ grid-template-columns:1fr; } }
+
+  /* ---------- buttons, cards ---------- */
+  button{
+    font-size:0.82rem; border-radius:7px; border:1px solid var(--line);
+    background:var(--paper-raised); color:var(--ink); padding:0.5rem 0.85rem; cursor:pointer;
+    transition: border-color .15s ease, background .15s ease, color .15s ease, opacity .15s ease;
+  }
+  button:hover:not(:disabled){ border-color:var(--read); color:var(--read); }
+  button:focus-visible{ outline:2px solid var(--read); outline-offset:2px; }
+  button[aria-pressed="true"]{ background:var(--read-soft); border-color:var(--read); color:var(--read); font-weight:600; }
+  .btn-row{ display:flex; flex-wrap:wrap; gap:0.55rem; align-items:center; }
+
+  .viz-card{ margin-top:2rem; background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:1.6rem 1.6rem 1.4rem; box-shadow:var(--shadow); }
+  .track-label{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.5rem; }
+  .track-block + .track-block{ margin-top:1.5rem; }
+
+  .code-panel{
+    background:var(--paper); border:1px solid var(--line); border-radius:8px;
+    padding:0.9rem 0; overflow-x:auto; font-family:'IBM Plex Mono',monospace;
+  }
+  .code-line{
+    padding:0.1rem 1rem 0.1rem 0.85rem; white-space:pre; font-size:0.85rem; color:var(--ink);
+    border-left:3px solid transparent; transition: background .3s ease, border-color .3s ease;
+  }
+  .code-line.active-loop{ background:var(--read-soft); border-left-color:var(--read); }
+  .code-line.active-return{ background:var(--danger-soft); border-left-color:var(--danger); }
+  .code-line.active-remember{ background:var(--write-soft); border-left-color:var(--write); }
+
+  .narration{ margin-top:1.3rem; background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:0.85rem 1rem; font-size:0.86rem; color:var(--ink); min-height:2.6em; display:flex; align-items:flex-start; gap:0.6rem; }
+  .narration .prompt{ color:var(--read); flex:none; }
+  .narration .ask{ color:var(--ink-soft); display:block; margin-bottom:0.3rem; }
+
+  .aside{
+    margin-top:1.6rem; border-left:3px solid var(--write); background:var(--paper-raised);
+    padding:0.95rem 1.2rem; border-radius:0 8px 8px 0; font-size:0.92rem; color:var(--ink-soft);
+  }
+  .aside p{ max-width:none; margin:0.4rem 0 0; color:var(--ink-soft); }
+  .aside p:first-child{ margin-top:0; }
+  .aside strong{ color:var(--ink); }
+
+  /* ---------- slot table ---------- */
+  .slots{ display:grid; gap:0.55rem; }
+  .slot{
+    display:grid; grid-template-columns:8.2rem 1fr auto; gap:0.9rem; align-items:baseline;
+    background:var(--paper); border:1px solid var(--line); border-left-width:4px; border-radius:8px; padding:0.6rem 0.9rem;
+  }
+  .slot .lab{ font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:0.85rem; color:var(--ink-soft); }
+  .slot .val{ font-family:'IBM Plex Mono',monospace; font-size:0.84rem; color:var(--ink); line-height:1.5; }
+  .slot .tag{ font-family:'IBM Plex Mono',monospace; font-size:0.66rem; letter-spacing:0.05em; text-transform:uppercase; padding:0.15rem 0.5rem; border-radius:10px; white-space:nowrap; }
+  .slot .tag.same{ color:var(--ink-faint); background:var(--line-soft); }
+  .slot .tag.changed{ color:var(--write); background:var(--write-soft); font-weight:600; }
+  .slot.c-read{ border-left-color:var(--read); }
+  .slot.c-danger{ border-left-color:var(--danger); }
+  .slot.c-write{ border-left-color:var(--write); }
+  .slot.c-faint{ border-left-color:var(--ink-faint); }
+  @media (max-width:640px){
+    .slot{ grid-template-columns:1fr; gap:0.2rem; }
+  }
+
+  .problem-head{ display:flex; align-items:baseline; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
+  .problem-head h3{ margin:0; font-size:1.25rem; }
+  .problem-head .meta{ font-family:'IBM Plex Mono',monospace; font-size:0.78rem; color:var(--ink-faint); }
+  .try{ margin-top:1rem; font-size:0.9rem; color:var(--ink-soft); max-width:none; }
+
+  /* ---------- tables and cards ---------- */
+  table.grid{ width:100%; border-collapse:collapse; margin-top:1.6rem; font-size:0.88rem; background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; overflow:hidden; box-shadow:var(--shadow); }
+  table.grid th, table.grid td{ padding:0.65rem 0.85rem; text-align:left; border-bottom:1px solid var(--line-soft); vertical-align:top; }
+  table.grid th{ font-family:'IBM Plex Sans',sans-serif; font-weight:500; font-size:0.78rem; color:var(--ink-soft); background:var(--paper); }
+  table.grid td{ font-family:'IBM Plex Mono',monospace; font-size:0.82rem; }
+  table.grid td:first-child{ font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:0.88rem; }
+  table.grid tr:last-child td{ border-bottom:none; }
+  .table-wrap{ overflow-x:auto; }
+
+  .cards{ display:grid; grid-template-columns:repeat(3, 1fr); gap:1rem; margin-top:1.6rem; }
+  .card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:1.1rem 1.2rem; box-shadow:var(--shadow); }
+  .card h3{ font-size:0.98rem; }
+  .card p{ font-size:0.86rem; color:var(--ink-soft); margin:0; max-width:none; }
+  @media (max-width:760px){ .cards{ grid-template-columns:1fr; } }
+
+  ol.order{ margin:1.4rem 0 0; padding-left:1.3rem; display:grid; gap:0.7rem; max-width:64ch; }
+  ol.order li{ color:var(--ink-soft); font-size:0.98rem; }
+  ol.order strong{ color:var(--ink); }
+
+  footer{ padding-top:3.2rem; text-align:center; color:var(--ink-faint); font-size:0.82rem; }
+  footer a{ color:var(--ink-faint); text-decoration:underline; }
+
+  @media (max-width:560px){
+    main{ padding:3rem 1rem 4rem; }
+    .viz-card{ padding:1.1rem 1rem; }
+  }
+  @media (prefers-reduced-motion: reduce){ *{ transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; } }
+</style>
+</head>
+<body>
+<main>
+
+  <section class="hero">
+    <p class="eyebrow">Dynamic Programming · Top-down template · Recursion + memo</p>
+    <h1>Dynamic Programming Template</h1>
+    <p class="lede">Most top-down DP problems share one skeleton with five decisions. Climbing Stairs fills them in the simplest way, so it works as the reference. Every other problem changes one or two of the five.</p>
+
+    <div class="parts">
+      <div class="part c-read"><div class="num">1</div><div class="name">State</div><div class="q">What describes "where I am"?</div></div>
+      <div class="part c-read"><div class="num">2</div><div class="name">Choices</div><div class="q">What can I do from here?</div></div>
+      <div class="part c-danger"><div class="num">3</div><div class="name">Base cases</div><div class="q">Which states answer immediately?</div></div>
+      <div class="part c-write"><div class="num">4</div><div class="name">Combine</div><div class="q">How do child answers become mine?</div></div>
+      <div class="part c-write"><div class="num">5</div><div class="name">Memo</div><div class="q">What do I cache, and by what key?</div></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">The skeleton</p>
+    <h2>Five decisions, one function</h2>
+    <p class="prose-narrow">Pick a part to see which lines it controls. The examples use Climbing Stairs, where the state is the steps left and the combine is a sum.</p>
+
+    <div class="viz-card">
+      <div class="track-block">
+        <div class="track-label">Choose a part</div>
+        <div class="btn-row" id="partButtons"></div>
+      </div>
+      <div class="track-block">
+        <div class="track-label">Ruby template</div>
+        <div class="code-panel" id="templatePanel"></div>
+      </div>
+      <div class="narration" aria-live="polite"><span class="prompt">›</span><span id="partText"></span></div>
+    </div>
+
+    <div class="aside">
+      <p><strong>What this skeleton assumes.</strong> The answer for a state depends only on that state, not on how you got there. If that holds, two calls with the same state return the same value, and caching is safe.</p>
+    </div>
+  </section>
+
+  <section id="fill-section">
+    <p class="eyebrow">Fill it in</p>
+    <h2>The same skeleton, different slots</h2>
+    <p class="prose-narrow">Choose a problem to see how each part is filled in. Each slot is tagged <em>same shape</em> when it plays the same role as in Climbing Stairs, or <em>changed</em> when it needs new thought. That shows how little moves between problems.</p>
+
+    <div class="viz-card">
+      <div class="track-block">
+        <div class="track-label">Problem</div>
+        <div class="btn-row" id="problemButtons"></div>
+      </div>
+      <div class="track-block" id="problemBlock">
+        <div class="problem-head">
+          <h3 id="pName"></h3>
+          <span class="meta" id="pMeta"></span>
+        </div>
+        <div class="slots" id="slots"></div>
+        <div class="narration"><span class="prompt">›</span><span id="pNote"></span></div>
+        <p class="try" id="pTry"></p>
+      </div>
+      <div class="track-block" id="refBlock" hidden>
+        <div class="track-label">Reference Ruby (memoized)</div>
+        <div class="code-panel" id="refPanel"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">What you change</p>
+    <h2>The combine and its base values go together</h2>
+    <p class="prose-narrow">The kind of question decides the combine, and the combine decides what the base cases return. Optimizing needs a value that can never win as its "invalid" answer.</p>
+
+    <div class="table-wrap">
+      <table class="grid">
+        <thead><tr><th>Question</th><th>Combine</th><th>Finished</th><th>Invalid</th><th>Examples</th></tr></thead>
+        <tbody>
+          <tr><td>Count the ways</td><td>sum</td><td>1</td><td>0</td><td>Climbing Stairs, Decode Ways, Unique Paths</td></tr>
+          <tr><td>Fewest / cheapest</td><td>min</td><td>0</td><td>Infinity</td><td>Coin Change, Min Cost Climbing Stairs</td></tr>
+          <tr><td>Most / largest</td><td>max</td><td>0</td><td>-Infinity, or no invalid case</td><td>House Robber</td></tr>
+          <tr><td>Is it possible?</td><td>any? (or)</td><td>true</td><td>false</td><td>Word Break</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Number of choices</h3>
+        <p>Climbing Stairs has two hard-coded calls. When the choices depend on the input, such as one per coin or per matching word, the two calls become a loop or a <code>map</code> over the choices.</p>
+      </div>
+      <div class="card">
+        <h3>Shape of the state</h3>
+        <p>A grid needs <code>(row, col)</code>, so the memo key becomes an array like <code>memo[[r, c]]</code>. Key on the values that change. Data like <code>nums</code> or <code>coins</code> stays out of the key.</p>
+      </div>
+      <div class="card">
+        <h3>Payoff per choice</h3>
+        <p>When a choice carries a cost or gain, such as <code>nums[i]</code> or <code>cost[i]</code>, add it before combining: <code>cost[i] + min(...)</code>.</p>
+      </div>
+    </div>
+
+    <div class="aside">
+      <p><strong>Cost of a memoized DP:</strong> the number of distinct states, times the work done per state. Climbing Stairs has n states and 2 choices each, so O(n).</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Limits</p>
+    <h2>Where the skeleton fits less well</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Best result ending at i</h3>
+        <p>Longest Increasing Subsequence and Maximum Subarray define the state as "best ending at index i", and the answer is the best over all i. There is no single top call, so a bottom-up loop fits better.</p>
+      </div>
+      <div class="card">
+        <h3>Extra state</h3>
+        <p>Stock problems with a cooldown need to know whether you are holding a share. That adds a part to the state and to the memo key.</p>
+      </div>
+      <div class="card">
+        <h3>Overshoot checks</h3>
+        <p>The <code>n &lt; 0</code> check is specific to Climbing Stairs. Other problems need their own bounds checks, such as an index past the end of an array.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Ruby notes</p>
+    <h2>Two details that bite</h2>
+    <div class="cards" style="grid-template-columns:1fr 1fr;">
+      <div class="card">
+        <h3>Use key?, not ||=</h3>
+        <div class="code-panel" style="margin:0.4rem 0 0.7rem;" id="noteKey"></div>
+        <p><code>||=</code> recomputes whenever the stored value is <code>false</code> or <code>nil</code>. Word Break caches <code>false</code> answers, so it needs <code>key?</code>.</p>
+      </div>
+      <div class="card">
+        <h3>Default memo argument</h3>
+        <div class="code-panel" style="margin:0.4rem 0 0.7rem;" id="noteDefault"></div>
+        <p>The default <code>{}</code> is created fresh on each top-level call, so you can pass <code>memo</code> down without a wrapper method.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Practice order</p>
+    <h2>Stretch the template one change at a time</h2>
+    <ol class="order">
+      <li><strong>House Robber.</strong> Same shape as Climbing Stairs. Only the combine changes, to a max with a payoff.</li>
+      <li><strong>Coin Change.</strong> Adds a loop over choices and the min-with-Infinity base case.</li>
+      <li><strong>Decode Ways.</strong> Conditional choices on a string index.</li>
+      <li><strong>Word Break.</strong> A boolean answer, and the <code>key?</code> caching detail.</li>
+      <li><strong>Unique Paths.</strong> A two-part state, if you want the grid version.</li>
+    </ol>
+  </section>
+
+  <footer>
+    Companion to <a href="climbing_stairs/visual_guide.html">the Climbing Stairs visual guide</a> and the <a href="readme.md">DP readme</a>.
+  </footer>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  function el(tag, cls, text){
+    const d = document.createElement(tag);
+    if (cls) d.className = cls;
+    if (text !== undefined) d.textContent = text;
+    return d;
+  }
+  function fillCode(panel, lines, active){
+    panel.innerHTML = '';
+    lines.forEach((text, i) => {
+      panel.appendChild(el('div', 'code-line' + (active && active[i] ? ' ' + active[i] : ''), text || ' '));
+    });
+  }
+
+  /* ---------- the skeleton and its five parts ---------- */
+
+  const TEMPLATE = [
+    'def solve(state, memo = {})',
+    '  return BASE_VALUE    if finished?(state)',
+    '  return INVALID_VALUE if invalid?(state)',
+    '  return memo[state]   if memo.key?(state)',
+    '',
+    '  memo[state] = children(state)',
+    '    .map { |next_state| solve(next_state, memo) }',
+    '    .reduce(COMBINE)',
+    'end',
+  ];
+
+  const PARTS = [
+    { name: '1. State', lines: [0], cls: 'active-loop',
+      ask: 'What value, or small set of values, fully describes "where I am"?',
+      answer: 'Climbing Stairs: n, the number of steps left. Two calls with the same n always return the same answer, which is what makes caching safe.' },
+    { name: '2. Choices', lines: [5, 6], cls: 'active-loop',
+      ask: 'What can I do from this state, and which state does each option lead to?',
+      answer: 'Climbing Stairs: take 1 step (n - 1) or 2 steps (n - 2). Each choice becomes one recursive call.' },
+    { name: '3. Base cases', lines: [1, 2], cls: 'active-return',
+      ask: 'Which states can I answer without recursing? Include both the successful ones and the impossible ones.',
+      answer: 'Climbing Stairs: n == 0 lands exactly on the top (1 way), and n < 0 overshoots (0 ways).' },
+    { name: '4. Combine', lines: [7], cls: 'active-remember',
+      ask: 'How do the answers of the children turn into the answer for this state?',
+      answer: 'Climbing Stairs: sum. Ways via a 1-step plus ways via a 2-step. Minimizing problems use min, maximizing use max, yes or no questions use any?.' },
+    { name: '5. Memo', lines: [3, 5], cls: 'active-remember',
+      ask: 'What do I cache, and what is the key?',
+      answer: 'Climbing Stairs: memo[n]. Read it after the base cases and before recursing, and write it where the value is computed.' },
+  ];
+
+  let partIndex = 0;
+  function renderPart(){
+    const p = PARTS[partIndex];
+    const active = {};
+    p.lines.forEach(i => { active[i] = p.cls; });
+    fillCode($('templatePanel'), TEMPLATE, active);
+    const text = $('partText');
+    text.innerHTML = '';
+    const ask = el('span', 'ask', p.ask);
+    text.appendChild(ask);
+    text.appendChild(document.createTextNode(p.answer));
+    document.querySelectorAll('[data-part]').forEach(b => {
+      b.setAttribute('aria-pressed', String(Number(b.dataset.part) === partIndex));
+    });
+  }
+
+  function buildPartButtons(){
+    const row = $('partButtons');
+    PARTS.forEach((p, i) => {
+      const b = el('button', '', p.name);
+      b.dataset.part = String(i);
+      b.setAttribute('aria-pressed', String(i === partIndex));
+      b.addEventListener('click', () => { partIndex = i; renderPart(); });
+      row.appendChild(b);
+    });
+  }
+
+  /* ---------- per-problem slot values ---------- */
+
+  const SLOT_ROWS = [
+    { key: 'state',    label: 'State',    cls: 'c-read' },
+    { key: 'choices',  label: 'Choices',  cls: 'c-read' },
+    { key: 'finished', label: 'Finished', cls: 'c-read' },
+    { key: 'invalid',  label: 'Invalid',  cls: 'c-danger' },
+    { key: 'combine',  label: 'Combine',  cls: 'c-write' },
+    { key: 'key',      label: 'Memo key', cls: 'c-write' },
+    { key: 'cost',     label: 'Cost',     cls: 'c-faint' },
+  ];
+
+  const PROBLEMS = [
+    { id: 'climb', name: 'Climbing Stairs', lc: 70, slug: 'climbing-stairs', diff: 'Easy',
+      state: 'n = steps left to climb',
+      choices: 'take 1 step or 2 steps: f(n - 1), f(n - 2)',
+      finished: 'n == 0  →  1',
+      invalid: 'n < 0  →  0',
+      combine: 'f(n - 1) + f(n - 2)',
+      key: 'n',
+      cost: 'n states × 2 choices = O(n)',
+      note: 'The reference problem. Every other row is a variation on this one.' },
+    { id: 'robber', same: ['state', 'choices', 'key'], name: 'House Robber', lc: 198, slug: 'house-robber', diff: 'Medium',
+      state: 'i = index of the next house to decide on',
+      choices: 'rob house i (gain nums[i], jump to i + 2) or skip it (i + 1)',
+      finished: 'i >= nums.length  →  0  (no houses left)',
+      invalid: 'none: running past the end is the finished case',
+      combine: 'max( nums[i] + f(i + 2), f(i + 1) )',
+      key: 'i',
+      cost: 'n states × 2 choices = O(n)',
+      note: 'Same shape as Climbing Stairs. The new idea is that a choice has a payoff, so the combine adds a value before taking the max.' },
+    { id: 'mincost', same: ['state', 'choices', 'key'], name: 'Min Cost Climbing Stairs', lc: 746, slug: 'min-cost-climbing-stairs', diff: 'Easy',
+      state: 'i = the step you are standing on',
+      choices: 'pay cost[i], then climb 1 or 2 steps: f(i + 1), f(i + 2)',
+      finished: 'i >= cost.length  →  0  (past the last step is the top)',
+      invalid: 'none',
+      combine: 'cost[i] + min( f(i + 1), f(i + 2) )',
+      key: 'i',
+      cost: 'n states × 2 choices = O(n)',
+      note: 'You may start on step 0 or 1, so the answer is min(f(0), f(1)). That is one extra line outside the recursion.' },
+    { id: 'coins', same: ['state', 'key'], name: 'Coin Change', lc: 322, slug: 'coin-change', diff: 'Medium',
+      state: 'amount = money still to make',
+      choices: 'one call per coin c: f(amount - c). A loop, not two hard-coded calls',
+      finished: 'amount == 0  →  0 coins',
+      invalid: 'amount < 0  →  Infinity  (can never win a min)',
+      combine: 'min over coins of ( 1 + f(amount - c) )',
+      key: 'amount',
+      cost: 'amount states × number of coins',
+      note: 'Two changes from Climbing Stairs: the number of choices is the number of coins, and optimizing needs an "impossible" sentinel. Turn Infinity into -1 at the top level.' },
+    { id: 'decode', same: ['state', 'finished', 'combine', 'key'], name: 'Decode Ways', lc: 91, slug: 'decode-ways', diff: 'Medium',
+      state: 'i = index of the next unread character',
+      choices: 'read 1 digit (if not "0"): f(i + 1); read 2 digits (if 10 to 26): f(i + 2). Invalid choices are skipped',
+      finished: 'i == s.length  →  1',
+      invalid: 'no separate check: a "0" with no valid reading has no choices, so it adds 0',
+      combine: 'sum of the valid choices (0 if there are none)',
+      key: 'i',
+      cost: 'n states × 2 choices = O(n)',
+      note: 'The choices are conditional, so the "invalid" case moves out of a base-case line and into the rules for which choices exist.' },
+    { id: 'paths', same: ['choices', 'finished', 'invalid', 'combine'], name: 'Unique Paths', lc: 62, slug: 'unique-paths', diff: 'Medium',
+      state: '(row, col) = the current cell',
+      choices: 'move right: f(row, col + 1); move down: f(row + 1, col)',
+      finished: 'at the bottom-right cell  →  1',
+      invalid: 'off the grid  →  0',
+      combine: 'f(row, col + 1) + f(row + 1, col)',
+      key: '[row, col]  (a two-part key)',
+      cost: 'rows × cols states × 2 choices',
+      note: 'The first two-part state. Nothing else changes: it is still a sum with 1 and 0 as the base values.' },
+    { id: 'wordbreak', same: ['state', 'key'], name: 'Word Break', lc: 139, slug: 'word-break', diff: 'Medium',
+      state: 'i = start of the part of s still to be split',
+      choices: 'each dictionary word that matches s at position i: f(i + word.length)',
+      finished: 'i == s.length  →  true',
+      invalid: 'no word matches, so there are no choices  →  false',
+      combine: 'any? (true if some choice succeeds)',
+      key: 'i',
+      cost: 'n states × words checked',
+      note: 'A yes or no question instead of a count. Cache false answers with key?, or they are recomputed on every visit.' },
+  ];
+
+  const REF_CODE = [
+    'def climb_stairs(n, memo = {})',
+    '  return 0 if n < 0',
+    '  return 1 if n == 0',
+    '  return memo[n] if memo.key?(n)',
+    '',
+    '  memo[n] = climb_stairs(n - 1, memo) + climb_stairs(n - 2, memo)',
+    'end',
+  ];
+
+  let problemIndex = 0;
+  function renderProblem(){
+    const p = PROBLEMS[problemIndex];
+    $('pName').textContent = p.name;
+    $('pMeta').textContent = `LeetCode ${p.lc} · ${p.diff}`;
+    const slots = $('slots');
+    slots.innerHTML = '';
+    SLOT_ROWS.forEach(r => {
+      const row = el('div', 'slot ' + r.cls);
+      row.appendChild(el('span', 'lab', r.label));
+      row.appendChild(el('span', 'val', p[r.key]));
+      if (problemIndex > 0 && r.key !== 'cost'){
+        const changed = p.same.indexOf(r.key) === -1;
+        row.appendChild(el('span', 'tag ' + (changed ? 'changed' : 'same'), changed ? 'changed' : 'same shape'));
+      } else {
+        row.appendChild(el('span', ''));
+      }
+      slots.appendChild(row);
+    });
+    $('pNote').textContent = p.note;
+    const tryEl = $('pTry');
+    tryEl.innerHTML = '';
+    if (problemIndex === 0){
+      tryEl.textContent = 'The memoized solution appears below as the reference.';
+    } else {
+      tryEl.appendChild(document.createTextNode('Try it: write the Ruby from these slots, then run it on the examples at '));
+      const a = el('a', '', `leetcode.com/problems/${p.slug}`);
+      a.href = `https://leetcode.com/problems/${p.slug}/`;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      tryEl.appendChild(a);
+      tryEl.appendChild(document.createTextNode('.'));
+    }
+    $('refBlock').hidden = problemIndex !== 0;
+    document.querySelectorAll('[data-problem]').forEach(b => {
+      b.setAttribute('aria-pressed', String(Number(b.dataset.problem) === problemIndex));
+    });
+  }
+
+  function buildProblemButtons(){
+    const row = $('problemButtons');
+    PROBLEMS.forEach((p, i) => {
+      const b = el('button', '', p.name);
+      b.dataset.problem = String(i);
+      b.setAttribute('aria-pressed', String(i === problemIndex));
+      b.addEventListener('click', () => { problemIndex = i; renderProblem(); });
+      row.appendChild(b);
+    });
+  }
+
+  buildPartButtons();
+  renderPart();
+  buildProblemButtons();
+  fillCode($('refPanel'), REF_CODE, {});
+  renderProblem();
+  fillCode($('noteKey'), [
+    'memo[i] ||= compute(i)',
+    '  # reruns when the value is false or nil',
+    '',
+    'return memo[i] if memo.key?(i)',
+    '  # caches every answer, false included',
+  ], { 0: 'active-return', 3: 'active-loop' });
+  fillCode($('noteDefault'), [
+    'def solve(i, memo = {})',
+    '  # {} is new on every top-level call',
+    '  solve(i - 1, memo)',
+    '  # the same hash is passed down',
+    'end',
+  ], {});
+})();
+</script>
+</body>
+</html>

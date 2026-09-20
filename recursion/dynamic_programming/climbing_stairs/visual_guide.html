@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Climbing Stairs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root{
+    --paper:#EDF1F2;
+    --paper-raised:#F8FAFB;
+    --ink:#1B2A3A;
+    --ink-soft:#4C6070;
+    --ink-faint:#8494A0;
+    --line:rgba(27,42,58,0.16);
+    --line-soft:rgba(27,42,58,0.09);
+    --read:#1F7A8C;
+    --read-soft:rgba(31,122,140,0.14);
+    --write:#B85C1E;
+    --write-soft:rgba(184,92,30,0.14);
+    --danger:#A6402E;
+    --danger-soft:rgba(166,64,46,0.14);
+    --shadow:0 1px 2px rgba(27,42,58,0.07), 0 10px 28px rgba(27,42,58,0.07);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) {
+      --paper:#101A22;
+      --paper-raised:#16232D;
+      --ink:#E7ECEE;
+      --ink-soft:#9FB0BB;
+      --ink-faint:#5E727D;
+      --line:rgba(231,236,238,0.16);
+      --line-soft:rgba(231,236,238,0.08);
+      --read:#5FC3D6;
+      --read-soft:rgba(95,195,214,0.16);
+      --write:#E38A4C;
+      --write-soft:rgba(227,138,76,0.16);
+      --danger:#E07A63;
+      --danger-soft:rgba(224,122,99,0.16);
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#101A22;
+    --paper-raised:#16232D;
+    --ink:#E7ECEE;
+    --ink-soft:#9FB0BB;
+    --ink-faint:#5E727D;
+    --line:rgba(231,236,238,0.16);
+    --line-soft:rgba(231,236,238,0.08);
+    --read:#5FC3D6;
+    --read-soft:rgba(95,195,214,0.16);
+    --write:#E38A4C;
+    --write-soft:rgba(227,138,76,0.16);
+    --danger:#E07A63;
+    --danger-soft:rgba(224,122,99,0.16);
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 10px 28px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  ::selection{ background:var(--read-soft); }
+
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0/100% 28px,
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0/28px 100%,
+      var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4', Georgia, 'Times New Roman', serif;
+    font-size:1.05rem;
+    line-height:1.65;
+  }
+
+  h1,h2,h3,.ui{ font-family:'IBM Plex Sans', system-ui, sans-serif; }
+  .mono, code, .narration, .stat-value, button, .step-counter, .formula{
+    font-family:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  }
+  a{ color:var(--read); }
+
+  main{ max-width: 900px; margin: 0 auto; padding: 4.5rem 1.5rem 6rem; }
+  section{ padding: 3.2rem 0; }
+  section + section{ border-top: 1px dashed var(--line); }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.12em;
+    text-transform:uppercase; color:var(--read); margin: 0 0 0.9rem;
+  }
+  h1{ font-size:clamp(2.1rem, 5.2vw, 3.3rem); line-height:1.05; margin:0 0 1rem; font-weight:700; letter-spacing:-0.01em; text-wrap:balance; }
+  h2{ font-size:clamp(1.4rem, 3vw, 1.85rem); margin: 0 0 1.1rem; font-weight:600; letter-spacing:-0.005em; text-wrap:balance; }
+  h3{ font-size:1.05rem; margin:0 0 0.6rem; font-weight:600; }
+  p{ max-width:66ch; color:var(--ink); }
+  p.lede{ font-size:1.2rem; color:var(--ink-soft); max-width:56ch; }
+  .prose-narrow{ max-width:62ch; }
+  code{ font-size:0.9em; }
+
+  .rules{ list-style:none; margin:1.6rem 0 0; padding:0; display:grid; gap:0.7rem; }
+  .rules li{ display:flex; gap:0.8rem; align-items:baseline; font-size:0.98rem; color:var(--ink-soft); }
+  .rules li::before{ content:"\203A"; color:var(--read); font-family:'IBM Plex Mono',monospace; flex:none; }
+  .rules strong{ color:var(--ink); font-weight:600; }
+
+  /* ---------- staircase cards ---------- */
+  .ways{ display:flex; flex-wrap:wrap; gap:0.9rem; margin-top:1rem; }
+  .way{
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:10px;
+    padding:0.7rem 0.8rem 0.6rem; box-shadow:var(--shadow);
+  }
+  .way svg{ display:block; }
+  .way-label{ margin-top:0.35rem; font-family:'IBM Plex Mono',monospace; font-size:0.78rem; color:var(--ink-soft); text-align:center; }
+  .stair{ fill:var(--line-soft); stroke:var(--line); stroke-width:1; }
+  .hop{ fill:none; stroke-width:2; stroke-linecap:round; }
+  .hop.h1{ stroke:var(--read); }
+  .hop.h2{ stroke:var(--write); }
+  .land{ fill:var(--paper-raised); stroke:var(--ink-soft); stroke-width:1.5; }
+  .land.start{ fill:var(--ink-soft); }
+  .hero-example{ margin-top:2.2rem; }
+  .cap{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-faint); margin-bottom:0.5rem; }
+  .legend{ display:flex; gap:1.2rem; flex-wrap:wrap; margin-top:0.9rem; font-size:0.8rem; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; }
+  .legend i{ display:inline-block; width:22px; height:0; border-top:2px solid var(--read); vertical-align:middle; margin-right:0.4rem; }
+  .legend i.two{ border-top-color:var(--write); }
+
+  .groups{ display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-top:1.6rem; }
+  .group{ background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; padding:1.1rem 1.2rem; box-shadow:var(--shadow); }
+  .group h3{ font-size:0.95rem; color:var(--ink-soft); font-weight:500; margin-bottom:0.2rem; }
+  .group .count{ font-family:'IBM Plex Mono',monospace; font-size:1.05rem; font-weight:700; color:var(--read); margin:0 0 0.6rem; }
+  .group.two .count{ color:var(--write); }
+  .group .ways{ margin-top:0.4rem; gap:0.6rem; }
+  .group .way{ box-shadow:none; background:var(--paper); }
+  @media (max-width:700px){ .groups{ grid-template-columns:1fr; } }
+
+  .formula{
+    margin-top:1.6rem; background:var(--paper-raised); border:1px solid var(--line); border-radius:12px;
+    padding:1.2rem 1.4rem; box-shadow:var(--shadow); font-size:1.05rem; color:var(--ink);
+  }
+  .formula .main{ font-size:1.35rem; font-weight:700; color:var(--read); margin-bottom:0.5rem; }
+  .formula .base{ color:var(--ink-soft); font-size:0.9rem; }
+
+  /* ---------- stats, buttons, asides ---------- */
+  .stats{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.8rem; }
+  .stat-card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem; box-shadow:var(--shadow); }
+  .stat-card h3{ font-family:'IBM Plex Sans',sans-serif; font-size:0.95rem; color:var(--ink-soft); font-weight:500; }
+  .stat-value{ font-size:1.5rem; font-weight:700; margin:0.3rem 0; }
+  .stat-card.optimal .stat-value{ color:var(--read); }
+  .stat-card.slow .stat-value{ color:var(--danger); }
+  .stat-card p{ font-size:0.86rem; color:var(--ink-faint); margin:0; }
+  @media (max-width:560px){ .stats{ grid-template-columns:1fr; } }
+
+  button{
+    font-size:0.82rem; border-radius:7px; border:1px solid var(--line);
+    background:var(--paper-raised); color:var(--ink); padding:0.5rem 0.85rem; cursor:pointer;
+    transition: border-color .15s ease, background .15s ease, color .15s ease, opacity .15s ease;
+  }
+  button:hover:not(:disabled){ border-color:var(--read); color:var(--read); }
+  button:focus-visible{ outline:2px solid var(--read); outline-offset:2px; }
+  button:disabled{ opacity:0.4; cursor:not-allowed; }
+  button.primary{ background:var(--read); border-color:var(--read); color:var(--paper); }
+  button.primary:hover:not(:disabled){ color:var(--paper); opacity:0.88; }
+  button.ghost{ background:transparent; }
+  button[aria-pressed="true"]{ background:var(--read-soft); border-color:var(--read); color:var(--read); font-weight:600; }
+  .btn-row{ display:flex; flex-wrap:wrap; gap:0.55rem; align-items:center; }
+
+  .aside{
+    margin-top:1.6rem; border-left:3px solid var(--write); background:var(--paper-raised);
+    padding:0.95rem 1.2rem; border-radius:0 8px 8px 0; font-size:0.92rem; color:var(--ink-soft);
+  }
+  .aside p{ max-width:none; margin:0.4rem 0 0; color:var(--ink-soft); }
+  .aside p:first-child{ margin-top:0; }
+  .aside strong{ color:var(--ink); }
+
+  /* ---------- viz card ---------- */
+  .builder-block{ margin-top:1.8rem; display:flex; gap:2rem; flex-wrap:wrap; }
+  .builder-label{ font-size:0.78rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.6rem; }
+
+  .viz-card{ margin-top:2rem; background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:1.6rem 1.6rem 1.4rem; box-shadow:var(--shadow); }
+  .viz-head{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.3rem; }
+  .phase-chip{ font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.28rem 0.65rem; border-radius:20px; font-weight:600; background:var(--line-soft); color:var(--ink-soft); }
+  .phase-chip.scan{ background:var(--read-soft); color:var(--read); }
+  .phase-chip.found{ background:var(--read-soft); color:var(--read); }
+  .phase-chip.cache{ background:var(--write-soft); color:var(--write); }
+  .phase-chip.nomatch{ background:var(--danger-soft); color:var(--danger); }
+  .step-counter{ font-size:0.78rem; color:var(--ink-faint); }
+
+  .track-label{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-bottom:0.5rem; }
+  .track-block + .track-block{ margin-top:1.7rem; }
+
+  .code-panel{
+    background:var(--paper); border:1px solid var(--line); border-radius:8px;
+    padding:0.9rem 0; overflow-x:auto; font-family:'IBM Plex Mono',monospace;
+  }
+  .code-line{
+    padding:0.1rem 1rem 0.1rem 0.85rem; white-space:pre; font-size:0.85rem; color:var(--ink);
+    border-left:3px solid transparent; transition: background .3s ease, border-color .3s ease;
+  }
+  .code-line.active-loop{ background:var(--read-soft); border-left-color:var(--read); }
+  .code-line.active-return{ background:var(--danger-soft); border-left-color:var(--danger); }
+  .code-line.active-remember{ background:var(--write-soft); border-left-color:var(--write); }
+
+  .stack-row{ display:flex; gap:0.4rem; align-items:center; flex-wrap:wrap; min-height:2rem; }
+  .frame{
+    font-family:'IBM Plex Mono',monospace; font-size:0.8rem; padding:0.2rem 0.55rem;
+    border:1px solid var(--line); border-radius:6px; background:var(--paper); color:var(--ink-soft);
+  }
+  .frame.top{ border-color:var(--read); color:var(--read); background:var(--read-soft); font-weight:600; }
+  .frame.top.neg{ border-color:var(--danger); color:var(--danger); background:var(--danger-soft); }
+  .frame.top.hit{ border-color:var(--write); color:var(--write); background:var(--write-soft); }
+  .stack-arrow{ color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; font-size:0.8rem; }
+  .stack-empty{ color:var(--ink-faint); font-size:0.8rem; font-family:'IBM Plex Mono',monospace; }
+
+  /* ---------- call tree ---------- */
+  .tree-wrap{ overflow-x:auto; padding:0.4rem 0 0.6rem; border:1px solid var(--line-soft); border-radius:8px; background:var(--paper); }
+  .tree-svg{ display:block; margin:0 auto; }
+  .edge{ stroke:var(--line); stroke-width:1.5; fill:none; opacity:0.35; transition:opacity .25s ease, stroke .25s ease; }
+  .edge.seen{ opacity:1; stroke:var(--ink-faint); }
+  .elbl{ font-family:'IBM Plex Mono',monospace; font-size:10px; fill:var(--ink-faint); text-anchor:middle; paint-order:stroke; stroke:var(--paper); stroke-width:3px; opacity:0.5; }
+  .elbl.seen{ opacity:1; }
+  .node{ opacity:0.3; transition:opacity .25s ease; }
+  .node.seen{ opacity:1; }
+  .node rect{ fill:var(--paper-raised); stroke:var(--line); stroke-width:1.5; transition:fill .25s ease, stroke .25s ease; }
+  .node text{ font-family:'IBM Plex Mono',monospace; text-anchor:middle; fill:var(--ink); }
+  .node .lbl{ font-size:11px; font-weight:600; }
+  .node .val{ font-size:11px; font-weight:700; fill:var(--ink-soft); }
+  .node.compute.active rect{ fill:var(--read-soft); stroke:var(--read); }
+  .node.neg.seen rect{ fill:var(--danger-soft); stroke:var(--danger); }
+  .node.neg .val{ fill:var(--danger); }
+  .node.base.seen rect{ fill:var(--read-soft); stroke:var(--read); }
+  .node.base .val{ fill:var(--read); }
+  .node.hit.seen rect{ fill:var(--write-soft); stroke:var(--write); stroke-dasharray:4 3; }
+  .node.hit .val{ fill:var(--write); }
+  .node.current rect{ stroke-width:3.2; }
+  .node.compute.current rect{ stroke:var(--read); }
+
+  .viz-two{ display:grid; grid-template-columns:1.2fr 1fr; gap:1.4rem; margin-top:1.7rem; }
+  @media (max-width:760px){ .viz-two{ grid-template-columns:1fr; } }
+  .viz-two > div > .track-label{ margin-bottom:0.6rem; }
+
+  .tally{ display:grid; gap:0.35rem; }
+  .tally-row{ display:grid; grid-template-columns:3.4rem 1fr 2.4rem; gap:0.6rem; align-items:center; font-family:'IBM Plex Mono',monospace; font-size:0.78rem; color:var(--ink-soft); }
+  .tally-track{ position:relative; height:12px; border-radius:6px; background:var(--line-soft); overflow:hidden; }
+  .tally-ghost{ position:absolute; inset:0 auto 0 0; background:var(--line); opacity:0.7; border-radius:6px; }
+  .tally-live{ position:absolute; inset:0 auto 0 0; background:var(--read); border-radius:6px; transition:width .25s ease; }
+  .tally-row.repeat .tally-live{ background:var(--write); }
+  .tally-count{ text-align:right; color:var(--ink); font-weight:600; }
+
+  .memo-grid{ display:flex; flex-wrap:wrap; gap:0.5rem; }
+  .memo-cell{
+    min-width:3.6rem; padding:0.35rem 0.5rem; text-align:center; border:1px solid var(--line); border-radius:6px;
+    background:var(--paper); font-family:'IBM Plex Mono',monospace; font-size:0.8rem; color:var(--ink-faint);
+    transition:background .25s ease, border-color .25s ease, color .25s ease;
+  }
+  .memo-cell .k{ display:block; font-size:0.66rem; letter-spacing:0.04em; color:var(--ink-faint); }
+  .memo-cell .v{ font-weight:700; font-size:0.95rem; }
+  .memo-cell.filled{ color:var(--ink); border-color:var(--write); }
+  .memo-cell.fresh{ background:var(--write-soft); }
+  .memo-note{ font-size:0.82rem; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; margin:0; max-width:none; }
+
+  .mini-stats{ display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-top:1rem; }
+  .mini{ border:1px solid var(--line); border-radius:8px; padding:0.6rem 0.8rem; background:var(--paper); }
+  .mini .lab{ font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); }
+  .mini .num{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:1.25rem; }
+  .mini .sub{ font-size:0.74rem; color:var(--ink-faint); line-height:1.35; }
+
+  .narration{ margin-top:1.5rem; background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:0.85rem 1rem; font-size:0.86rem; color:var(--ink); min-height:2.6em; display:flex; align-items:center; }
+  .narration .prompt{ color:var(--read); margin-right:0.6rem; flex:none; }
+
+  .controls{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-top:1.2rem; }
+
+  table.calls{ width:100%; border-collapse:collapse; margin-top:1.6rem; font-size:0.9rem; background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; overflow:hidden; box-shadow:var(--shadow); }
+  table.calls th, table.calls td{ padding:0.65rem 0.9rem; text-align:right; border-bottom:1px solid var(--line-soft); font-family:'IBM Plex Mono',monospace; }
+  table.calls th{ font-family:'IBM Plex Sans',sans-serif; font-weight:500; font-size:0.8rem; color:var(--ink-soft); background:var(--paper); }
+  table.calls th:first-child, table.calls td:first-child{ text-align:left; }
+  table.calls td.naive{ color:var(--danger); font-weight:600; }
+  table.calls td.memo{ color:var(--read); font-weight:600; }
+  table.calls tr:last-child td{ border-bottom:none; }
+
+  footer{ padding-top:3.2rem; text-align:center; color:var(--ink-faint); font-size:0.82rem; }
+  footer a{ color:var(--ink-faint); text-decoration:underline; }
+
+  @media (max-width:560px){
+    main{ padding:3rem 1rem 4rem; }
+    .viz-card{ padding:1.1rem 1rem; }
+  }
+  @media (prefers-reduced-motion: reduce){ *{ transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; } }
+</style>
+</head>
+<body>
+<main>
+
+  <section class="hero">
+    <p class="eyebrow">Dynamic Programming · Recursion, then Memoization · O(2ⁿ) to O(n)</p>
+    <h1>Climbing Stairs</h1>
+    <p class="lede">Count the distinct ways to reach the top of n stairs when each move is 1 or 2 steps. It is the usual first dynamic programming problem because the recursion is short and the waste in it is easy to see.</p>
+
+    <div class="hero-example">
+      <div class="cap">n = 3 has three ways</div>
+      <div class="ways" id="heroWays"></div>
+      <div class="legend"><span><i></i>1-step hop</span><span><i class="two"></i>2-step hop</span></div>
+    </div>
+
+    <ul class="rules">
+      <li><strong>Each move is 1 or 2 steps.</strong> Nothing else is allowed.</li>
+      <li><strong>Order matters.</strong> 1 + 2 and 2 + 1 are two different ways.</li>
+      <li><strong>You must land exactly on step n.</strong> Stepping past the top does not count.</li>
+      <li><strong>1 &le; n &le; 45.</strong> The largest answer is 1,836,311,903, so plain recursion without a cache will not finish.</li>
+    </ul>
+  </section>
+
+  <section>
+    <p class="eyebrow">The key question</p>
+    <h2>Look at the last move</h2>
+    <p class="prose-narrow">Every way to reach step n ends with one final move, and there are only two kinds: a 1-step from step n&minus;1, or a 2-step from step n&minus;2. Sort the ways by that last move and the problem splits into two smaller copies of itself.</p>
+
+    <div class="groups">
+      <div class="group">
+        <h3>Last move is a 1-step (from step 3)</h3>
+        <p class="count">3 ways = f(3)</p>
+        <div class="ways" id="groupOne"></div>
+      </div>
+      <div class="group two">
+        <h3>Last move is a 2-step (from step 2)</h3>
+        <p class="count">2 ways = f(2)</p>
+        <div class="ways" id="groupTwo"></div>
+      </div>
+    </div>
+    <div class="cap" style="margin-top:0.9rem;">n = 4: 3 + 2 = 5 ways</div>
+
+    <div class="formula">
+      <div class="main">f(n) = f(n&minus;1) + f(n&minus;2)</div>
+      <div class="base">f(0) = 1 &nbsp;(landed exactly on the top: one way)<br>f(n &lt; 0) = 0 &nbsp;(overshot: no way)</div>
+    </div>
+
+    <div class="aside">
+      <p><strong>Common bug: counting moves instead of ways.</strong> Passing a running <code>count</code> down and returning it at <code>n == 0</code> returns how many moves that path took. For n = 2 the path 1 + 1 returns 2 and the path 2 returns 1, so the total is 3, not 2. Return <code>1</code> at <code>n == 0</code>: each way that lands exactly on the top counts once, however many moves it used.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Naive recursion</p>
+    <h2>The recurrence, written directly</h2>
+    <p class="prose-narrow">The formula translates almost word for word into code. It is correct. The trouble is how many calls it makes.</p>
+
+    <div class="track-label" style="margin-top:1.6rem;">Ruby, the naive version</div>
+    <div class="code-panel" id="staticNaive"></div>
+
+    <div class="aside">
+      <p><strong>Mnemonic: "Last move: one step or two."</strong> Add the ways from one step below to the ways from two steps below. Stop when you land on the top (1) or overshoot (0).</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card slow">
+        <h3>Naive recursion</h3>
+        <div class="stat-value">O(2ⁿ) time · O(n) space</div>
+        <p>Every call makes two more calls. Space is only the depth of the call stack.</p>
+      </div>
+      <div class="stat-card optimal">
+        <h3>With a cache</h3>
+        <div class="stat-value">O(n) time · O(n) space</div>
+        <p>Each value of n is worked out once, then looked up.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="viz-section">
+    <p class="eyebrow">Watch it run</p>
+    <h2>The call tree, one call at a time</h2>
+    <p class="prose-narrow">Pick n and step through. Each box is one call to <code>climb_stairs</code>. The label on each edge is the number of steps taken on that move (1 goes left, 2 goes right). Boxes fade in as they are called and show their result when they return. In naive mode, watch the tally: the same values of n get solved again and again.</p>
+
+    <div class="builder-block">
+      <div>
+        <div class="builder-label">Stairs (n)</div>
+        <div class="btn-row" id="nButtons"></div>
+      </div>
+      <div>
+        <div class="builder-label">Mode</div>
+        <div class="btn-row">
+          <button data-mode="naive" aria-pressed="true">Naive</button>
+          <button data-mode="memo" aria-pressed="false">Memoized</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <div class="viz-head">
+        <span class="phase-chip" id="phaseChip">Ready</span>
+        <span class="step-counter" id="stepCounter">Step 0 / 0</span>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label">Code, the line that just ran</div>
+        <div class="code-panel" id="codePanel"></div>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label">Call stack (bottom to top)</div>
+        <div class="stack-row" id="stackRow"></div>
+      </div>
+
+      <div class="track-block">
+        <div class="track-label">Call tree</div>
+        <div class="tree-wrap" id="treeWrap"><div id="treeMount"></div></div>
+      </div>
+
+      <div class="viz-two">
+        <div>
+          <div class="track-label">Calls per value of n (grey = final total)</div>
+          <div class="tally" id="tally"></div>
+          <div class="mini-stats">
+            <div class="mini"><div class="lab">Calls so far</div><div class="num" id="statCalls">0</div><div class="sub" id="statCallsSub"></div></div>
+            <div class="mini"><div class="lab">Repeat calls</div><div class="num" id="statRepeat">0</div><div class="sub" id="statRepeatSub"></div></div>
+          </div>
+        </div>
+        <div>
+          <div class="track-label">Memo (cache)</div>
+          <div class="memo-grid" id="memoGrid"></div>
+          <p class="memo-note" id="memoNote"></p>
+        </div>
+      </div>
+
+      <div class="narration" id="narration" aria-live="polite"><span class="prompt">›</span><span id="narrationText">Press "Next" or "Play" to begin.</span></div>
+
+      <div class="controls">
+        <div class="btn-row">
+          <button id="btnReset" class="ghost">⟲ Reset</button>
+          <button id="btnPrev">◀ Prev</button>
+          <button id="btnNext">Next ▶</button>
+          <button id="btnPlay" class="primary">▶ Play</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Why it matters</p>
+    <h2>The call count doubles as n grows</h2>
+    <p class="prose-narrow">A call to f(n) makes calls to f(n&minus;1) and f(n&minus;2), so the total grows the way the answer itself does. With a cache, each n from 1 to the target is computed once and every other call is a quick lookup: about 2n + 1 calls in all.</p>
+
+    <table class="calls">
+      <thead><tr><th>n</th><th>Naive calls</th><th>Memoized calls</th></tr></thead>
+      <tbody id="callsBody"></tbody>
+    </table>
+
+    <div class="aside">
+      <p><strong>Where the cache goes.</strong> Check it after the two base cases and before the recursive calls. Save the result on the way out, right where the value is computed.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Recap</p>
+    <h2>Complexity</h2>
+    <div class="stats">
+      <div class="stat-card slow">
+        <h3>Naive</h3>
+        <div class="stat-value">O(2ⁿ) time · O(n) space</div>
+        <p>Overlapping subproblems are recomputed on every visit.</p>
+      </div>
+      <div class="stat-card optimal">
+        <h3>Memoized (top-down)</h3>
+        <div class="stat-value">O(n) time · O(n) space</div>
+        <p>n cached values plus a recursion stack up to n deep.</p>
+      </div>
+    </div>
+    <div class="aside">
+      <p><strong>Next step after memoization:</strong> f(n) only reads f(n&minus;1) and f(n&minus;2), so a bottom-up loop can keep just two variables and drop the space to O(1).</p>
+    </div>
+  </section>
+
+  <footer>
+    Based on <a href="https://leetcode.com/problems/climbing-stairs/" target="_blank" rel="noopener">LeetCode 70, Climbing Stairs</a>.
+  </footer>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  const REDUCE_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SVGNS = 'http://www.w3.org/2000/svg';
+
+  const MAX_N = 6;
+  const NODE_W = 48, NODE_H = 40, SLOT_W = 56, SLOT_H = 64, PAD = 14;
+  const speed = 650;
+
+  let n = 4;
+  let memoized = false;
+  let model = null;
+  let stepIndex = -1;
+  let playing = false;
+  let playTimer = null;
+
+  const $ = (id) => document.getElementById(id);
+
+  function el(tag, cls, text){
+    const d = document.createElement(tag);
+    if (cls) d.className = cls;
+    if (text !== undefined) d.textContent = text;
+    return d;
+  }
+  function svgEl(tag, attrs){
+    const e = document.createElementNS(SVGNS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  const label = (k) => `f(${k})`;
+
+  /* ---------- pure logic: enumerate ways, build the call tree ---------- */
+
+  function waysFor(k){
+    if (k === 0) return [[]];
+    const out = [];
+    if (k >= 1) waysFor(k - 1).forEach(w => out.push([1].concat(w)));
+    if (k >= 2) waysFor(k - 2).forEach(w => out.push([2].concat(w)));
+    return out;
+  }
+
+  function naiveCalls(k){
+    const c = { '-1': 1, '0': 1 };
+    for (let i = 1; i <= k; i++) c[i] = 1 + c[i - 1] + c[i - 2];
+    return c[k];
+  }
+  const memoCalls = (k) => 2 * k + 1;
+
+  function analyze(N, useMemo){
+    const nodes = [];
+    const events = [];
+    const memo = {};
+
+    function call(k){
+      const node = { id: nodes.length, n: k, kind: '', value: 0, children: [] };
+      nodes.push(node);
+      if (k < 0){
+        node.kind = 'neg'; node.value = 0;
+        events.push({ type: 'leaf', node });
+        return node;
+      }
+      if (k === 0){
+        node.kind = 'base'; node.value = 1;
+        events.push({ type: 'leaf', node });
+        return node;
+      }
+      if (useMemo && memo[k] !== undefined){
+        node.kind = 'hit'; node.value = memo[k];
+        events.push({ type: 'leaf', node });
+        return node;
+      }
+      node.kind = 'compute';
+      events.push({ type: 'enter', node });
+      const a = call(k - 1);
+      const b = call(k - 2);
+      node.children = [a, b];
+      node.value = a.value + b.value;
+      if (useMemo) memo[k] = node.value;
+      events.push({ type: 'return', node });
+      return node;
+    }
+
+    const root = call(N);
+
+    let leafCount = 0, maxDepth = 0;
+    (function place(node, depth){
+      node.depth = depth;
+      if (depth > maxDepth) maxDepth = depth;
+      if (!node.children.length){ node.x = leafCount++; return; }
+      node.children.forEach(c => place(c, depth + 1));
+      node.x = (node.children[0].x + node.children[1].x) / 2;
+    })(root, 0);
+
+    const totals = {};
+    nodes.forEach(nd => { totals[nd.n] = (totals[nd.n] || 0) + 1; });
+
+    return { N, memoized: useMemo, root, nodes, events, leafCount, maxDepth, totals };
+  }
+
+  // Everything the UI needs to know after `upto` events have played.
+  function replay(m, upto){
+    const seen = new Set(), active = new Set(), done = new Set(), called = new Set();
+    const memo = {}, counts = {};
+    const stack = [];
+    let calls = 0, repeats = 0, current = null, freshMemo = null, hitN = null;
+
+    for (let i = 0; i <= upto; i++){
+      const ev = m.events[i];
+      const nd = ev.node;
+      if (ev.type === 'enter' || ev.type === 'leaf'){
+        calls++;
+        counts[nd.n] = (counts[nd.n] || 0) + 1;
+        seen.add(nd.id);
+        if (nd.n >= 1){
+          if (called.has(nd.n)) repeats++;
+          called.add(nd.n);
+        }
+      }
+      if (ev.type === 'enter'){
+        active.add(nd.id);
+        stack.push(nd);
+      } else if (ev.type === 'return'){
+        active.delete(nd.id);
+        done.add(nd.id);
+        stack.pop();
+        if (m.memoized){ memo[nd.n] = nd.value; }
+      } else {
+        done.add(nd.id);
+      }
+      if (i === upto){
+        current = ev;
+        if (ev.type === 'return' && m.memoized) freshMemo = nd.n;
+        if (ev.type === 'leaf' && nd.kind === 'hit') hitN = nd.n;
+      }
+    }
+
+    const shown = !current ? [] : (current.type === 'enter' ? stack.slice() : stack.concat(current.node));
+    return { seen, active, done, memo, counts, calls, repeats, current, freshMemo, hitN, shown };
+  }
+
+  function narrate(m, idx){
+    if (idx < 0) return `Press "Next" or "Play" to begin. The first call is ${label(m.N)}.`;
+    const ev = m.events[idx];
+    const nd = ev.node;
+    const k = nd.n;
+    if (ev.type === 'leaf'){
+      if (nd.kind === 'neg') return `${label(k)}: that move went past the top (n < 0). Not a valid way, return 0.`;
+      if (nd.kind === 'base') return `${label(k)}: landed exactly on the top. That is one complete way, return 1.`;
+      return `${label(k)} is already in the memo (memo[${k}] = ${nd.value}). Return it without exploring that subtree again.`;
+    }
+    if (ev.type === 'enter'){
+      return m.memoized
+        ? `${label(k)} is not in the memo yet, so it needs ${label(k - 1)} + ${label(k - 2)}. Call ${label(k - 1)} first (a 1-step).`
+        : `${label(k)} needs ${label(k - 1)} + ${label(k - 2)}. Call ${label(k - 1)} first (a 1-step).`;
+    }
+    const a = nd.children[0].value, b = nd.children[1].value;
+    let text = `Both calls are back: ${label(k)} = ${a} + ${b} = ${nd.value}. Return ${nd.value}.`;
+    if (m.memoized) text += ` Save memo[${k}] = ${nd.value}.`;
+    if (idx === m.events.length - 1){
+      text = `Done. ${label(m.N)} = ${nd.value}: there are ${nd.value} distinct ways to climb ${m.N} stair${m.N === 1 ? '' : 's'}, using ${m.nodes.length} calls.`;
+    }
+    return text;
+  }
+
+  /* ---------- code panel ---------- */
+
+  const CODE = {
+    naive: {
+      lines: [
+        'def climb_stairs(n)',
+        '  return 0 if n < 0',
+        '  return 1 if n == 0',
+        '',
+        '  climb_stairs(n - 1) + climb_stairs(n - 2)',
+        'end',
+      ],
+      idx: { neg: 1, base: 2, compute: 4 },
+    },
+    memo: {
+      lines: [
+        'def climb_stairs(n, memo = {})',
+        '  return 0 if n < 0',
+        '  return 1 if n == 0',
+        '  return memo[n] if memo.key?(n)',
+        '',
+        '  memo[n] = climb_stairs(n - 1, memo) + climb_stairs(n - 2, memo)',
+        'end',
+      ],
+      idx: { neg: 1, base: 2, hit: 3, compute: 5 },
+    },
+  };
+
+  function activeLines(ev){
+    if (!ev) return {};
+    const c = memoized ? CODE.memo : CODE.naive;
+    const nd = ev.node;
+    const out = {};
+    if (nd.kind === 'neg') out[c.idx.neg] = 'active-return';
+    else if (nd.kind === 'base') out[c.idx.base] = 'active-loop';
+    else if (nd.kind === 'hit') out[c.idx.hit] = 'active-remember';
+    else out[c.idx.compute] = ev.type === 'return' ? 'active-remember' : 'active-loop';
+    return out;
+  }
+
+  function fillCode(panel, lines, active){
+    panel.innerHTML = '';
+    lines.forEach((text, i) => {
+      panel.appendChild(el('div', 'code-line' + (active[i] ? ' ' + active[i] : ''), text || ' '));
+    });
+  }
+
+  /* ---------- staircase drawings ---------- */
+
+  function stairSVG(way, total){
+    const DX = 26, DY = 14, padX = 4, padTop = 24;
+    const base = padTop + total * DY;
+    const w = padX * 2 + (total + 1) * DX;
+    const h = base + 8;
+    const svg = svgEl('svg', { width: w, height: h, viewBox: `0 0 ${w} ${h}`, role: 'img', 'aria-label': 'Way to climb: ' + way.join(' + ') });
+    for (let i = 0; i <= total; i++){
+      svg.appendChild(svgEl('rect', { x: padX + i * DX, y: base - i * DY, width: DX, height: i * DY + 6, class: 'stair' }));
+    }
+    const pos = (i) => ({ x: padX + i * DX + DX / 2, y: base - i * DY - 6 });
+    let at = 0;
+    const start = pos(0);
+    svg.appendChild(svgEl('circle', { cx: start.x, cy: start.y, r: 3.5, class: 'land start' }));
+    way.forEach(hop => {
+      const a = pos(at), b = pos(at + hop);
+      const cy = Math.min(a.y, b.y) - 12;
+      svg.appendChild(svgEl('path', { d: `M ${a.x} ${a.y} Q ${(a.x + b.x) / 2} ${cy} ${b.x} ${b.y}`, class: 'hop h' + hop }));
+      svg.appendChild(svgEl('circle', { cx: b.x, cy: b.y, r: 3.5, class: 'land' }));
+      at += hop;
+    });
+    return svg;
+  }
+
+  function wayCard(way, total){
+    const card = el('div', 'way');
+    card.appendChild(stairSVG(way, total));
+    card.appendChild(el('div', 'way-label', way.join(' + ')));
+    return card;
+  }
+
+  function renderStaticWays(){
+    waysFor(3).forEach(w => $('heroWays').appendChild(wayCard(w, 3)));
+    waysFor(4).forEach(w => {
+      const last = w[w.length - 1];
+      $(last === 1 ? 'groupOne' : 'groupTwo').appendChild(wayCard(w, 4));
+    });
+    fillCode($('staticNaive'), CODE.naive.lines, {});
+
+    const body = $('callsBody');
+    [5, 10, 20, 30, 45].forEach(k => {
+      const tr = el('tr');
+      tr.appendChild(el('td', '', String(k)));
+      tr.appendChild(el('td', 'naive', naiveCalls(k).toLocaleString('en-US')));
+      tr.appendChild(el('td', 'memo', memoCalls(k).toLocaleString('en-US')));
+      body.appendChild(tr);
+    });
+  }
+
+  /* ---------- call tree rendering ---------- */
+
+  let nodeEls = {};
+  let edgeEls = {};
+
+  function buildTreeDOM(){
+    const m = model;
+    const mount = $('treeMount');
+    mount.innerHTML = '';
+    nodeEls = {}; edgeEls = {};
+
+    const width = PAD * 2 + (m.leafCount - 1) * SLOT_W + NODE_W;
+    const height = PAD * 2 + m.maxDepth * SLOT_H + NODE_H;
+    const svg = svgEl('svg', { class: 'tree-svg', width, height, viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': `Call tree for climb_stairs(${m.N})` });
+    const edges = svgEl('g', {});
+    const nodesG = svgEl('g', {});
+    svg.appendChild(edges);
+    svg.appendChild(nodesG);
+
+    const cx = (nd) => PAD + NODE_W / 2 + nd.x * SLOT_W;
+    const cy = (nd) => PAD + NODE_H / 2 + nd.depth * SLOT_H;
+    m.nodes.forEach(nd => { nd.px = cx(nd); nd.py = cy(nd); });
+
+    m.nodes.forEach(nd => {
+      nd.children.forEach((c, i) => {
+        const line = svgEl('line', { x1: nd.px, y1: nd.py + NODE_H / 2, x2: c.px, y2: c.py - NODE_H / 2, class: 'edge' });
+        const lbl = svgEl('text', { x: (nd.px + c.px) / 2 + (i === 0 ? -8 : 8), y: (nd.py + NODE_H / 2 + c.py - NODE_H / 2) / 2 + 3, class: 'elbl' });
+        lbl.textContent = String(i + 1);
+        edges.appendChild(line);
+        edges.appendChild(lbl);
+        edgeEls[c.id] = { line, lbl };
+      });
+    });
+
+    m.nodes.forEach(nd => {
+      const g = svgEl('g', { class: 'node ' + nd.kind });
+      g.appendChild(svgEl('rect', { x: nd.px - NODE_W / 2, y: nd.py - NODE_H / 2, width: NODE_W, height: NODE_H, rx: 7 }));
+      const l = svgEl('text', { x: nd.px, y: nd.py - 3, class: 'lbl' });
+      l.textContent = label(nd.n);
+      const v = svgEl('text', { x: nd.px, y: nd.py + 12, class: 'val' });
+      g.appendChild(l);
+      g.appendChild(v);
+      nodesG.appendChild(g);
+      nodeEls[nd.id] = { g, val: v };
+    });
+
+    mount.appendChild(svg);
+  }
+
+  function renderTree(st){
+    model.nodes.forEach(nd => {
+      const ref = nodeEls[nd.id];
+      const isSeen = st.seen.has(nd.id);
+      const isActive = st.active.has(nd.id);
+      const isDone = st.done.has(nd.id);
+      const isCurrent = st.current && st.current.node.id === nd.id;
+      ref.g.setAttribute('class', 'node ' + nd.kind + (isSeen ? ' seen' : '') + (isActive ? ' active' : '') + (isCurrent ? ' current' : ''));
+      ref.val.textContent = isDone ? '=' + nd.value : (isActive ? '…' : '');
+      const e = edgeEls[nd.id];
+      if (e){
+        e.line.setAttribute('class', 'edge' + (isSeen ? ' seen' : ''));
+        e.lbl.setAttribute('class', 'elbl' + (isSeen ? ' seen' : ''));
+      }
+    });
+    scrollToCurrent(st);
+  }
+
+  function scrollToCurrent(st){
+    if (!st.current) return;
+    const wrap = $('treeWrap');
+    const nd = st.current.node;
+    if (typeof wrap.scrollTo !== 'function') return;
+    const left = wrap.scrollLeft, right = left + wrap.clientWidth;
+    if (nd.px < left + NODE_W || nd.px > right - NODE_W){
+      wrap.scrollTo({ left: Math.max(0, nd.px - wrap.clientWidth / 2), behavior: REDUCE_MOTION ? 'auto' : 'smooth' });
+    }
+  }
+
+  /* ---------- side panels ---------- */
+
+  function buildTally(){
+    const m = model;
+    const mount = $('tally');
+    mount.innerHTML = '';
+    const maxTotal = Math.max.apply(null, Object.keys(m.totals).map(k => m.totals[k]));
+    m.tallyRows = [];
+    for (let k = m.N; k >= -1; k--){
+      const total = m.totals[k] || 0;
+      const row = el('div', 'tally-row');
+      const track = el('div', 'tally-track');
+      const ghost = el('div', 'tally-ghost');
+      ghost.style.width = (total / maxTotal * 100) + '%';
+      const live = el('div', 'tally-live');
+      live.style.width = '0%';
+      track.appendChild(ghost);
+      track.appendChild(live);
+      const count = el('span', 'tally-count', '0');
+      row.appendChild(el('span', '', label(k)));
+      row.appendChild(track);
+      row.appendChild(count);
+      mount.appendChild(row);
+      m.tallyRows.push({ k, row, live, count, maxTotal });
+    }
+  }
+
+  function renderTally(st){
+    model.tallyRows.forEach(r => {
+      const c = st.counts[r.k] || 0;
+      r.live.style.width = (c / r.maxTotal * 100) + '%';
+      r.count.textContent = String(c);
+      r.row.className = 'tally-row' + (c > 1 && r.k >= 1 ? ' repeat' : '');
+    });
+  }
+
+  function buildMemo(){
+    const grid = $('memoGrid');
+    grid.innerHTML = '';
+    model.memoCells = {};
+    if (!model.memoized){
+      $('memoNote').textContent = 'Naive mode has no cache. Every call solves its own subtree from scratch.';
+      return;
+    }
+    $('memoNote').textContent = '';
+    for (let k = 1; k <= model.N; k++){
+      const cell = el('div', 'memo-cell');
+      const kk = el('span', 'k', `memo[${k}]`);
+      const vv = el('span', 'v', '-');
+      cell.appendChild(kk);
+      cell.appendChild(vv);
+      grid.appendChild(cell);
+      model.memoCells[k] = { cell, vv };
+    }
+  }
+
+  function renderMemo(st){
+    if (!model.memoized) return;
+    for (let k = 1; k <= model.N; k++){
+      const ref = model.memoCells[k];
+      const has = st.memo[k] !== undefined;
+      ref.vv.textContent = has ? String(st.memo[k]) : '-';
+      ref.cell.className = 'memo-cell' + (has ? ' filled' : '') + ((st.freshMemo === k || st.hitN === k) ? ' fresh' : '');
+    }
+  }
+
+  function renderStack(st){
+    const row = $('stackRow');
+    row.innerHTML = '';
+    if (!st.shown.length){
+      row.appendChild(el('span', 'stack-empty', 'empty'));
+      return;
+    }
+    st.shown.forEach((nd, i) => {
+      if (i > 0) row.appendChild(el('span', 'stack-arrow', '›'));
+      const isTop = i === st.shown.length - 1;
+      row.appendChild(el('span', 'frame' + (isTop ? ' top' : '') + (isTop && nd.kind === 'neg' ? ' neg' : '') + (isTop && nd.kind === 'hit' ? ' hit' : ''), label(nd.n)));
+    });
+  }
+
+  function renderStats(st){
+    const finalRepeats = replay(model, model.events.length - 1).repeats;
+    $('statCalls').textContent = `${st.calls} / ${model.nodes.length}`;
+    $('statCallsSub').textContent = memoized
+      ? `naive would make ${naiveCalls(model.N)} calls for n = ${model.N}`
+      : `memoized would make ${memoCalls(model.N)} calls for n = ${model.N}`;
+    $('statRepeat').textContent = `${st.repeats} / ${finalRepeats}`;
+    $('statRepeatSub').textContent = memoized
+      ? 'calls to a value already solved; each is a quick cache hit'
+      : 'calls to a value already solved; each one re-runs its whole subtree';
+  }
+
+  function renderPhase(st){
+    const chip = $('phaseChip');
+    const total = model.events.length;
+    $('stepCounter').textContent = `Step ${stepIndex + 1} / ${total}`;
+    if (stepIndex < 0){ chip.textContent = 'Ready'; chip.className = 'phase-chip'; return; }
+    const ev = st.current;
+    if (stepIndex === total - 1){ chip.textContent = 'Done'; chip.className = 'phase-chip found'; return; }
+    if (ev.type === 'leaf'){
+      if (ev.node.kind === 'neg'){ chip.textContent = 'Overshot'; chip.className = 'phase-chip nomatch'; }
+      else if (ev.node.kind === 'base'){ chip.textContent = 'Reached the top'; chip.className = 'phase-chip found'; }
+      else { chip.textContent = 'Cache hit'; chip.className = 'phase-chip cache'; }
+    } else if (ev.type === 'enter'){
+      chip.textContent = 'Calling'; chip.className = 'phase-chip scan';
+    } else {
+      chip.textContent = 'Returning'; chip.className = 'phase-chip scan';
+    }
+  }
+
+  function renderControls(){
+    const atStart = stepIndex < 0;
+    const atEnd = stepIndex >= model.events.length - 1;
+    $('btnPrev').disabled = atStart;
+    $('btnNext').disabled = atEnd;
+    $('btnPlay').disabled = atEnd;
+    $('btnPlay').textContent = playing ? '⏸ Pause' : '▶ Play';
+  }
+
+  function renderViz(){
+    const c = memoized ? CODE.memo : CODE.naive;
+    const st = stepIndex < 0
+      ? { seen: new Set(), active: new Set(), done: new Set(), memo: {}, counts: {}, calls: 0, repeats: 0, current: null, freshMemo: null, hitN: null, shown: [] }
+      : replay(model, stepIndex);
+    fillCode($('codePanel'), c.lines, st.current ? activeLines(st.current) : {});
+    renderStack(st);
+    renderTree(st);
+    renderTally(st);
+    renderMemo(st);
+    renderStats(st);
+    renderPhase(st);
+    $('narrationText').textContent = narrate(model, stepIndex);
+    renderControls();
+  }
+
+  /* ---------- controls ---------- */
+
+  function rebuild(){
+    stopPlaying();
+    stepIndex = -1;
+    model = analyze(n, memoized);
+    buildTreeDOM();
+    buildTally();
+    buildMemo();
+    $('treeWrap').scrollLeft = 0;
+    renderViz();
+  }
+
+  function goNext(){
+    if (stepIndex >= model.events.length - 1) return stopPlaying();
+    stepIndex++;
+    renderViz();
+    if (stepIndex >= model.events.length - 1) stopPlaying();
+  }
+  function goPrev(){
+    if (stepIndex < 0) return;
+    stepIndex--;
+    renderViz();
+  }
+  function doReset(){ stopPlaying(); stepIndex = -1; renderViz(); }
+  function startPlaying(){
+    if (stepIndex >= model.events.length - 1) return;
+    playing = true;
+    renderControls();
+    playTimer = setInterval(goNext, speed);
+  }
+  function stopPlaying(){
+    playing = false;
+    if (playTimer) clearInterval(playTimer);
+    playTimer = null;
+    if (model) renderControls();
+  }
+
+  function syncPressed(){
+    document.querySelectorAll('[data-n]').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.n) === n)));
+    document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.mode === 'memo') === memoized)));
+  }
+
+  function buildNButtons(){
+    const row = $('nButtons');
+    for (let k = 1; k <= MAX_N; k++){
+      const b = el('button', '', String(k));
+      b.dataset.n = String(k);
+      b.setAttribute('aria-pressed', String(k === n));
+      row.appendChild(b);
+    }
+  }
+
+  function wireEvents(){
+    document.querySelectorAll('[data-n]').forEach(b => {
+      b.addEventListener('click', () => { n = Number(b.dataset.n); syncPressed(); rebuild(); });
+    });
+    document.querySelectorAll('[data-mode]').forEach(b => {
+      b.addEventListener('click', () => { memoized = b.dataset.mode === 'memo'; syncPressed(); rebuild(); });
+    });
+    $('btnNext').addEventListener('click', () => { stopPlaying(); goNext(); });
+    $('btnPrev').addEventListener('click', () => { stopPlaying(); goPrev(); });
+    $('btnReset').addEventListener('click', doReset);
+    $('btnPlay').addEventListener('click', () => { playing ? stopPlaying() : startPlaying(); });
+  }
+
+  renderStaticWays();
+  buildNButtons();
+  wireEvents();
+  rebuild();
+})();
+</script>
+</body>
+</html>
