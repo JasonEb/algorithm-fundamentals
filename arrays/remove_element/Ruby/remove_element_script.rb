@@ -11,28 +11,25 @@ The first k elements of nums must contain the elements not equal to val, in
 any order. Elements after index k don't matter — the judge only checks the
 first k.
 =end
-# 2
-# 3 2 2 3
-#       r
-#   w
-# 3 3
-# 2
-# 0 1 2 2 3 0 4 2 5 
-#                 r
-#             w
-# 0 1 3 0 4 5
 
-# 0 1 2 3 4 5 6 7
-# 0 1 2 2 3 0 4 2
-#           r
-#       w
-# 0 1 3 
+def remove_element(nums, val)
+  # scan the loop
+  # keep r,w pointers
+  # while scanning, only write when it's not the val
 
-# 3 2 2 3
-#       r
-#     w
-# 2 2
+  r, w = 0,0 
 
+  while r < nums.length
+    if (nums[r] != val)
+      nums[w] = nums[r]
+      w += 1
+    end
+
+    r += 1
+  end
+
+  w
+end
 # increment wdx after writing?
 # return w - 1?
   # use two pointers 
