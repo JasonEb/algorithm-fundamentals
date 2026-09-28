@@ -88,7 +88,32 @@ class V3
     end
 end
 
+class V4
+    class << self
+        def sum_of_multiples(limit)
+            sum = 0
+            sum += find_sum_of_ns(limit, 3)
+            sum += find_sum_of_ns(limit, 5)
+            sum -= find_sum_of_ns(limit, 15)
+            sum
+        end
+
+        def find_sum_of_ns(limit, n)
+            multiple = 1 
+            sum = 0
+
+            while ((n * multiple) < limit)
+                sum += n * multiple
+                multiple += 1
+            end
+
+            sum
+        end
+    end
+end
+
 p V2.sum_of_multiples(100)
 p V3.sum_of_multiples(100)
+p V4.sum_of_multiples(100)
 # p V3.find_sum_of_3s(10) # 3 + 6 + 9 = 18
 # p V3.find_sum_of_5s(10) # 5
