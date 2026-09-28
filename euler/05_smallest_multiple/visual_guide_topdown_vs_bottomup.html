@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Top-Down vs Bottom-Up</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#f6f6f4;
+    --surface:#ffffff;
+    --surface-2:#eeede9;
+    --text:#211f1a;
+    --muted:#6f6b62;
+    --border:#e0ddd5;
+    --top:#5b4fd6;
+    --top-soft:#5b4fd61a;
+    --bottom:#c96a1a;
+    --bottom-soft:#c96a1a1a;
+    --flag:#c9491a;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#16151a;
+      --surface:#1e1d23;
+      --surface-2:#26242c;
+      --text:#eeede9;
+      --muted:#9c968c;
+      --border:#38363f;
+      --top:#9186ff;
+      --top-soft:#9186ff26;
+      --bottom:#f0954c;
+      --bottom-soft:#f0954c26;
+      --flag:#ff8a5c;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#16151a;
+    --surface:#1e1d23;
+    --surface-2:#26242c;
+    --text:#eeede9;
+    --muted:#9c968c;
+    --border:#38363f;
+    --top:#9186ff;
+    --top-soft:#9186ff26;
+    --bottom:#f0954c;
+    --bottom-soft:#f0954c26;
+    --flag:#ff8a5c;
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"IBM Plex Sans", system-ui, sans-serif;
+    padding-inline:20px;
+    padding-block:48px;
+    max-width:820px;
+    margin-inline:auto;
+  }
+  h1,h2{
+    font-family:"Manrope", system-ui, sans-serif;
+    letter-spacing:-0.01em;
+    text-wrap:balance;
+  }
+  h1{font-size:1.75rem; margin:0 0 8px;}
+  .eyebrow{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.72rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 10px;
+  }
+  .lede{color:var(--muted); font-size:1rem; max-width:64ch; margin:0 0 20px;}
+  .legend{display:flex; gap:20px; flex-wrap:wrap; margin:0 0 44px; font-size:0.85rem; font-family:"IBM Plex Mono", monospace;}
+  .legend span{display:inline-flex; align-items:center; gap:7px;}
+  .swatch{width:12px; height:12px; border-radius:3px; display:inline-block;}
+  .sw-top{background:var(--top);}
+  .sw-bottom{background:var(--bottom);}
+  .sw-flag{background:var(--flag);}
+
+  h2{font-size:1.15rem; margin:0 0 4px;}
+  .section{margin-bottom:56px;}
+  .section-note{color:var(--muted); font-size:0.92rem; margin:0 0 20px; max-width:62ch;}
+
+  figure{margin:0;}
+  figcaption{color:var(--muted); font-size:0.85rem; margin-top:14px; max-width:60ch;}
+  svg{width:100%; height:auto; display:block;}
+  svg text{font-family:"IBM Plex Mono", monospace; fill:currentColor;}
+
+  .code-pair{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:640px){.code-pair{grid-template-columns:1fr;}}
+  .code-card{border-radius:12px; border:1px solid var(--border); overflow:hidden; background:var(--surface);}
+  .code-card .tag{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:10px 16px;
+    font-weight:600;
+  }
+  .code-card.top .tag{background:var(--top-soft); color:var(--top);}
+  .code-card.bottom .tag{background:var(--bottom-soft); color:var(--bottom);}
+  .code-card pre{margin:0; padding:16px; font-family:"IBM Plex Mono", monospace; font-size:0.82rem; line-height:1.65; overflow-x:auto;}
+
+  table{width:100%; border-collapse:collapse; font-size:0.87rem; background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden;}
+  th,td{padding:10px 14px; text-align:left; border-bottom:1px solid var(--border); vertical-align:top;}
+  th{font-family:"IBM Plex Mono", monospace; font-size:0.7rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); background:var(--surface-2);}
+  tr:last-child td{border-bottom:none;}
+  td.top-cell{border-left:3px solid var(--top);}
+  td.bottom-cell{border-left:3px solid var(--bottom);}
+
+  code{font-family:"IBM Plex Mono", monospace;}
+  .callout{
+    border:1px solid var(--border);
+    border-left:3px solid var(--flag);
+    border-radius:8px;
+    padding:14px 18px;
+    font-size:0.9rem;
+    color:var(--text);
+    background:var(--surface);
+    max-width:62ch;
+  }
+  .callout strong{color:var(--flag);}
+
+  footer{color:var(--muted); font-size:0.82rem; margin-top:56px; border-top:1px solid var(--border); padding-top:18px;}
+</style>
+</head>
+<body>
+
+<p class="eyebrow">Recursion &middot; dynamic programming</p>
+<h1>Top-down vs bottom-up</h1>
+<p class="lede">Two ways to build the same answer from smaller subproblems — one starts at the full problem and recurses down, the other starts at the base case and loops up. The right choice depends on the shape of the subproblems, not personal taste.</p>
+<div class="legend">
+  <span><i class="swatch sw-top"></i>top-down (recursive)</span>
+  <span><i class="swatch sw-bottom"></i>bottom-up (iterative)</span>
+  <span><i class="swatch sw-flag"></i>where it costs you</span>
+</div>
+
+<div class="section">
+  <h2>Same answer, opposite shape</h2>
+  <p class="section-note">Top-down makes the full-size call first and has to wait on the stack; bottom-up never calls the full-size problem at all — it just loops until it gets there.</p>
+  <figure>
+    <svg viewBox="0 0 680 300" role="img" aria-label="Top-down calls descend from n to the base case and then unwind back up combining results, forming a there-and-back shape. Bottom-up starts at the base case and loops straight forward to n with no return path.">
+      <defs>
+        <marker id="tdArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <text x="20" y="24" font-size="12" font-weight="700" fill="var(--top)">TOP-DOWN</text>
+      <rect x="50" y="40" width="100" height="36" rx="8" fill="none" stroke="var(--top)" stroke-width="1.5"/>
+      <text x="100" y="63" text-anchor="middle" font-size="12">f(n)</text>
+      <line x1="150" y1="58" x2="200" y2="58" stroke="var(--top)" marker-end="url(#tdArrow)"/>
+      <rect x="200" y="40" width="100" height="36" rx="8" fill="none" stroke="var(--top)" stroke-width="1.5"/>
+      <text x="250" y="63" text-anchor="middle" font-size="12">f(n-1)</text>
+      <line x1="300" y1="58" x2="350" y2="58" stroke="var(--top)" marker-end="url(#tdArrow)"/>
+      <rect x="350" y="40" width="80" height="36" rx="8" fill="none" stroke="var(--top)" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <text x="390" y="63" text-anchor="middle" font-size="12">...</text>
+      <line x1="430" y1="58" x2="480" y2="58" stroke="var(--top)" marker-end="url(#tdArrow)"/>
+      <rect x="480" y="40" width="110" height="36" rx="8" fill="var(--top-soft)" stroke="var(--top)" stroke-width="1.5"/>
+      <text x="535" y="63" text-anchor="middle" font-size="12" font-weight="600">base case</text>
+
+      <line x1="535" y1="76" x2="535" y2="120" stroke="var(--top)" stroke-dasharray="2 3"/>
+      <text x="548" y="102" font-size="10" opacity="0.7">unwind starts</text>
+
+      <line x1="535" y1="130" x2="535" y2="130" stroke="var(--top)"/>
+      <rect x="480" y="130" width="110" height="36" rx="8" fill="none" stroke="var(--top)" stroke-width="1.5"/>
+      <text x="535" y="153" text-anchor="middle" font-size="12">combine</text>
+      <line x1="480" y1="148" x2="430" y2="148" stroke="var(--top)" marker-end="url(#tdArrow)"/>
+      <rect x="350" y="130" width="80" height="36" rx="8" fill="none" stroke="var(--top)" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <text x="390" y="153" text-anchor="middle" font-size="12">...</text>
+      <line x1="350" y1="148" x2="300" y2="148" stroke="var(--top)" marker-end="url(#tdArrow)"/>
+      <rect x="200" y="130" width="100" height="36" rx="8" fill="none" stroke="var(--top)" stroke-width="1.5"/>
+      <text x="250" y="153" text-anchor="middle" font-size="12">combine</text>
+      <line x1="200" y1="148" x2="150" y2="148" stroke="var(--top)" marker-end="url(#tdArrow)"/>
+      <rect x="50" y="130" width="100" height="36" rx="8" fill="var(--top-soft)" stroke="var(--top)" stroke-width="2"/>
+      <text x="100" y="153" text-anchor="middle" font-size="12" font-weight="700">answer(n)</text>
+
+      <text x="20" y="205" font-size="12" font-weight="700" fill="var(--bottom)">BOTTOM-UP</text>
+      <rect x="50" y="220" width="100" height="36" rx="8" fill="var(--bottom-soft)" stroke="var(--bottom)" stroke-width="1.5"/>
+      <text x="100" y="243" text-anchor="middle" font-size="12" font-weight="600">base case</text>
+      <line x1="150" y1="238" x2="200" y2="238" stroke="var(--bottom)" marker-end="url(#tdArrow)"/>
+      <rect x="200" y="220" width="100" height="36" rx="8" fill="none" stroke="var(--bottom)" stroke-width="1.5"/>
+      <text x="250" y="243" text-anchor="middle" font-size="12">step 2</text>
+      <line x1="300" y1="238" x2="350" y2="238" stroke="var(--bottom)" marker-end="url(#tdArrow)"/>
+      <rect x="350" y="220" width="80" height="36" rx="8" fill="none" stroke="var(--bottom)" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <text x="390" y="243" text-anchor="middle" font-size="12">...</text>
+      <line x1="430" y1="238" x2="480" y2="238" stroke="var(--bottom)" marker-end="url(#tdArrow)"/>
+      <rect x="480" y="220" width="110" height="36" rx="8" fill="var(--bottom-soft)" stroke="var(--bottom)" stroke-width="2"/>
+      <text x="535" y="243" text-anchor="middle" font-size="12" font-weight="700">answer(n)</text>
+      <text x="360" y="278" text-anchor="middle" font-size="11" opacity="0.65" fill="var(--bottom)">one direction only — nothing ever waits on anything</text>
+    </svg>
+    <figcaption>Top-down: the call for <code>n</code> exists on the stack before any work happens, and waits for everything below it to resolve first. Bottom-up: there's no call for <code>n</code> at all until every smaller step has already run, in a straight line, with nothing pending.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>The same function, both ways</h2>
+  <p class="section-note">Using <code>lcm</code> as the running example — identical math, opposite control flow.</p>
+  <div class="code-pair">
+    <div class="code-card top">
+      <div class="tag">Top-down</div>
+      <pre>def lcm(n)
+  return 1 if n == 1
+
+  smaller = lcm(n - 1)
+  candidate = smaller
+  while candidate % n != 0
+    candidate += smaller
+  end
+  candidate
+end</pre>
+    </div>
+    <div class="code-card bottom">
+      <div class="tag">Bottom-up</div>
+      <pre>def lcm(n)
+  result = 1
+  (2..n).each do |i|
+    candidate = result
+    while candidate % i != 0
+      candidate += result
+    end
+    result = candidate
+  end
+  result
+end</pre>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>When bottom-up wins: every subproblem is needed anyway</h2>
+  <p class="section-note"><code>lcm(6)</code> genuinely needs <code>lcm(1)</code> through <code>lcm(5)</code> — there's no way to skip any of them. When the dependency chain is a straight line like this, bottom-up computes exactly what top-down would, minus the recursive call overhead and minus any stack-depth risk.</p>
+  <table>
+    <thead><tr><th>Subproblem</th><th>Needed?</th></tr></thead>
+    <tbody>
+      <tr><td class="bottom-cell">lcm(1)</td><td>yes — everything depends on it</td></tr>
+      <tr><td class="bottom-cell">lcm(2)</td><td>yes</td></tr>
+      <tr><td class="bottom-cell">lcm(3)</td><td>yes</td></tr>
+      <tr><td class="bottom-cell">lcm(4)</td><td>yes</td></tr>
+      <tr><td class="bottom-cell">lcm(5)</td><td>yes</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>When top-down wins: only some subproblems are needed</h2>
+  <p class="section-note">Computing <code>base<sup>exp</sup></code> by halving the exponent instead of subtracting 1: <code>power(2, 8)</code> only ever touches 8 &#8594; 4 &#8594; 2 &#8594; 1 &#8594; 0. A bottom-up table built from 0 up to 8 would compute five values (3, 5, 6, 7, and whatever else) that this call never needed.</p>
+  <div class="code-pair">
+    <div class="code-card top">
+      <div class="tag">Top-down (fits naturally)</div>
+      <pre>def power(base, exp)
+  return 1 if exp == 0
+
+  half = power(base, exp / 2)
+  square = half * half
+  exp.odd? ? square * base : square
+end</pre>
+    </div>
+    <div class="code-card bottom">
+      <div class="tag">Bottom-up (wasted work)</div>
+      <pre>def power(base, exp)
+  table = [1]
+  (1..exp).each do |i|
+    table[i] = table[i - 1] * base
+  end
+  table[exp]
+end
+# computes every exponent 0..exp,
+# even ones power(2, 8) never asked for</pre>
+    </div>
+  </div>
+  <figure style="margin-top:20px;">
+    <svg viewBox="0 0 680 140" role="img" aria-label="A number line from 0 to 8. The exponents 0, 1, 2, 4, and 8 are highlighted as visited by top-down recursion. The exponents 3, 5, 6, and 7 are faded, since they are never touched.">
+      <line x1="50" y1="70" x2="630" y2="70" stroke="currentColor" stroke-opacity="0.3"/>
+      <!-- visited: 0,1,2,4,8 -->
+      <g>
+        <circle cx="90" cy="70" r="7" fill="var(--top)"/>
+        <text x="90" y="50" text-anchor="middle" font-size="13" font-weight="700" fill="var(--top)">0</text>
+      </g>
+      <g>
+        <circle cx="160" cy="70" r="7" fill="var(--top)"/>
+        <text x="160" y="50" text-anchor="middle" font-size="13" font-weight="700" fill="var(--top)">1</text>
+      </g>
+      <g>
+        <circle cx="230" cy="70" r="7" fill="var(--top)"/>
+        <text x="230" y="50" text-anchor="middle" font-size="13" font-weight="700" fill="var(--top)">2</text>
+      </g>
+      <g>
+        <circle cx="300" cy="70" r="5" fill="none" stroke="currentColor" stroke-opacity="0.3"/>
+        <text x="300" y="94" text-anchor="middle" font-size="11" opacity="0.4">3</text>
+      </g>
+      <g>
+        <circle cx="370" cy="70" r="7" fill="var(--top)"/>
+        <text x="370" y="50" text-anchor="middle" font-size="13" font-weight="700" fill="var(--top)">4</text>
+      </g>
+      <g>
+        <circle cx="440" cy="70" r="5" fill="none" stroke="currentColor" stroke-opacity="0.3"/>
+        <text x="440" y="94" text-anchor="middle" font-size="11" opacity="0.4">5</text>
+      </g>
+      <g>
+        <circle cx="510" cy="70" r="5" fill="none" stroke="currentColor" stroke-opacity="0.3"/>
+        <text x="510" y="94" text-anchor="middle" font-size="11" opacity="0.4">6</text>
+      </g>
+      <g>
+        <circle cx="560" cy="70" r="5" fill="none" stroke="currentColor" stroke-opacity="0.3"/>
+        <text x="560" y="94" text-anchor="middle" font-size="11" opacity="0.4">7</text>
+      </g>
+      <g>
+        <circle cx="610" cy="70" r="8" fill="var(--top)"/>
+        <text x="610" y="50" text-anchor="middle" font-size="14" font-weight="800" fill="var(--top)">8</text>
+      </g>
+      <text x="90" y="118" font-size="11" fill="var(--top)">visited by power(2,8)</text>
+      <text x="440" y="118" font-size="11" opacity="0.5">never touched</text>
+    </svg>
+    <figcaption>Top-down only expands the branches it actually needs. Bottom-up, by contrast, has no way to know in advance which exponents will matter, so it fills in the whole table.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>When top-down needs help: overlapping subproblems</h2>
+  <p class="section-note">Naive Fibonacci (no memo) recurses on <em>two</em> smaller inputs, and those subtrees overlap. Computing <code>fib(4)</code> this way makes 9 calls total — but only 5 distinct values (0, 1, 2, 3, 4) are ever actually needed.</p>
+  <figure>
+    <svg viewBox="0 0 680 400" role="img" aria-label="Call tree for naive recursive fib(4). fib(2) is computed twice, fib(1) three times, and fib(0) twice, all highlighted, out of 9 total calls for only 5 distinct values.">
+      <defs>
+        <marker id="fibArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="currentColor" opacity="0.5"/>
+        </marker>
+      </defs>
+      <!-- edges -->
+      <line x1="385" y1="58" x2="250" y2="122" stroke="currentColor" stroke-opacity="0.4" marker-end="url(#fibArrow)"/>
+      <line x1="385" y1="58" x2="520" y2="122" stroke="currentColor" stroke-opacity="0.4" marker-end="url(#fibArrow)"/>
+      <line x1="250" y1="158" x2="160" y2="222" stroke="currentColor" stroke-opacity="0.4" marker-end="url(#fibArrow)"/>
+      <line x1="250" y1="158" x2="340" y2="222" stroke="currentColor" stroke-opacity="0.4" marker-end="url(#fibArrow)"/>
+      <line x1="520" y1="158" x2="460" y2="222" stroke="currentColor" stroke-opacity="0.4" marker-end="url(#fibArrow)"/>
+      <line x1="520" y1="158" x2="580" y2="222" stroke="currentColor" stroke-opacity="0.4" marker-end="url(#fibArrow)"/>
+      <line x1="160" y1="258" x2="100" y2="322" stroke="currentColor" stroke-opacity="0.4" marker-end="url(#fibArrow)"/>
+      <line x1="160" y1="258" x2="220" y2="322" stroke="currentColor" stroke-opacity="0.4" marker-end="url(#fibArrow)"/>
+
+      <!-- level 0 -->
+      <rect x="350" y="30" width="70" height="30" rx="7" fill="none" stroke="currentColor" stroke-opacity="0.5"/>
+      <text x="385" y="50" text-anchor="middle" font-size="12">fib(4)</text>
+
+      <!-- level 1 -->
+      <rect x="215" y="128" width="70" height="30" rx="7" fill="none" stroke="currentColor" stroke-opacity="0.5"/>
+      <text x="250" y="148" text-anchor="middle" font-size="12">fib(3)</text>
+      <rect x="485" y="128" width="70" height="30" rx="7" fill="var(--flag)" fill-opacity="0.15" stroke="var(--flag)" stroke-width="1.5"/>
+      <text x="520" y="148" text-anchor="middle" font-size="12" fill="var(--flag)" font-weight="700">fib(2)</text>
+
+      <!-- level 2 -->
+      <rect x="125" y="228" width="70" height="30" rx="7" fill="var(--flag)" fill-opacity="0.15" stroke="var(--flag)" stroke-width="1.5"/>
+      <text x="160" y="248" text-anchor="middle" font-size="12" fill="var(--flag)" font-weight="700">fib(2)</text>
+      <rect x="305" y="228" width="70" height="30" rx="7" fill="var(--flag)" fill-opacity="0.15" stroke="var(--flag)" stroke-width="1.5"/>
+      <text x="340" y="248" text-anchor="middle" font-size="12" fill="var(--flag)" font-weight="700">fib(1)</text>
+      <rect x="425" y="228" width="70" height="30" rx="7" fill="var(--flag)" fill-opacity="0.15" stroke="var(--flag)" stroke-width="1.5"/>
+      <text x="460" y="248" text-anchor="middle" font-size="12" fill="var(--flag)" font-weight="700">fib(1)</text>
+      <rect x="545" y="228" width="70" height="30" rx="7" fill="var(--flag)" fill-opacity="0.15" stroke="var(--flag)" stroke-width="1.5"/>
+      <text x="580" y="248" text-anchor="middle" font-size="12" fill="var(--flag)" font-weight="700">fib(0)</text>
+
+      <!-- level 3 -->
+      <rect x="65" y="328" width="70" height="30" rx="7" fill="var(--flag)" fill-opacity="0.15" stroke="var(--flag)" stroke-width="1.5"/>
+      <text x="100" y="348" text-anchor="middle" font-size="12" fill="var(--flag)" font-weight="700">fib(1)</text>
+      <rect x="185" y="328" width="70" height="30" rx="7" fill="var(--flag)" fill-opacity="0.15" stroke="var(--flag)" stroke-width="1.5"/>
+      <text x="220" y="348" text-anchor="middle" font-size="12" fill="var(--flag)" font-weight="700">fib(0)</text>
+
+      <text x="20" y="392" font-size="12" fill="var(--flag)">9 calls total &#8226; only 5 distinct values (0&#8211;4) &#8226; fib(2) computed twice, fib(1) three times, fib(0) twice</text>
+    </svg>
+    <figcaption>Every highlighted box recomputes a value some other branch already solved. A top-down version with a cache (memoization) would check "have I solved fib(2) already?" before recursing again — collapsing this to 5 calls. Bottom-up sidesteps the problem entirely by computing each value exactly once, in order, from the start.</figcaption>
+  </figure>
+  <div class="code-pair" style="margin-top:20px;">
+    <div class="code-card top">
+      <div class="tag">Top-down + memo</div>
+      <pre>def fib(n, memo = {})
+  return n if n <= 1
+  return memo[n] if memo.key?(n)
+
+  memo[n] = fib(n - 1, memo) +
+            fib(n - 2, memo)
+end</pre>
+    </div>
+    <div class="code-card bottom">
+      <div class="tag">Bottom-up</div>
+      <pre>def fib(n)
+  return n if n <= 1
+  table = [0, 1]
+  (2..n).each do |i|
+    table[i] = table[i-1] + table[i-2]
+  end
+  table[n]
+end</pre>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Stack depth is a real cost, not a theoretical one</h2>
+  <p class="callout">Earlier in this exercise, a version of <code>lcm</code> that recursed by walking downward from <code>n!</code> to 1 hit <strong>an actual <code>SystemStackError</code> at n = 8</strong> — 40,320 nested calls was already too deep for Ruby's default stack. Bottom-up has no equivalent failure mode: a loop doesn't add a stack frame per iteration, so depth is never a constraint.</p>
+</div>
+
+<div class="section">
+  <h2>Choosing between them</h2>
+  <table>
+    <thead><tr><th>Condition</th><th>Pick</th></tr></thead>
+    <tbody>
+      <tr><td>Every subproblem from base case to n is needed anyway (a straight dependency chain)</td><td class="bottom-cell">bottom-up</td></tr>
+      <tr><td>Only some subproblems along the way are actually reachable from the input</td><td class="top-cell">top-down</td></tr>
+      <tr><td>Subproblems overlap heavily (the same smaller call recurs from multiple branches)</td><td class="top-cell">top-down + memo</td></tr>
+      <tr><td>Recursion depth would be large relative to the call stack</td><td class="bottom-cell">bottom-up</td></tr>
+      <tr><td>The dependency order is awkward to express as a simple loop</td><td class="top-cell">top-down</td></tr>
+      <tr><td>You want flat, predictable time and memory with no call overhead</td><td class="bottom-cell">bottom-up</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>algorithm-fundamentals/euler/smallest_multiple</footer>
+
+</body>
+</html>

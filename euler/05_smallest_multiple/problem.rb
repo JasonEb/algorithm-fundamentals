@@ -20,7 +20,7 @@ def lcm_v1(n, product = (1..n).reduce(1) { |acc, x| acc * x }, limit = product)
         product = limit
     end
 
-    lcm(n, product, limit - 1)
+    lcm_v1(n, product, limit - 1)
 end
 
 def divisible_by_all?(n, num)
@@ -32,21 +32,59 @@ def divisible_by_all?(n, num)
     true
 end
 
-def lcm(n, product = (1..n).reduce(1) { |acc, x| acc * x },  result = 1, og = n)
-    return product if n == 1
+def smallest_multiple(n)
 
-    # 120
+    product = (1..n).reduce(1) { |acc, x| acc * x }
 
-    if divisible_by_all?(og, ?)
-        product = result unless result == 1
+    limit = product
+    while ( limit > 0 )
+        if divisible_by_all?(n,limit)
+            product = limit
+        end
+        limit -= 1
     end
 
-    lcm(n - 1, product, result)
+    product
 end
 
 
-p lcm(2)
-p lcm(5)
+
+def lcm_inspect(n, depth = 0)
+  indent = "  " * depth
+  puts "#{indent}lcm(#{n}) called"
+
+  if n == 1
+    puts "#{indent}lcm(1) => 1 (base case)"
+    return 1
+  end
+
+  smaller = lcm_inspect(n - 1, depth + 1)
+  candidate = smaller
+  step = 0
+  while candidate % n != 0
+    candidate += smaller
+    step += 1
+    puts "#{indent}  step #{step}: candidate = #{candidate} (#{candidate} % #{n} = #{candidate % n})"
+  end
+
+  puts "#{indent}lcm(#{n}) => #{candidate} (smaller=#{smaller}, steps=#{step})"
+  candidate
+end
+
+def lcm(n)
+    return 1 if n == 1
+
+    smaller = lcm(n - 1)
+    candidate = smaller
+    while candidate % n != 0
+        candidate += smaller 
+    end
+
+    candidate
+end
+
+
+p lcm_inspect(6)
 
 
 # p smallest_multiple(1)

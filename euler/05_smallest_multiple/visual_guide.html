@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LCM Call Stack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#faf7f5;
+    --surface:#ffffff;
+    --surface-2:#f3edf1;
+    --text:#221f27;
+    --muted:#6b6577;
+    --accent:#c81e46;
+    --accent-2:#1f9d5c;
+    --border:#e3dde6;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#17151a;
+      --surface:#201d25;
+      --surface-2:#282430;
+      --text:#ece7f0;
+      --muted:#9d97ac;
+      --accent:#ff5279;
+      --accent-2:#4fd394;
+      --border:#3a3542;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#17151a;
+    --surface:#201d25;
+    --surface-2:#282430;
+    --text:#ece7f0;
+    --muted:#9d97ac;
+    --accent:#ff5279;
+    --accent-2:#4fd394;
+    --border:#3a3542;
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"IBM Plex Sans", system-ui, sans-serif;
+    padding-inline:20px;
+    padding-block:48px;
+    max-width:760px;
+    margin-inline:auto;
+  }
+  h1,h2{
+    font-family:"Sora", system-ui, sans-serif;
+    letter-spacing:-0.01em;
+    text-wrap:balance;
+  }
+  h1{font-size:1.7rem; margin:0 0 6px;}
+  .eyebrow{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.72rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 10px;
+  }
+  .lede{color:var(--muted); font-size:0.98rem; max-width:60ch; margin:0 0 40px;}
+  h2{font-size:1.05rem; margin:0 0 4px;}
+  .section{margin-bottom:48px;}
+  .section-note{color:var(--muted); font-size:0.9rem; margin:0 0 20px; max-width:58ch;}
+
+  figure{margin:0;}
+  figcaption{
+    color:var(--muted);
+    font-size:0.85rem;
+    margin-top:14px;
+    max-width:56ch;
+  }
+  svg{width:100%; height:auto; display:block;}
+  svg text{font-family:"IBM Plex Mono", monospace; fill:currentColor;}
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:0.88rem;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  th,td{
+    padding:10px 14px;
+    text-align:left;
+    border-bottom:1px solid var(--border);
+    font-variant-numeric:tabular-nums;
+  }
+  th{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+    background:var(--surface-2);
+  }
+  tr:last-child td{border-bottom:none;}
+  td.num{font-family:"IBM Plex Mono", monospace; text-align:right;}
+  td.hit{color:var(--accent-2); font-weight:600;}
+
+  pre{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:18px 20px;
+    overflow-x:auto;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.85rem;
+    line-height:1.6;
+  }
+  code{font-family:"IBM Plex Mono", monospace;}
+  .fix{color:var(--accent-2); font-weight:600;}
+  .bug{color:var(--accent); text-decoration:line-through; opacity:0.7;}
+
+  footer{color:var(--muted); font-size:0.82rem; margin-top:56px; border-top:1px solid var(--border); padding-top:18px;}
+</style>
+</head>
+<body>
+
+<p class="eyebrow">Ruby &middot; recursion trace</p>
+<h1>How lcm(5) resolves itself</h1>
+<p class="lede">The function calls itself downward until it hits the base case, then builds the real answer back up — each level walking forward from the level below until it lands on a multiple of its own <code>n</code>.</p>
+
+<div class="section">
+  <h2>Call stack: descend, then unwind</h2>
+  <p class="section-note">Down the left, each call passes a smaller <code>n</code> to the next call. Up the right, each return hands back the value the level above uses as its own <code>smaller</code>.</p>
+  <figure>
+    <svg viewBox="0 0 680 640" role="img" aria-label="Recursive calls descend from n=5 to the base case n=1, then each level returns a value upward that the level above uses to compute its own result, ending in 60.">
+      <defs>
+        <marker id="arrowDown" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,0 L5,10 Z" fill="currentColor"/>
+        </marker>
+        <marker id="arrowUp" viewBox="0 0 10 10" refX="5" refY="1" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,10 L10,10 L5,0 Z" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <!-- final exit above n=5, the ultimate return -->
+      <line x1="440" y1="70" x2="440" y2="20" stroke="var(--accent-2)" stroke-width="2" marker-end="url(#arrowUp)"/>
+      <text x="452" y="32" font-size="12" font-weight="600" fill="var(--accent-2)">60 = lcm(5)</text>
+
+      <!-- column labels -->
+      <text x="210" y="54" text-anchor="middle" font-size="11" opacity="0.6">calls lcm(n-1)</text>
+      <text x="470" y="54" text-anchor="middle" font-size="11" opacity="0.6">returns to caller</text>
+
+      <!-- frame n=5 -->
+      <rect x="160" y="70" width="220" height="64" rx="10" fill="none" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="270" y="96" text-anchor="middle" font-size="15" font-weight="600">n = 5</text>
+      <text x="270" y="118" text-anchor="middle" font-size="12" opacity="0.65">smaller=12 &#8594; 60</text>
+
+      <!-- down arrow 5->4 -->
+      <line x1="210" y1="134" x2="210" y2="194" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrowDown)"/>
+      <!-- up arrow 4->5 carrying 12 -->
+      <line x1="440" y1="194" x2="440" y2="134" stroke="var(--accent)" marker-end="url(#arrowUp)"/>
+      <text x="452" y="168" font-size="12" fill="var(--accent)">12</text>
+
+      <!-- frame n=4 -->
+      <rect x="160" y="194" width="220" height="64" rx="10" fill="none" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="270" y="220" text-anchor="middle" font-size="15" font-weight="600">n = 4</text>
+      <text x="270" y="242" text-anchor="middle" font-size="12" opacity="0.65">smaller=6 &#8594; 12</text>
+
+      <!-- down arrow 4->3 -->
+      <line x1="210" y1="258" x2="210" y2="318" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrowDown)"/>
+      <!-- up arrow 3->4 carrying 6 -->
+      <line x1="440" y1="318" x2="440" y2="258" stroke="var(--accent)" marker-end="url(#arrowUp)"/>
+      <text x="452" y="292" font-size="12" fill="var(--accent)">6</text>
+
+      <!-- frame n=3 -->
+      <rect x="160" y="318" width="220" height="64" rx="10" fill="none" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="270" y="344" text-anchor="middle" font-size="15" font-weight="600">n = 3</text>
+      <text x="270" y="366" text-anchor="middle" font-size="12" opacity="0.65">smaller=2 &#8594; 6</text>
+
+      <!-- down arrow 3->2 -->
+      <line x1="210" y1="382" x2="210" y2="442" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrowDown)"/>
+      <!-- up arrow 2->3 carrying 2 -->
+      <line x1="440" y1="442" x2="440" y2="382" stroke="var(--accent)" marker-end="url(#arrowUp)"/>
+      <text x="452" y="416" font-size="12" fill="var(--accent)">2</text>
+
+      <!-- frame n=2 -->
+      <rect x="160" y="442" width="220" height="64" rx="10" fill="none" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="270" y="468" text-anchor="middle" font-size="15" font-weight="600">n = 2</text>
+      <text x="270" y="490" text-anchor="middle" font-size="12" opacity="0.65">smaller=1 &#8594; 2</text>
+
+      <!-- down arrow 2->1 -->
+      <line x1="210" y1="506" x2="210" y2="566" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#arrowDown)"/>
+      <!-- up arrow 1->2 carrying 1 -->
+      <line x1="440" y1="566" x2="440" y2="506" stroke="var(--accent)" marker-end="url(#arrowUp)"/>
+      <text x="452" y="540" font-size="12" fill="var(--accent)">1</text>
+
+      <!-- frame n=1 base case -->
+      <rect x="160" y="566" width="220" height="64" rx="10" fill="var(--surface-2)" stroke="var(--accent-2)" stroke-width="1.5"/>
+      <text x="270" y="592" text-anchor="middle" font-size="15" font-weight="600">n = 1</text>
+      <text x="270" y="614" text-anchor="middle" font-size="12" fill="var(--accent-2)">base case &#8594; 1</text>
+    </svg>
+    <figcaption>Five stack frames, one per value of <code>n</code>. Calls descend to <code>n = 1</code> first; then each frame's while-loop walk turns the value below it into its own return value, which becomes the next frame's <code>smaller</code> — ending in 60.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>Inside one frame: the while-loop walk</h2>
+  <p class="section-note">Zooming into the <code>n = 5</code> frame: it receives <code>smaller = 12</code> and steps forward by 12 each time, checking the remainder against 5, until it lands on a multiple of 5.</p>
+  <figure>
+    <svg viewBox="0 0 680 170" role="img" aria-label="Starting at candidate 12, the loop adds 12 repeatedly - reaching 24, 36, 48, 60 - checking the remainder mod 5 each time (2, 4, 1, 3, 0), and stops at 60 where the remainder is 0.">
+      <defs>
+        <marker id="step" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <!-- baseline -->
+      <line x1="50" y1="70" x2="630" y2="70" stroke="currentColor" stroke-opacity="0.3"/>
+
+      <!-- nodes at x=90,210,330,450,570 -->
+      <g>
+        <circle cx="90" cy="70" r="6" fill="currentColor"/>
+        <text x="90" y="46" text-anchor="middle" font-size="14" font-weight="600">12</text>
+        <text x="90" y="96" text-anchor="middle" font-size="11" opacity="0.65">12 mod 5 = 2</text>
+      </g>
+      <line x1="100" y1="70" x2="200" y2="70" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#step)"/>
+      <text x="150" y="62" text-anchor="middle" font-size="11" opacity="0.7">+12</text>
+
+      <g>
+        <circle cx="210" cy="70" r="6" fill="currentColor"/>
+        <text x="210" y="46" text-anchor="middle" font-size="14" font-weight="600">24</text>
+        <text x="210" y="96" text-anchor="middle" font-size="11" opacity="0.65">24 mod 5 = 4</text>
+      </g>
+      <line x1="220" y1="70" x2="320" y2="70" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#step)"/>
+      <text x="270" y="62" text-anchor="middle" font-size="11" opacity="0.7">+12</text>
+
+      <g>
+        <circle cx="330" cy="70" r="6" fill="currentColor"/>
+        <text x="330" y="46" text-anchor="middle" font-size="14" font-weight="600">36</text>
+        <text x="330" y="96" text-anchor="middle" font-size="11" opacity="0.65">36 mod 5 = 1</text>
+      </g>
+      <line x1="340" y1="70" x2="440" y2="70" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#step)"/>
+      <text x="390" y="62" text-anchor="middle" font-size="11" opacity="0.7">+12</text>
+
+      <g>
+        <circle cx="450" cy="70" r="6" fill="currentColor"/>
+        <text x="450" y="46" text-anchor="middle" font-size="14" font-weight="600">48</text>
+        <text x="450" y="96" text-anchor="middle" font-size="11" opacity="0.65">48 mod 5 = 3</text>
+      </g>
+      <line x1="460" y1="70" x2="560" y2="70" stroke="currentColor" stroke-opacity="0.55" marker-end="url(#step)"/>
+      <text x="510" y="62" text-anchor="middle" font-size="11" opacity="0.7">+12</text>
+
+      <g>
+        <circle cx="570" cy="70" r="8" fill="var(--accent-2)"/>
+        <text x="570" y="46" text-anchor="middle" font-size="15" font-weight="700" fill="var(--accent-2)">60</text>
+        <text x="570" y="98" text-anchor="middle" font-size="11" font-weight="600" fill="var(--accent-2)">60 mod 5 = 0 &#8594; stop</text>
+      </g>
+    </svg>
+    <figcaption>Four steps of <code>+12</code> before the remainder hits zero — the loop never has to check divisibility against anything but <code>n</code>, since every candidate is already a multiple of the level below.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>Why lcm(6) stops at 60, not 6! = 720</h2>
+  <p class="section-note">At <code>n = 6</code>, <code>smaller = lcm(5) = 60</code>. The loop only ever walks along multiples of 60 — and 60 itself is already divisible by 6, so it stops on the very first check. <code>720</code> (which is <code>6!</code>) is just a much later multiple of 60 that the loop never needs to reach.</p>
+  <figure>
+    <svg viewBox="0 0 680 170" role="img" aria-label="A number line of multiples of 60 running from 60 up to 720. The first multiple, 60, is already divisible by 6, so the search stops immediately. 720, which equals 6 factorial, is a far later multiple of 60 that the loop never has to check.">
+      <defs>
+        <marker id="lineArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <!-- baseline: multiples of 60 from 60 to 720 -->
+      <line x1="40" y1="90" x2="640" y2="90" stroke="currentColor" stroke-opacity="0.4" marker-end="url(#lineArrow)"/>
+      <text x="648" y="94" font-size="11" opacity="0.6">+60 each step</text>
+
+      <!-- tick: 60 (the hit) -->
+      <circle cx="88" cy="90" r="7" fill="var(--accent-2)"/>
+      <text x="88" y="66" text-anchor="middle" font-size="14" font-weight="700" fill="var(--accent-2)">60</text>
+      <text x="88" y="118" text-anchor="middle" font-size="11" fill="var(--accent-2)">60 mod 6 = 0</text>
+      <text x="88" y="134" text-anchor="middle" font-size="11" fill="var(--accent-2)">stop — first check</text>
+
+      <!-- intermediate ticks: multiples the loop never checks -->
+      <line x1="137" y1="84" x2="137" y2="96" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="137" y="112" text-anchor="middle" font-size="10" opacity="0.5">120</text>
+      <line x1="185" y1="84" x2="185" y2="96" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="185" y="112" text-anchor="middle" font-size="10" opacity="0.5">180</text>
+      <line x1="233" y1="84" x2="233" y2="96" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="233" y="112" text-anchor="middle" font-size="10" opacity="0.5">240</text>
+      <line x1="282" y1="84" x2="282" y2="96" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="282" y="112" text-anchor="middle" font-size="10" opacity="0.5">300</text>
+      <line x1="330" y1="84" x2="330" y2="96" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="330" y="112" text-anchor="middle" font-size="10" opacity="0.5">360</text>
+      <line x1="378" y1="84" x2="378" y2="96" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="378" y="112" text-anchor="middle" font-size="10" opacity="0.5">420</text>
+      <line x1="427" y1="84" x2="427" y2="96" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="427" y="112" text-anchor="middle" font-size="10" opacity="0.5">480</text>
+      <line x1="475" y1="84" x2="475" y2="96" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="475" y="112" text-anchor="middle" font-size="10" opacity="0.5">540</text>
+      <line x1="523" y1="84" x2="523" y2="96" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="523" y="112" text-anchor="middle" font-size="10" opacity="0.5">600</text>
+      <line x1="572" y1="84" x2="572" y2="96" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="572" y="112" text-anchor="middle" font-size="10" opacity="0.5">660</text>
+
+      <!-- tick: 720 = 6! -->
+      <circle cx="620" cy="90" r="6" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <text x="620" y="66" text-anchor="middle" font-size="13" font-weight="600" fill="var(--accent)">720 = 6!</text>
+      <text x="620" y="118" text-anchor="middle" font-size="11" fill="var(--accent)">also divisible by 1&#8211;6</text>
+      <text x="620" y="134" text-anchor="middle" font-size="11" fill="var(--accent)">but 12&#215; too large — never checked</text>
+
+      <text x="40" y="20" font-size="12" opacity="0.65">Every tick is a multiple of 60 — automatically divisible by 1, 2, 3, 4, 5.</text>
+    </svg>
+    <figcaption>The while loop can only land on multiples of <code>smaller</code> (60, 120, 180, …, up to 720 and beyond). It stops at the very first one that's also divisible by <code>n</code> — which happens to be 60 itself. <code>720</code> is a real multiple of 60 too, so it would have "worked," but it's not the <em>smallest</em> one, so the loop never walks that far.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>Every level, side by side</h2>
+  <table>
+    <thead>
+      <tr><th>n</th><th>smaller (input)</th><th>steps of +smaller</th><th>result</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="num">1</td><td class="num">&mdash;</td><td class="num">&mdash;</td><td class="num hit">1</td></tr>
+      <tr><td class="num">2</td><td class="num">1</td><td class="num">1</td><td class="num hit">2</td></tr>
+      <tr><td class="num">3</td><td class="num">2</td><td class="num">2</td><td class="num hit">6</td></tr>
+      <tr><td class="num">4</td><td class="num">6</td><td class="num">1</td><td class="num hit">12</td></tr>
+      <tr><td class="num">5</td><td class="num">12</td><td class="num">4</td><td class="num hit">60</td></tr>
+      <tr><td class="num">6</td><td class="num">60</td><td class="num">0</td><td class="num hit">60</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>The code being traced</h2>
+  <pre>def lcm(n)
+  return 1 if n == 1
+
+  smaller = lcm(n - 1)
+  candidate = smaller
+  while candidate % n != 0
+    candidate += smaller
+  end
+  candidate
+end</pre>
+</div>
+
+<footer>Traced for <code>lcm(5)</code> &middot; algorithm-fundamentals/euler/smallest_multiple</footer>
+
+</body>
+</html>
