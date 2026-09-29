@@ -1,8 +1,3 @@
-def sum_of_even_fibonacci(limit)
-
-end
-
-
 class V1
     class << self
         def sum_of_even_fibonacci(limit)
@@ -29,9 +24,9 @@ class V2
     class << self
         def sum_of_even_fibonacci(limit)
             sum = 0
-
+            memo = []
             while (limit > 0)
-                num = fibs(limit)
+                num = fibs(limit, memo)
                 sum += num if num.even?
                 limit -= 1
             end
@@ -57,4 +52,3 @@ puts "sums"
 p V1.sum_of_even_fibonacci(2)
 p V1.sum_of_even_fibonacci(5)
 
-# p sum_of_even_fibonacci(89) # 44

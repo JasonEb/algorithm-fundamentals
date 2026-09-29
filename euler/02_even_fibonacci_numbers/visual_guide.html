@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dropping the Memo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#faf7f5;
+    --surface:#ffffff;
+    --surface-2:#f3edf1;
+    --text:#221f27;
+    --muted:#6b6577;
+    --accent:#c81e46;
+    --accent-2:#1f9d5c;
+    --border:#e3dde6;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#17151a;
+      --surface:#201d25;
+      --surface-2:#282430;
+      --text:#ece7f0;
+      --muted:#9d97ac;
+      --accent:#ff5279;
+      --accent-2:#4fd394;
+      --border:#3a3542;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#17151a;
+    --surface:#201d25;
+    --surface-2:#282430;
+    --text:#ece7f0;
+    --muted:#9d97ac;
+    --accent:#ff5279;
+    --accent-2:#4fd394;
+    --border:#3a3542;
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"IBM Plex Sans", system-ui, sans-serif;
+    padding-inline:20px;
+    padding-block:48px;
+    max-width:780px;
+    margin-inline:auto;
+  }
+  h1,h2{
+    font-family:"Sora", system-ui, sans-serif;
+    letter-spacing:-0.01em;
+    text-wrap:balance;
+  }
+  h1{font-size:1.7rem; margin:0 0 6px;}
+  .eyebrow{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.72rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 10px;
+  }
+  .lede{color:var(--muted); font-size:0.98rem; max-width:62ch; margin:0 0 40px;}
+  h2{font-size:1.1rem; margin:0 0 4px;}
+  .section{margin-bottom:48px;}
+  .section-note{color:var(--muted); font-size:0.9rem; margin:0 0 20px; max-width:60ch;}
+
+  figure{margin:0;}
+  figcaption{color:var(--muted); font-size:0.85rem; margin-top:14px; max-width:58ch;}
+  svg{width:100%; height:auto; display:block;}
+  svg text{font-family:"IBM Plex Mono", monospace; fill:currentColor;}
+
+  ol.steps{margin:0; padding-left:0; list-style:none; counter-reset:step;}
+  ol.steps li{
+    counter-increment:step;
+    position:relative;
+    padding-left:44px;
+    margin-bottom:22px;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    position:absolute;
+    left:0; top:0;
+    width:30px; height:30px;
+    border-radius:8px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--accent);
+    font-family:"IBM Plex Mono", monospace;
+    font-weight:600;
+    font-size:0.85rem;
+    display:flex; align-items:center; justify-content:center;
+  }
+  ol.steps h3{font-size:0.98rem; margin:2px 0 6px; font-family:"IBM Plex Sans", sans-serif; font-weight:600;}
+  ol.steps p{margin:0; color:var(--text); font-size:0.92rem; max-width:58ch;}
+  ol.steps code{background:var(--surface-2); padding:1px 5px; border-radius:4px;}
+
+  .code-pair{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:640px){.code-pair{grid-template-columns:1fr;}}
+  .code-card{border-radius:12px; border:1px solid var(--border); overflow:hidden; background:var(--surface);}
+  .code-card .tag{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.7rem;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    padding:9px 14px;
+    font-weight:600;
+    background:var(--surface-2);
+    color:var(--muted);
+  }
+  .code-card pre{margin:0; padding:14px; font-family:"IBM Plex Mono", monospace; font-size:0.8rem; line-height:1.6; overflow-x:auto;}
+
+  table{width:100%; border-collapse:collapse; font-size:0.87rem; background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden;}
+  th,td{padding:10px 14px; text-align:left; border-bottom:1px solid var(--border); font-variant-numeric:tabular-nums;}
+  th{font-family:"IBM Plex Mono", monospace; font-size:0.7rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); background:var(--surface-2);}
+  tr:last-child td{border-bottom:none;}
+
+  code{font-family:"IBM Plex Mono", monospace;}
+  footer{color:var(--muted); font-size:0.82rem; margin-top:56px; border-top:1px solid var(--border); padding-top:18px;}
+</style>
+</head>
+<body>
+
+<p class="eyebrow">Ruby &middot; top-down &#8594; bottom-up, applied</p>
+<h1>Dropping the memo</h1>
+<p class="lede">V2 solves "sum of even Fibonacci terms" with recursion and a memo array. Here's the reasoning that gets from there to a version needing no recursion, no cache, and no more than two variables at a time.</p>
+
+<div class="section">
+  <h2>The thought process</h2>
+  <ol class="steps">
+    <li>
+      <h3>Ask what the algorithm actually accesses, and in what order</h3>
+      <p>V2's outer loop calls <code>fibs(limit)</code>, then <code>fibs(limit-1)</code>, ... down to <code>fibs(1)</code> — every index, visited exactly once, in a fixed descending order. Nothing is ever requested twice from the outside.</p>
+    </li>
+    <li>
+      <h3>That access pattern is the signal for whether a cache is needed at all</h3>
+      <p>Memoization earns its keep when a value might get requested again — directly, or through overlapping recursive branches (like naive Fibonacci's call tree). Here, nothing repeats. So the real question becomes: does <em>computing</em> <code>fibs(n)</code> need to look arbitrarily far back, or just a fixed amount?</p>
+    </li>
+    <li>
+      <h3>Look at the recurrence itself</h3>
+      <p><code>fibs(n) = fibs(n-1) + fibs(n-2)</code> — producing the next value only ever needs the <em>previous two</em>. Not the whole history. That's what lets an O(n) memo array shrink to two variables.</p>
+    </li>
+    <li>
+      <h3>Reverse the direction on purpose</h3>
+      <p>V2 computes backward: start at <code>limit</code>, recurse down to the base case, build up via the unwinding stack. Fibonacci is naturally forward — each term comes from the two before it. Walk forward instead of asking "what's term k" repeatedly.</p>
+    </li>
+    <li>
+      <h3>Turn the base case into starting values</h3>
+      <p><code>fibs(0) = 1, fibs(1) = 1</code> becomes the initial state of two rolling variables: <code>a, b = 1, 1</code>.</p>
+    </li>
+    <li>
+      <h3>Turn the recursive relationship into an update rule</h3>
+      <p><code>fibs(n) = fibs(n-1) + fibs(n-2)</code> becomes <code>a, b = b, a + b</code> — slide the two-term window forward by one, discarding the term that's now too far back to ever matter again.</p>
+    </li>
+    <li>
+      <h3>Replace "call fibs(k) for k from limit down to 1" with a forward loop</h3>
+      <p>Run <code>limit</code> times, checking the current term (<code>b</code>) each iteration before advancing — generating terms in order instead of requesting them by index.</p>
+    </li>
+    <li>
+      <h3>The memo array falls out — it isn't removed, it's just never needed</h3>
+      <p>Once only the last two values are ever held, there's nothing left to cache. It wasn't doing anything conceptually necessary; it existed only because the backward, indexed structure demanded random access that, it turns out, was never actually used.</p>
+    </li>
+  </ol>
+</div>
+
+<div class="section">
+  <h2>The sliding window in action</h2>
+  <p class="section-note">Eight steps of <code>a, b = b, a + b</code>, checking <code>b</code> each time. Only two numbers exist in memory at any point — no array, no history.</p>
+  <figure>
+    <svg viewBox="0 0 800 170" role="img" aria-label="Eight steps of the sliding window: the checked value b takes 1, 2, 3, 5, 8, 13, 21, 34. The even ones - 2, 8, 34 - are highlighted and sum to 44.">
+      <defs>
+        <marker id="stepArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="currentColor" opacity="0.55"/>
+        </marker>
+      </defs>
+      <line x1="45" y1="80" x2="755" y2="80" stroke="currentColor" stroke-opacity="0.25"/>
+
+      <!-- step values: 1(odd),2(even),3(odd),5(odd),8(even),13(odd),21(odd),34(even) -->
+      <!-- x positions -->
+      <g>
+        <circle cx="60" cy="80" r="6" fill="currentColor" fill-opacity="0.5"/>
+        <text x="60" y="60" text-anchor="middle" font-size="13" font-weight="600" opacity="0.7">1</text>
+        <text x="60" y="106" text-anchor="middle" font-size="10" opacity="0.5">odd</text>
+      </g>
+      <line x1="70" y1="80" x2="145" y2="80" marker-end="url(#stepArrow)" stroke="currentColor" stroke-opacity="0.4"/>
+
+      <g>
+        <circle cx="155" cy="80" r="8" fill="var(--accent-2)"/>
+        <text x="155" y="56" text-anchor="middle" font-size="14" font-weight="700" fill="var(--accent-2)">2</text>
+        <text x="155" y="106" text-anchor="middle" font-size="10" fill="var(--accent-2)">even, sum=2</text>
+      </g>
+      <line x1="167" y1="80" x2="240" y2="80" marker-end="url(#stepArrow)" stroke="currentColor" stroke-opacity="0.4"/>
+
+      <g>
+        <circle cx="250" cy="80" r="6" fill="currentColor" fill-opacity="0.5"/>
+        <text x="250" y="60" text-anchor="middle" font-size="13" font-weight="600" opacity="0.7">3</text>
+        <text x="250" y="106" text-anchor="middle" font-size="10" opacity="0.5">odd</text>
+      </g>
+      <line x1="260" y1="80" x2="335" y2="80" marker-end="url(#stepArrow)" stroke="currentColor" stroke-opacity="0.4"/>
+
+      <g>
+        <circle cx="345" cy="80" r="6" fill="currentColor" fill-opacity="0.5"/>
+        <text x="345" y="60" text-anchor="middle" font-size="13" font-weight="600" opacity="0.7">5</text>
+        <text x="345" y="106" text-anchor="middle" font-size="10" opacity="0.5">odd</text>
+      </g>
+      <line x1="355" y1="80" x2="430" y2="80" marker-end="url(#stepArrow)" stroke="currentColor" stroke-opacity="0.4"/>
+
+      <g>
+        <circle cx="440" cy="80" r="8" fill="var(--accent-2)"/>
+        <text x="440" y="56" text-anchor="middle" font-size="14" font-weight="700" fill="var(--accent-2)">8</text>
+        <text x="440" y="106" text-anchor="middle" font-size="10" fill="var(--accent-2)">even, sum=10</text>
+      </g>
+      <line x1="452" y1="80" x2="525" y2="80" marker-end="url(#stepArrow)" stroke="currentColor" stroke-opacity="0.4"/>
+
+      <g>
+        <circle cx="535" cy="80" r="6" fill="currentColor" fill-opacity="0.5"/>
+        <text x="535" y="60" text-anchor="middle" font-size="13" font-weight="600" opacity="0.7">13</text>
+        <text x="535" y="106" text-anchor="middle" font-size="10" opacity="0.5">odd</text>
+      </g>
+      <line x1="550" y1="80" x2="620" y2="80" marker-end="url(#stepArrow)" stroke="currentColor" stroke-opacity="0.4"/>
+
+      <g>
+        <circle cx="630" cy="80" r="6" fill="currentColor" fill-opacity="0.5"/>
+        <text x="630" y="60" text-anchor="middle" font-size="13" font-weight="600" opacity="0.7">21</text>
+        <text x="630" y="106" text-anchor="middle" font-size="10" opacity="0.5">odd</text>
+      </g>
+      <line x1="645" y1="80" x2="715" y2="80" marker-end="url(#stepArrow)" stroke="currentColor" stroke-opacity="0.4"/>
+
+      <g>
+        <circle cx="730" cy="80" r="9" fill="var(--accent-2)"/>
+        <text x="730" y="54" text-anchor="middle" font-size="15" font-weight="700" fill="var(--accent-2)">34</text>
+        <text x="730" y="108" text-anchor="middle" font-size="11" font-weight="600" fill="var(--accent-2)">even, sum=44</text>
+      </g>
+
+      <text x="45" y="140" font-size="11" opacity="0.6">a, b start at (1, 1) &#8226; each step: a, b = b, a + b &#8226; only b is checked</text>
+    </svg>
+    <figcaption>This is <code>limit = 8</code> — matching the small worked example from earlier in this problem's exploration. The full run for <code>limit = 32</code> (the real Project Euler input) produces <code>4613732</code>, the correct answer, using the exact same two variables the whole way.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>Before and after</h2>
+  <div class="code-pair">
+    <div class="code-card">
+      <div class="tag">V2 &mdash; top-down + memo</div>
+      <pre>def sum_of_even_fibonacci(limit)
+  sum = 0
+  memo = []
+  while limit > 0
+    num = fibs(limit, memo)
+    sum += num if num.even?
+    limit -= 1
+  end
+  sum
+end
+
+def fibs(n, memo = [])
+  return 1 if n <= 1
+  return memo[n] unless memo[n].nil?
+
+  memo[n] = fibs(n - 1, memo) +
+            fibs(n - 2, memo)
+end</pre>
+    </div>
+    <div class="code-card">
+      <div class="tag">Bottom-up &mdash; rolling window</div>
+      <pre>def sum_of_even_fibonacci(limit)
+  sum = 0
+  a, b = 1, 1
+  limit.times do
+    sum += b if b.even?
+    a, b = b, a + b
+  end
+  sum
+end</pre>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>What actually changed</h2>
+  <table>
+    <thead><tr><th></th><th>V2</th><th>Bottom-up</th></tr></thead>
+    <tbody>
+      <tr><td>Time</td><td>O(limit)</td><td>O(limit)</td></tr>
+      <tr><td>Space</td><td>O(limit) &mdash; full memo array</td><td>O(1) &mdash; two variables</td></tr>
+      <tr><td>Call stack depth</td><td>O(limit) &mdash; recursion before returning</td><td>0 &mdash; no recursion</td></tr>
+      <tr><td>sum_of_even_fibonacci(32)</td><td>4613732</td><td>4613732</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>algorithm-fundamentals/euler/02_even_fibonacci_numbers</footer>
+
+</body>
+</html>
