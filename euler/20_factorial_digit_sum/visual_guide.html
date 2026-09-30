@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Growing, Then Peeling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{--bg:#faf7f5;--surface:#ffffff;--surface-2:#f3edf1;--text:#221f27;--muted:#6b6577;--accent:#c81e46;--accent-2:#1f9d5c;--border:#e3dde6;color-scheme:light;}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#17151a;--surface:#201d25;--surface-2:#282430;--text:#ece7f0;--muted:#9d97ac;--accent:#ff5279;--accent-2:#4fd394;--border:#3a3542;color-scheme:dark;}}
+  :root[data-theme="dark"]{--bg:#17151a;--surface:#201d25;--surface-2:#282430;--text:#ece7f0;--muted:#9d97ac;--accent:#ff5279;--accent-2:#4fd394;--border:#3a3542;color-scheme:dark;}
+  *{box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",system-ui,sans-serif;padding-inline:20px;padding-block:48px;max-width:760px;margin-inline:auto;}
+  h1,h2{font-family:"Sora",system-ui,sans-serif;letter-spacing:-0.01em;text-wrap:balance;}
+  h1{font-size:1.7rem;margin:0 0 6px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin:0 0 10px;}
+  .lede{color:var(--muted);font-size:0.98rem;max-width:60ch;margin:0 0 40px;}
+  h2{font-size:1.05rem;margin:0 0 4px;}
+  .section{margin-bottom:48px;}
+  .section-note{color:var(--muted);font-size:0.9rem;margin:0 0 20px;max-width:58ch;}
+  figure{margin:0;}
+  figcaption{color:var(--muted);font-size:0.85rem;margin-top:14px;max-width:56ch;}
+  svg{width:100%;height:auto;display:block;}
+  svg text{font-family:"IBM Plex Mono",monospace;fill:currentColor;}
+  pre.block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;font-size:0.85rem;line-height:1.6;}
+  table{width:100%;border-collapse:collapse;font-size:0.87rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;}
+  th{font-family:"IBM Plex Mono",monospace;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);}
+  tr:last-child td{border-bottom:none;}
+  td.num{font-family:"IBM Plex Mono",monospace;text-align:right;}
+  code{font-family:"IBM Plex Mono",monospace;}
+  footer{color:var(--muted);font-size:0.82rem;margin-top:56px;border-top:1px solid var(--border);padding-top:18px;}
+</style>
+</head>
+<body>
+
+<p class="eyebrow">Ruby &middot; string conversion &#8594; arithmetic</p>
+<h1>Growing, then peeling</h1>
+<p class="lede">Same shape as power_digit_sum: build a huge number first (10! = 3628800), then sum its digits &mdash; the only question is whether that second step goes through a string.</p>
+
+<div class="section">
+  <h2>Step one is identical in both versions: build the factorial</h2>
+  <table>
+    <thead><tr><th>i</th><th>running factorial</th></tr></thead>
+    <tbody>
+      <tr><td class="num">2</td><td class="num">2</td></tr>
+      <tr><td class="num">3</td><td class="num">6</td></tr>
+      <tr><td class="num">4</td><td class="num">24</td></tr>
+      <tr><td class="num">5</td><td class="num">120</td></tr>
+      <tr><td class="num">10</td><td class="num">3628800</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>Step two is where they differ</h2>
+  <figure>
+    <svg viewBox="0 0 600 130" role="img" aria-label="V1 converts 3628800 to the string '3628800' then sums each character as a digit. V2 peels digits arithmetically with modulo 10 and integer division by 10. Both reach the same sum, 27.">
+      <text x="20" y="30" font-size="12" fill="var(--accent)">V1:</text>
+      <text x="60" y="30" font-size="12">3628800.to_s.each_char { sum += digit.to_i }</text>
+
+      <text x="20" y="70" font-size="12" fill="var(--accent-2)">V2:</text>
+      <text x="60" y="70" font-size="12">while num &gt; 0: sum += num % 10; num /= 10</text>
+
+      <line x1="20" y1="90" x2="580" y2="90" stroke="currentColor" stroke-opacity="0.2"/>
+      <text x="300" y="115" text-anchor="middle" font-size="13" font-weight="700">3+6+2+8+8+0+0 = 27, either way</text>
+    </svg>
+    <figcaption>The saving is small at <code>n=10</code>, but the same arithmetic approach avoids ever materializing a string for <code>100!</code> either &mdash; a 158-digit number.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>Both versions</h2>
+  <pre class="block">def factorial_digit_sum(n)   # V1
+    factorial = 1
+    i = 2
+    while i &lt;= n
+        factorial *= i
+        i += 1
+    end
+
+    sum = 0
+    factorial.to_s.each_char { |digit| sum += digit.to_i }
+    sum
+end</pre>
+  <pre class="block" style="margin-top:16px;">def factorial_digit_sum(n)   # V2
+    factorial = 1
+    i = 2
+    while i &lt;= n
+        factorial *= i
+        i += 1
+    end
+
+    sum = 0
+    while factorial &gt; 0
+        sum += factorial % 10
+        factorial /= 10
+    end
+    sum
+end</pre>
+</div>
+
+<footer>algorithm-fundamentals/euler/20_factorial_digit_sum &middot; see approach.md</footer>
+</body>
+</html>

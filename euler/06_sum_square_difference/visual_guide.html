@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sum vs Square, Reordered</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{--bg:#faf7f5;--surface:#ffffff;--surface-2:#f3edf1;--text:#221f27;--muted:#6b6577;--accent:#c81e46;--accent-2:#1f9d5c;--border:#e3dde6;color-scheme:light;}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#17151a;--surface:#201d25;--surface-2:#282430;--text:#ece7f0;--muted:#9d97ac;--accent:#ff5279;--accent-2:#4fd394;--border:#3a3542;color-scheme:dark;}}
+  :root[data-theme="dark"]{--bg:#17151a;--surface:#201d25;--surface-2:#282430;--text:#ece7f0;--muted:#9d97ac;--accent:#ff5279;--accent-2:#4fd394;--border:#3a3542;color-scheme:dark;}
+  *{box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",system-ui,sans-serif;padding-inline:20px;padding-block:48px;max-width:760px;margin-inline:auto;}
+  h1,h2{font-family:"Sora",system-ui,sans-serif;letter-spacing:-0.01em;text-wrap:balance;}
+  h1{font-size:1.7rem;margin:0 0 6px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin:0 0 10px;}
+  .lede{color:var(--muted);font-size:0.98rem;max-width:60ch;margin:0 0 40px;}
+  h2{font-size:1.05rem;margin:0 0 4px;}
+  .section{margin-bottom:48px;}
+  .section-note{color:var(--muted);font-size:0.9rem;margin:0 0 20px;max-width:58ch;}
+  figure{margin:0;}
+  figcaption{color:var(--muted);font-size:0.85rem;margin-top:14px;max-width:56ch;}
+  svg{width:100%;height:auto;display:block;}
+  svg text{font-family:"IBM Plex Mono",monospace;fill:currentColor;}
+  .code-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:640px){.code-pair{grid-template-columns:1fr;}}
+  .code-card{border-radius:12px;border:1px solid var(--border);overflow:hidden;background:var(--surface);}
+  .code-card .tag{font-family:"IBM Plex Mono",monospace;font-size:0.7rem;letter-spacing:0.05em;text-transform:uppercase;padding:9px 14px;font-weight:600;background:var(--surface-2);color:var(--muted);}
+  .code-card pre{margin:0;padding:14px;font-family:"IBM Plex Mono",monospace;font-size:0.8rem;line-height:1.6;overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:0.87rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;}
+  th{font-family:"IBM Plex Mono",monospace;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);}
+  tr:last-child td{border-bottom:none;}
+  td.num{font-family:"IBM Plex Mono",monospace;text-align:right;}
+  td.hit{color:var(--accent-2);font-weight:600;}
+  code{font-family:"IBM Plex Mono",monospace;}
+  footer{color:var(--muted);font-size:0.82rem;margin-top:56px;border-top:1px solid var(--border);padding-top:18px;}
+</style>
+</head>
+<body>
+
+<p class="eyebrow">Ruby &middot; loop &#8594; closed form</p>
+<h1>Sum vs square, reordered</h1>
+<p class="lede">The whole problem is about what happens when you swap the order of two operations: summing then squaring, versus squaring then summing. Same ten numbers, two different totals.</p>
+
+<div class="section">
+  <h2>The two quantities, side by side</h2>
+  <p class="section-note">For 1 through 10: add them up first and square the result, or square each one first and add those up. The order changes the answer a lot.</p>
+  <figure>
+    <svg viewBox="0 0 680 220" role="img" aria-label="Two paths from the numbers 1 through 10. Top path: sum them to 55, then square to get 3025. Bottom path: square each number individually then sum those squares to get 385. The difference between 3025 and 385 is 2640.">
+      <text x="20" y="30" font-size="12" font-weight="700" fill="var(--accent)">SQUARE OF THE SUM</text>
+      <rect x="20" y="45" width="180" height="34" rx="8" fill="none" stroke="var(--accent)" stroke-opacity="0.5"/>
+      <text x="110" y="67" text-anchor="middle" font-size="12">1+2+...+10 = 55</text>
+      <line x1="200" y1="62" x2="250" y2="62" stroke="var(--accent)" stroke-opacity="0.6"/>
+      <rect x="250" y="45" width="120" height="34" rx="8" fill="var(--accent)" fill-opacity="0.12" stroke="var(--accent)"/>
+      <text x="310" y="67" text-anchor="middle" font-size="12" font-weight="700" fill="var(--accent)">55&#178; = 3025</text>
+
+      <text x="20" y="120" font-size="12" font-weight="700" fill="var(--accent-2)">SUM OF THE SQUARES</text>
+      <rect x="20" y="135" width="280" height="34" rx="8" fill="none" stroke="var(--accent-2)" stroke-opacity="0.5"/>
+      <text x="160" y="157" text-anchor="middle" font-size="11">1&#178;+2&#178;+...+10&#178; = 1+4+9+...+100</text>
+      <line x1="300" y1="152" x2="350" y2="152" stroke="var(--accent-2)" stroke-opacity="0.6"/>
+      <rect x="350" y="135" width="100" height="34" rx="8" fill="var(--accent-2)" fill-opacity="0.12" stroke="var(--accent-2)"/>
+      <text x="400" y="157" text-anchor="middle" font-size="12" font-weight="700" fill="var(--accent-2)">= 385</text>
+
+      <line x1="470" y1="62" x2="550" y2="152" stroke="currentColor" stroke-opacity="0.3" stroke-dasharray="3 3"/>
+      <text x="560" y="110" font-size="13" font-weight="700">3025 &#8722; 385</text>
+      <text x="560" y="128" font-size="13" font-weight="700">= 2640</text>
+    </svg>
+    <figcaption>Both paths start from the same ten numbers. Squaring after summing lets every cross-term (like 2&#215;7, 3&#215;9, ...) contribute to the total; squaring first throws all of that away. That gap between the two is exactly what the problem asks for.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>V1: two running totals in one pass</h2>
+  <p class="section-note">Nothing to search or optimize away here structurally &mdash; just accumulate both quantities as you go, then compare at the end.</p>
+  <pre style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;overflow-x:auto;font-family:'IBM Plex Mono',monospace;font-size:0.85rem;line-height:1.6;">def sum_square_difference(limit)
+    sum = 0
+    sum_of_squares = 0
+
+    n = 1
+    while n &lt;= limit
+        sum += n
+        sum_of_squares += n * n
+        n += 1
+    end
+
+    square_of_sum = sum * sum
+    square_of_sum - sum_of_squares
+end</pre>
+</div>
+
+<div class="section">
+  <h2>V2: the loop was never necessary</h2>
+  <p class="section-note">Both quantities have known closed-form formulas &mdash; the sum of 1..n is a triangular number, and the sum of squares has its own classic formula. This is the one case in this batch where the "natural next step" is a formula, not a pattern noticed in the loop.</p>
+  <div class="code-pair">
+    <div class="code-card">
+      <div class="tag">Sum of 1..n</div>
+      <pre>n(n + 1) / 2</pre>
+    </div>
+    <div class="code-card">
+      <div class="tag">Sum of squares 1..n</div>
+      <pre>n(n + 1)(2n + 1) / 6</pre>
+    </div>
+  </div>
+  <pre style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;overflow-x:auto;font-family:'IBM Plex Mono',monospace;font-size:0.85rem;line-height:1.6;margin-top:16px;">def sum_square_difference(limit)
+    square_of_sum = (limit * (limit + 1) / 2) ** 2
+    sum_of_squares = limit * (limit + 1) * (2 * limit + 1) / 6
+    square_of_sum - sum_of_squares
+end</pre>
+</div>
+
+<div class="section">
+  <h2>Every step for limit = 10</h2>
+  <table>
+    <thead><tr><th>n</th><th>running sum</th><th>running sum of squares</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td class="num">1</td><td class="num">1</td></tr>
+      <tr><td class="num">2</td><td class="num">3</td><td class="num">5</td></tr>
+      <tr><td class="num">3</td><td class="num">6</td><td class="num">14</td></tr>
+      <tr><td class="num">5</td><td class="num">15</td><td class="num">55</td></tr>
+      <tr><td class="num">10</td><td class="num hit">55</td><td class="num hit">385</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>algorithm-fundamentals/euler/06_sum_square_difference &middot; see approach.md</footer>
+</body>
+</html>

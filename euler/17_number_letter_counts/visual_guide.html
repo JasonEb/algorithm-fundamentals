@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Words Into Numbers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{--bg:#faf7f5;--surface:#ffffff;--surface-2:#f3edf1;--text:#221f27;--muted:#6b6577;--accent:#c81e46;--accent-2:#1f9d5c;--border:#e3dde6;color-scheme:light;}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#17151a;--surface:#201d25;--surface-2:#282430;--text:#ece7f0;--muted:#9d97ac;--accent:#ff5279;--accent-2:#4fd394;--border:#3a3542;color-scheme:dark;}}
+  :root[data-theme="dark"]{--bg:#17151a;--surface:#201d25;--surface-2:#282430;--text:#ece7f0;--muted:#9d97ac;--accent:#ff5279;--accent-2:#4fd394;--border:#3a3542;color-scheme:dark;}
+  *{box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",system-ui,sans-serif;padding-inline:20px;padding-block:48px;max-width:760px;margin-inline:auto;}
+  h1,h2{font-family:"Sora",system-ui,sans-serif;letter-spacing:-0.01em;text-wrap:balance;}
+  h1{font-size:1.7rem;margin:0 0 6px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin:0 0 10px;}
+  .lede{color:var(--muted);font-size:0.98rem;max-width:60ch;margin:0 0 40px;}
+  h2{font-size:1.05rem;margin:0 0 4px;}
+  .section{margin-bottom:48px;}
+  .section-note{color:var(--muted);font-size:0.9rem;margin:0 0 20px;max-width:58ch;}
+  figure{margin:0;}
+  figcaption{color:var(--muted);font-size:0.85rem;margin-top:14px;max-width:56ch;}
+  svg{width:100%;height:auto;display:block;}
+  svg text{font-family:"IBM Plex Mono",monospace;fill:currentColor;}
+  pre.block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;font-size:0.85rem;line-height:1.6;}
+  table{width:100%;border-collapse:collapse;font-size:0.87rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;}
+  th{font-family:"IBM Plex Mono",monospace;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);}
+  tr:last-child td{border-bottom:none;}
+  td.num{font-family:"IBM Plex Mono",monospace;text-align:right;}
+  td.hit{color:var(--accent-2);font-weight:600;}
+  code{font-family:"IBM Plex Mono",monospace;}
+  footer{color:var(--muted);font-size:0.82rem;margin-top:56px;border-top:1px solid var(--border);padding-top:18px;}
+</style>
+</head>
+<body>
+
+<p class="eyebrow">Ruby &middot; build strings &#8594; precomputed lengths</p>
+<h1>Words into numbers</h1>
+<p class="lede">Both versions break a number into parts &mdash; hundreds, tens, ones &mdash; using the same lookup tables. The difference is whether you build the actual word and measure it, or just add up known lengths directly.</p>
+
+<div class="section">
+  <h2>Breaking 342 into parts</h2>
+  <p class="section-note">"three hundred and forty-two" is really four pieces glued together.</p>
+  <figure>
+    <svg viewBox="0 0 620 140" role="img" aria-label="342 broken into parts: three (5 letters), hundred (7 letters), and (3 letters), forty (5 letters), two (3 letters). Total: 5+7+3+5+3 = 23 letters.">
+      <g font-size="13">
+        <rect x="20" y="20" width="70" height="36" rx="7" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="55" y="43" text-anchor="middle">three</text>
+        <text x="55" y="70" text-anchor="middle" font-size="11" opacity="0.6">5</text>
+
+        <rect x="100" y="20" width="90" height="36" rx="7" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="145" y="43" text-anchor="middle">hundred</text>
+        <text x="145" y="70" text-anchor="middle" font-size="11" opacity="0.6">7</text>
+
+        <rect x="200" y="20" width="60" height="36" rx="7" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="230" y="43" text-anchor="middle">and</text>
+        <text x="230" y="70" text-anchor="middle" font-size="11" opacity="0.6">3</text>
+
+        <rect x="270" y="20" width="70" height="36" rx="7" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="305" y="43" text-anchor="middle">forty</text>
+        <text x="305" y="70" text-anchor="middle" font-size="11" opacity="0.6">5</text>
+
+        <rect x="350" y="20" width="60" height="36" rx="7" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="380" y="43" text-anchor="middle">two</text>
+        <text x="380" y="70" text-anchor="middle" font-size="11" opacity="0.6">3</text>
+      </g>
+      <text x="20" y="110" font-size="14" font-weight="700" fill="var(--accent-2)">5 + 7 + 3 + 5 + 3 = 23 letters</text>
+    </svg>
+    <figcaption>Every one of these five parts &mdash; "three," "hundred," "and," "forty," "two" &mdash; gets reused for hundreds of other numbers too.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>V1: build the word, then measure it</h2>
+  <p class="section-note">Concatenates each part into an actual string ("threehundredandfortytwo"), then takes <code>.length</code> at the end.</p>
+</div>
+
+<div class="section">
+  <h2>V2: skip the string, add up known lengths</h2>
+  <p class="section-note"><code>ONES_LEN</code> and <code>TENS_LEN</code> store the length of each word part directly &mdash; "three" is just the number <code>5</code>, never the characters <code>t-h-r-e-e</code>.</p>
+  <figure>
+    <svg viewBox="0 0 500 100" role="img" aria-label="Comparing the two approaches for the number three: V1 builds the string 'three' and takes its length to get 5. V2 looks up ONES_LEN at index 3 and gets 5 directly, with no string ever created.">
+      <text x="20" y="30" font-size="12" fill="var(--accent)">V1:</text>
+      <text x="60" y="30" font-size="12">ONES[3] = "three"  &#8594;  "three".length = 5</text>
+      <text x="20" y="65" font-size="12" fill="var(--accent-2)">V2:</text>
+      <text x="60" y="65" font-size="12">ONES_LEN[3] = 5  (no string ever built)</text>
+    </svg>
+    <figcaption>Same table, same index, same answer &mdash; V2 just stores the destination (the length) instead of a detour through the word itself.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>Both versions</h2>
+  <pre class="block">ONES = ["", "one", "two", "three", ...]   # V1
+TENS = ["", "", "twenty", "thirty", ...]
+
+def word_length_for(n)   # (via words_for(n).length)
+    words = ""
+    words += ONES[n / 100] + "hundred" if n &gt;= 100
+    # ...
+    words
+end</pre>
+  <pre class="block" style="margin-top:16px;">ONES_LEN = [0, 3, 3, 5, 4, 4, 3, 5, 5, 4, 3, 6, 6, 8, 8, 7, 7, 9, 8, 8]   # V2
+TENS_LEN = [0, 0, 6, 6, 5, 5, 5, 7, 6, 6]
+
+def word_length_for(n)
+    length = 0
+    if n &gt;= 100
+        length += ONES_LEN[n / 100] + HUNDRED_LEN
+        n = n % 100
+        length += AND_LEN if n &gt; 0
+    end
+    # ...
+    length
+end</pre>
+</div>
+
+<footer>algorithm-fundamentals/euler/17_number_letter_counts &middot; see approach.md</footer>
+</body>
+</html>

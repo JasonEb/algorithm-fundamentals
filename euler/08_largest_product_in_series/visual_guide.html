@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sliding the Window</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{--bg:#faf7f5;--surface:#ffffff;--surface-2:#f3edf1;--text:#221f27;--muted:#6b6577;--accent:#c81e46;--accent-2:#1f9d5c;--border:#e3dde6;color-scheme:light;}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#17151a;--surface:#201d25;--surface-2:#282430;--text:#ece7f0;--muted:#9d97ac;--accent:#ff5279;--accent-2:#4fd394;--border:#3a3542;color-scheme:dark;}}
+  :root[data-theme="dark"]{--bg:#17151a;--surface:#201d25;--surface-2:#282430;--text:#ece7f0;--muted:#9d97ac;--accent:#ff5279;--accent-2:#4fd394;--border:#3a3542;color-scheme:dark;}
+  *{box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",system-ui,sans-serif;padding-inline:20px;padding-block:48px;max-width:760px;margin-inline:auto;}
+  h1,h2{font-family:"Sora",system-ui,sans-serif;letter-spacing:-0.01em;text-wrap:balance;}
+  h1{font-size:1.7rem;margin:0 0 6px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin:0 0 10px;}
+  .lede{color:var(--muted);font-size:0.98rem;max-width:60ch;margin:0 0 40px;}
+  h2{font-size:1.05rem;margin:0 0 4px;}
+  .section{margin-bottom:48px;}
+  .section-note{color:var(--muted);font-size:0.9rem;margin:0 0 20px;max-width:58ch;}
+  figure{margin:0;}
+  figcaption{color:var(--muted);font-size:0.85rem;margin-top:14px;max-width:56ch;}
+  svg{width:100%;height:auto;display:block;}
+  svg text{font-family:"IBM Plex Mono",monospace;fill:currentColor;}
+  pre.block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;font-size:0.85rem;line-height:1.6;}
+  table{width:100%;border-collapse:collapse;font-size:0.87rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;}
+  th{font-family:"IBM Plex Mono",monospace;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);}
+  tr:last-child td{border-bottom:none;}
+  td.num{font-family:"IBM Plex Mono",monospace;text-align:right;}
+  td.hit{color:var(--accent-2);font-weight:600;}
+  code{font-family:"IBM Plex Mono",monospace;}
+  footer{color:var(--muted);font-size:0.82rem;margin-top:56px;border-top:1px solid var(--border);padding-top:18px;}
+</style>
+</head>
+<body>
+
+<p class="eyebrow">Ruby &middot; recompute &#8594; sliding window</p>
+<h1>Sliding the window</h1>
+<p class="lede">V1 recomputes the product of every window from scratch. Most of that work is wasted &mdash; each window shares all but one digit with its neighbor.</p>
+
+<div class="section">
+  <h2>V1: every window, computed independently</h2>
+  <p class="section-note">For digit string <code>"9989"</code> with a window of 2, each position multiplies its own two digits from nothing.</p>
+  <figure>
+    <svg viewBox="0 0 500 130" role="img" aria-label="Digits 9, 9, 8, 9 shown in a row. Three separate windows are drawn: positions 1-2 (9 times 9 equals 81), positions 2-3 (9 times 8 equals 72), positions 3-4 (8 times 9 equals 72). Each window is computed from scratch, sharing one digit with its neighbor but not reusing that overlap.">
+      <g font-size="16" font-weight="700">
+        <rect x="30" y="20" width="40" height="40" rx="6" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="50" y="46" text-anchor="middle">9</text>
+        <rect x="70" y="20" width="40" height="40" rx="6" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="90" y="46" text-anchor="middle">9</text>
+        <rect x="110" y="20" width="40" height="40" rx="6" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="130" y="46" text-anchor="middle">8</text>
+        <rect x="150" y="20" width="40" height="40" rx="6" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="170" y="46" text-anchor="middle">9</text>
+      </g>
+      <rect x="30" y="20" width="80" height="40" rx="6" fill="var(--accent)" fill-opacity="0.12" stroke="var(--accent)"/>
+      <text x="70" y="85" text-anchor="middle" font-size="11" fill="var(--accent)">9&#215;9=81 (fresh)</text>
+
+      <rect x="70" y="20" width="80" height="40" rx="6" fill="none" stroke="var(--accent)" stroke-opacity="0.5" stroke-dasharray="3 3"/>
+      <text x="110" y="105" text-anchor="middle" font-size="11" fill="var(--accent)">9&#215;8=72 (fresh, ignores that the 9 was just used)</text>
+
+      <rect x="110" y="20" width="80" height="40" rx="6" fill="none" stroke="var(--accent)" stroke-opacity="0.3"/>
+      <text x="130" y="120" text-anchor="middle" font-size="11" opacity="0.6">8&#215;9=72 (fresh again)</text>
+    </svg>
+    <figcaption>Positions 1&#8211;2 and 2&#8211;3 both touch the middle <code>9</code>, but V1 recomputes it as if starting over each time.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>V2: carry the product forward</h2>
+  <p class="section-note">Instead of recomputing, divide out the digit leaving the window and multiply in the digit entering it &mdash; reusing everything that didn't change.</p>
+  <figure>
+    <svg viewBox="0 0 560 160" role="img" aria-label="Sliding window moving one step: from digits 9,9 with product 81, the leaving digit 9 is divided out to get 9, then the entering digit 8 is multiplied in to get 72, matching the next window's product without recomputing from scratch.">
+      <rect x="30" y="30" width="100" height="40" rx="8" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.3"/>
+      <text x="80" y="55" text-anchor="middle" font-size="13" font-weight="600">window = 81</text>
+      <text x="80" y="88" text-anchor="middle" font-size="11" opacity="0.6">(9 &#215; 9)</text>
+
+      <line x1="130" y1="50" x2="210" y2="50" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="170" y="42" text-anchor="middle" font-size="11" fill="var(--accent)">&#247; 9 (leaving)</text>
+
+      <rect x="210" y="30" width="80" height="40" rx="8" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.3"/>
+      <text x="250" y="55" text-anchor="middle" font-size="13" font-weight="600">9</text>
+
+      <line x1="290" y1="50" x2="370" y2="50" stroke="var(--accent-2)" stroke-width="1.5"/>
+      <text x="330" y="42" text-anchor="middle" font-size="11" fill="var(--accent-2)">&#215; 8 (entering)</text>
+
+      <rect x="370" y="30" width="120" height="40" rx="8" fill="var(--accent-2)" fill-opacity="0.15" stroke="var(--accent-2)"/>
+      <text x="430" y="55" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent-2)">window = 72</text>
+
+      <text x="30" y="120" font-size="11" opacity="0.6">Catch: if a 0 leaves the window, you can't divide it back out - track a</text>
+      <text x="30" y="136" font-size="11" opacity="0.6">separate zero_count instead, and treat the window as 0 while it's &gt; 0.</text>
+    </svg>
+    <figcaption>Same answer as recomputing, but only ever touches the two digits that actually changed &mdash; the middle digit's contribution is never redone.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>The zero case, traced</h2>
+  <p class="section-note">For <code>"1023"</code> with a window of 2: the window containing the <code>0</code> can't be divided through normally.</p>
+  <table>
+    <thead><tr><th>window</th><th>digits</th><th>zero_count</th><th>product reported</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>1, 0</td><td class="num">1</td><td class="num">0</td></tr>
+      <tr><td class="num">2</td><td>0, 2</td><td class="num">1</td><td class="num">0</td></tr>
+      <tr><td class="num">3</td><td>2, 3</td><td class="num">0</td><td class="num hit">6 &mdash; largest</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>Both versions</h2>
+  <pre class="block">def largest_product_in_series(digits_string, series_length)   # V1
+    digits = digits_string.chars.map(&amp;:to_i)
+    largest = 0
+
+    start = 0
+    while start &lt;= digits.length - series_length
+        product = 1
+        i = start
+        while i &lt; start + series_length
+            product *= digits[i]
+            i += 1
+        end
+        largest = product if product &gt; largest
+        start += 1
+    end
+
+    largest
+end</pre>
+  <pre class="block" style="margin-top:16px;">def largest_product_in_series(digits_string, series_length)   # V2
+    digits = digits_string.chars.map(&amp;:to_i)
+
+    product = 1
+    zero_count = 0
+    i = 0
+    while i &lt; series_length
+        zero_count += 1 if digits[i] == 0
+        product *= digits[i] if digits[i] != 0
+        i += 1
+    end
+    largest = zero_count == 0 ? product : 0
+
+    start = 1
+    while start &lt;= digits.length - series_length
+        leaving = digits[start - 1]
+        entering = digits[start + series_length - 1]
+
+        leaving == 0 ? zero_count -= 1 : product /= leaving
+        entering == 0 ? zero_count += 1 : product *= entering
+
+        current = zero_count == 0 ? product : 0
+        largest = current if current &gt; largest
+        start += 1
+    end
+
+    largest
+end</pre>
+</div>
+
+<footer>algorithm-fundamentals/euler/08_largest_product_in_series &middot; see approach.md</footer>
+</body>
+</html>

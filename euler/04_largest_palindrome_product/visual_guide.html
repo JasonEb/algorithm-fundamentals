@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Building the Palindrome Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#faf7f5;
+    --surface:#ffffff;
+    --surface-2:#f3edf1;
+    --text:#221f27;
+    --muted:#6b6577;
+    --accent:#c81e46;
+    --accent-2:#1f9d5c;
+    --border:#e3dde6;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#17151a;
+      --surface:#201d25;
+      --surface-2:#282430;
+      --text:#ece7f0;
+      --muted:#9d97ac;
+      --accent:#ff5279;
+      --accent-2:#4fd394;
+      --border:#3a3542;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#17151a;
+    --surface:#201d25;
+    --surface-2:#282430;
+    --text:#ece7f0;
+    --muted:#9d97ac;
+    --accent:#ff5279;
+    --accent-2:#4fd394;
+    --border:#3a3542;
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"IBM Plex Sans", system-ui, sans-serif;
+    padding-inline:20px;
+    padding-block:48px;
+    max-width:760px;
+    margin-inline:auto;
+  }
+  h1,h2{
+    font-family:"Sora", system-ui, sans-serif;
+    letter-spacing:-0.01em;
+    text-wrap:balance;
+  }
+  h1{font-size:1.7rem; margin:0 0 6px;}
+  .eyebrow{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.72rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 10px;
+  }
+  .lede{color:var(--muted); font-size:0.98rem; max-width:60ch; margin:0 0 40px;}
+  h2{font-size:1.05rem; margin:0 0 4px;}
+  .section{margin-bottom:48px;}
+  .section-note{color:var(--muted); font-size:0.9rem; margin:0 0 20px; max-width:58ch;}
+
+  figure{margin:0;}
+  figcaption{color:var(--muted); font-size:0.85rem; margin-top:14px; max-width:56ch;}
+  svg{width:100%; height:auto; display:block;}
+  svg text{font-family:"IBM Plex Mono", monospace; fill:currentColor;}
+
+  ol.steps{margin:0; padding-left:0; list-style:none; counter-reset:step;}
+  ol.steps li{counter-increment:step; position:relative; padding-left:44px; margin-bottom:22px;}
+  ol.steps li::before{
+    content:counter(step);
+    position:absolute; left:0; top:0;
+    width:30px; height:30px;
+    border-radius:8px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--accent);
+    font-family:"IBM Plex Mono", monospace;
+    font-weight:600;
+    font-size:0.85rem;
+    display:flex; align-items:center; justify-content:center;
+  }
+  ol.steps h3{font-size:0.98rem; margin:2px 0 6px; font-family:"IBM Plex Sans", sans-serif; font-weight:600;}
+  ol.steps p{margin:0; color:var(--text); font-size:0.92rem; max-width:56ch;}
+  ol.steps code{background:var(--surface-2); padding:1px 5px; border-radius:4px;}
+
+  table{width:100%; border-collapse:collapse; font-size:0.87rem; background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden;}
+  th,td{padding:10px 14px; text-align:left; border-bottom:1px solid var(--border); font-variant-numeric:tabular-nums;}
+  th{font-family:"IBM Plex Mono", monospace; font-size:0.7rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); background:var(--surface-2);}
+  tr:last-child td{border-bottom:none;}
+  td.num{font-family:"IBM Plex Mono", monospace; text-align:right;}
+  td.hit{color:var(--accent-2); font-weight:600;}
+
+  pre{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px 20px; overflow-x:auto; font-family:"IBM Plex Mono", monospace; font-size:0.85rem; line-height:1.6;}
+  code{font-family:"IBM Plex Mono", monospace;}
+
+  footer{color:var(--muted); font-size:0.82rem; margin-top:56px; border-top:1px solid var(--border); padding-top:18px;}
+</style>
+</head>
+<body>
+
+<p class="eyebrow">Ruby &middot; building a naive solution</p>
+<h1>Building the palindrome search</h1>
+<p class="lede">The problem: find the largest palindrome that's the product of two n-digit numbers. Before reaching for anything clever, here's the reasoning that gets you to a correct, if brute-force, first solution.</p>
+
+<div class="section">
+  <h2>The build-up, step by step</h2>
+  <ol class="steps">
+    <li>
+      <h3>Define the search space</h3>
+      <p>"Two n-digit numbers" means both factors range from the smallest n-digit number to the largest. For <code>digits = 2</code>, that's <code>10</code> through <code>99</code> — <code>min = 10^(digits-1)</code>, <code>max = 10^digits - 1</code>.</p>
+    </li>
+    <li>
+      <h3>Decide what counts as one candidate pair</h3>
+      <p>A product comes from a <em>pair</em> of numbers, <code>a</code> and <code>b</code>. Since <code>a &times; b</code> equals <code>b &times; a</code>, checking <code>(91, 99)</code> and later <code>(99, 91)</code> would just repeat the same work. Constraining <code>b &ge; a</code> checks every distinct pair exactly once.</p>
+    </li>
+    <li>
+      <h3>Define the check itself: what makes a number a palindrome</h3>
+      <p>A palindrome reads the same forwards and backwards. The most direct way to check: convert the number to a string and compare it against its own reverse. <code>9009.to_s == 9009.to_s.reverse</code> — both sides read <code>"9009"</code>, so it matches.</p>
+    </li>
+    <li>
+      <h3>Track the best one seen so far</h3>
+      <p>Since you're checking every pair regardless (nothing to skip yet in the naive version), keep a running <code>largest</code> value, and update it whenever a product is both a palindrome <em>and</em> bigger than what you've already found.</p>
+    </li>
+  </ol>
+</div>
+
+<div class="section">
+  <h2>The search space, visualized</h2>
+  <p class="section-note">For <code>digits = 2</code>: both <code>a</code> and <code>b</code> range from 10 to 99. Constraining <code>b &ge; a</code> cuts the full grid in half — only the shaded triangle actually gets checked.</p>
+  <figure>
+    <svg viewBox="0 0 420 420" role="img" aria-label="A square grid with a and b axes both ranging from 10 to 99. The triangle where b is greater than or equal to a is shaded as the searched region; the mirror triangle above the diagonal is unshaded, since those pairs would just repeat work already done. The answer, 91 times 99 equals 9009, sits near the bottom-right corner.">
+      <!-- axes -->
+      <line x1="40" y1="40" x2="40" y2="360" stroke="currentColor" stroke-opacity="0.4"/>
+      <line x1="40" y1="360" x2="360" y2="360" stroke="currentColor" stroke-opacity="0.4"/>
+      <text x="20" y="45" font-size="11" opacity="0.7">b=99</text>
+      <text x="20" y="365" font-size="11" opacity="0.7">b=10</text>
+      <text x="36" y="380" text-anchor="middle" font-size="11" opacity="0.7">a=10</text>
+      <text x="360" y="380" text-anchor="middle" font-size="11" opacity="0.7">a=99</text>
+
+      <!-- searched triangle: b >= a -> lower-left triangle (min,min)-(min,max)-(max,max) -->
+      <polygon points="40,40 40,360 360,360" fill="var(--accent-2)" fill-opacity="0.15" stroke="var(--accent-2)" stroke-opacity="0.5"/>
+      <!-- skipped mirror triangle -->
+      <polygon points="40,40 360,40 360,360" fill="currentColor" fill-opacity="0.04" stroke="currentColor" stroke-opacity="0.2" stroke-dasharray="3 3"/>
+
+      <!-- diagonal a=b -->
+      <line x1="40" y1="40" x2="360" y2="360" stroke="currentColor" stroke-opacity="0.35"/>
+      <text x="150" y="145" font-size="11" opacity="0.6" transform="rotate(45 150 145)">a = b</text>
+
+      <text x="100" y="300" font-size="12" fill="var(--accent-2)">searched (b &#8805; a)</text>
+      <text x="230" y="90" font-size="11" opacity="0.5">skipped (mirror)</text>
+
+      <!-- answer point: a=91, b=99 -->
+      <circle cx="331" cy="360" r="7" fill="var(--accent)"/>
+      <text x="331" y="340" text-anchor="middle" font-size="12" font-weight="700" fill="var(--accent)">91 &#215; 99 = 9009</text>
+    </svg>
+    <figcaption>The naive search still checks every cell in the shaded triangle — roughly 4,005 pairs for <code>digits = 2</code> — but never wastes time on the mirrored duplicates above the diagonal.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>What the palindrome check is actually doing</h2>
+  <p class="section-note">9009 mirrors around its center: the 1st digit matches the 4th, the 2nd matches the 3rd.</p>
+  <figure>
+    <svg viewBox="0 0 320 140" role="img" aria-label="The digits 9, 0, 0, 9 shown as four boxes. The first and fourth digits are connected and both equal 9. The second and third digits are connected and both equal 0. Both pairs match, confirming the number is a palindrome.">
+      <rect x="30" y="40" width="50" height="50" rx="8" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+      <text x="55" y="72" text-anchor="middle" font-size="20" font-weight="700">9</text>
+      <rect x="90" y="40" width="50" height="50" rx="8" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+      <text x="115" y="72" text-anchor="middle" font-size="20" font-weight="700">0</text>
+      <rect x="180" y="40" width="50" height="50" rx="8" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+      <text x="205" y="72" text-anchor="middle" font-size="20" font-weight="700">0</text>
+      <rect x="240" y="40" width="50" height="50" rx="8" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+      <text x="265" y="72" text-anchor="middle" font-size="20" font-weight="700">9</text>
+
+      <line x1="160" y1="40" x2="160" y2="100" stroke="currentColor" stroke-opacity="0.25" stroke-dasharray="3 3"/>
+
+      <path d="M55,40 C55,15 265,15 265,40" fill="none" stroke="var(--accent-2)" stroke-width="1.5"/>
+      <text x="160" y="14" text-anchor="middle" font-size="11" fill="var(--accent-2)">match</text>
+
+      <path d="M115,100 C115,120 205,120 205,100" fill="none" stroke="var(--accent-2)" stroke-width="1.5"/>
+      <text x="160" y="132" text-anchor="middle" font-size="11" fill="var(--accent-2)">match</text>
+    </svg>
+    <figcaption>This is exactly what <code>num.to_s == num.to_s.reverse</code> checks in one line, for a number of any length — no need to hand-write the pairing logic.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>A few pairs from the actual search</h2>
+  <table>
+    <thead><tr><th>a</th><th>b</th><th>product</th><th>palindrome?</th></tr></thead>
+    <tbody>
+      <tr><td class="num">10</td><td class="num">10</td><td class="num">100</td><td>no</td></tr>
+      <tr><td class="num">10</td><td class="num">11</td><td class="num">110</td><td>no</td></tr>
+      <tr><td class="num">12</td><td class="num">21</td><td class="num">252</td><td class="hit">yes &mdash; new largest</td></tr>
+      <tr><td class="num">...</td><td class="num">...</td><td class="num">...</td><td>...</td></tr>
+      <tr><td class="num">88</td><td class="num">88</td><td class="num">7744</td><td class="hit">yes &mdash; new largest</td></tr>
+      <tr><td class="num">...</td><td class="num">...</td><td class="num">...</td><td>...</td></tr>
+      <tr><td class="num">91</td><td class="num">99</td><td class="num">9009</td><td class="hit">yes &mdash; final answer</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>The naive solution</h2>
+  <pre>def largest_palindrome_product(digits)
+    min = 10 ** (digits - 1)
+    max = (10 ** digits) - 1
+    largest = 0
+
+    a = min
+    while a &lt;= max
+        b = a
+        while b &lt;= max
+            product = a * b
+            largest = product if palindrome?(product) && product > largest
+            b += 1
+        end
+        a += 1
+    end
+
+    largest
+end
+
+def palindrome?(num)
+    num.to_s == num.to_s.reverse
+end</pre>
+</div>
+
+<footer>algorithm-fundamentals/euler/04_largest_palindrome_product &middot; see approach.md for where this goes next</footer>
+
+</body>
+</html>

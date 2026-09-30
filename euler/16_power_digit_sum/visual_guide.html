@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Peeling Digits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{--bg:#faf7f5;--surface:#ffffff;--surface-2:#f3edf1;--text:#221f27;--muted:#6b6577;--accent:#c81e46;--accent-2:#1f9d5c;--border:#e3dde6;color-scheme:light;}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#17151a;--surface:#201d25;--surface-2:#282430;--text:#ece7f0;--muted:#9d97ac;--accent:#ff5279;--accent-2:#4fd394;--border:#3a3542;color-scheme:dark;}}
+  :root[data-theme="dark"]{--bg:#17151a;--surface:#201d25;--surface-2:#282430;--text:#ece7f0;--muted:#9d97ac;--accent:#ff5279;--accent-2:#4fd394;--border:#3a3542;color-scheme:dark;}
+  *{box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",system-ui,sans-serif;padding-inline:20px;padding-block:48px;max-width:760px;margin-inline:auto;}
+  h1,h2{font-family:"Sora",system-ui,sans-serif;letter-spacing:-0.01em;text-wrap:balance;}
+  h1{font-size:1.7rem;margin:0 0 6px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin:0 0 10px;}
+  .lede{color:var(--muted);font-size:0.98rem;max-width:60ch;margin:0 0 40px;}
+  h2{font-size:1.05rem;margin:0 0 4px;}
+  .section{margin-bottom:48px;}
+  .section-note{color:var(--muted);font-size:0.9rem;margin:0 0 20px;max-width:58ch;}
+  figure{margin:0;}
+  figcaption{color:var(--muted);font-size:0.85rem;margin-top:14px;max-width:56ch;}
+  svg{width:100%;height:auto;display:block;}
+  svg text{font-family:"IBM Plex Mono",monospace;fill:currentColor;}
+  pre.block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;font-size:0.85rem;line-height:1.6;}
+  table{width:100%;border-collapse:collapse;font-size:0.87rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums;}
+  th{font-family:"IBM Plex Mono",monospace;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);}
+  tr:last-child td{border-bottom:none;}
+  td.num{font-family:"IBM Plex Mono",monospace;text-align:right;}
+  td.hit{color:var(--accent-2);font-weight:600;}
+  code{font-family:"IBM Plex Mono",monospace;}
+  footer{color:var(--muted);font-size:0.82rem;margin-top:56px;border-top:1px solid var(--border);padding-top:18px;}
+</style>
+</head>
+<body>
+
+<p class="eyebrow">Ruby &middot; string conversion &#8594; arithmetic</p>
+<h1>Peeling digits</h1>
+<p class="lede">2<sup>15</sup> = 32768. Both versions sum its digits &mdash; the difference is whether Ruby builds a string to do it, or you peel digits off arithmetically.</p>
+
+<div class="section">
+  <h2>V1: convert to a string, walk the characters</h2>
+  <p class="section-note"><code>32768.to_s</code> gives <code>"32768"</code>, then each character gets converted back to an integer and added up.</p>
+</div>
+
+<div class="section">
+  <h2>V2: peel digits with % and /</h2>
+  <p class="section-note">No string at any point &mdash; <code>% 10</code> reads the last digit, integer <code>/ 10</code> drops it, repeat until nothing's left.</p>
+  <figure>
+    <svg viewBox="0 0 620 180" role="img" aria-label="32768 peeled one digit at a time: 32768 mod 10 is 8, then 32768 divided by 10 is 3276. 3276 mod 10 is 6, divided by 10 is 327. Continuing down to 3 mod 10 is 3, divided by 10 is 0, stopping the loop. Digits collected: 8, 6, 7, 2, 3, summing to 26.">
+      <g font-size="12">
+        <text x="20" y="30" font-weight="700">32768</text>
+        <text x="120" y="30" opacity="0.6">% 10 =</text>
+        <text x="190" y="30" font-weight="700" fill="var(--accent-2)">8</text>
+        <text x="240" y="30" opacity="0.6">&#8594; / 10 &#8594;</text>
+        <text x="330" y="30" font-weight="700">3276</text>
+
+        <text x="20" y="60" font-weight="700">3276</text>
+        <text x="120" y="60" opacity="0.6">% 10 =</text>
+        <text x="190" y="60" font-weight="700" fill="var(--accent-2)">6</text>
+        <text x="240" y="60" opacity="0.6">&#8594; / 10 &#8594;</text>
+        <text x="330" y="60" font-weight="700">327</text>
+
+        <text x="20" y="90" font-weight="700">327</text>
+        <text x="120" y="90" opacity="0.6">% 10 =</text>
+        <text x="190" y="90" font-weight="700" fill="var(--accent-2)">7</text>
+        <text x="240" y="90" opacity="0.6">&#8594; / 10 &#8594;</text>
+        <text x="330" y="90" font-weight="700">32</text>
+
+        <text x="20" y="120" font-weight="700">32</text>
+        <text x="120" y="120" opacity="0.6">% 10 =</text>
+        <text x="190" y="120" font-weight="700" fill="var(--accent-2)">2</text>
+        <text x="240" y="120" opacity="0.6">&#8594; / 10 &#8594;</text>
+        <text x="330" y="120" font-weight="700">3</text>
+
+        <text x="20" y="150" font-weight="700">3</text>
+        <text x="120" y="150" opacity="0.6">% 10 =</text>
+        <text x="190" y="150" font-weight="700" fill="var(--accent-2)">3</text>
+        <text x="240" y="150" opacity="0.6">&#8594; / 10 &#8594;</text>
+        <text x="330" y="150" font-weight="700">0, stop</text>
+      </g>
+      <text x="450" y="90" font-size="14" font-weight="700" fill="var(--accent-2)">8+6+7+2+3 = 26</text>
+    </svg>
+    <figcaption>Same digits, same total, but every step is plain integer arithmetic &mdash; no string allocation or character parsing.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>Both versions</h2>
+  <pre class="block">def power_digit_sum(exponent)   # V1
+    num = 2 ** exponent
+    sum = 0
+    num.to_s.each_char { |digit| sum += digit.to_i }
+    sum
+end</pre>
+  <pre class="block" style="margin-top:16px;">def power_digit_sum(exponent)   # V2
+    num = 2 ** exponent
+    sum = 0
+    while num &gt; 0
+        sum += num % 10
+        num /= 10
+    end
+    sum
+end</pre>
+</div>
+
+<footer>algorithm-fundamentals/euler/16_power_digit_sum &middot; see approach.md</footer>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Counting Paths Once</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{--bg:#faf7f5;--surface:#ffffff;--surface-2:#f3edf1;--text:#221f27;--muted:#6b6577;--accent:#c81e46;--accent-2:#1f9d5c;--border:#e3dde6;color-scheme:light;}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#17151a;--surface:#201d25;--surface-2:#282430;--text:#ece7f0;--muted:#9d97ac;--accent:#ff5279;--accent-2:#4fd394;--border:#3a3542;color-scheme:dark;}}
+  :root[data-theme="dark"]{--bg:#17151a;--surface:#201d25;--surface-2:#282430;--text:#ece7f0;--muted:#9d97ac;--accent:#ff5279;--accent-2:#4fd394;--border:#3a3542;color-scheme:dark;}
+  *{box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans",system-ui,sans-serif;padding-inline:20px;padding-block:48px;max-width:760px;margin-inline:auto;}
+  h1,h2{font-family:"Sora",system-ui,sans-serif;letter-spacing:-0.01em;text-wrap:balance;}
+  h1{font-size:1.7rem;margin:0 0 6px;}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin:0 0 10px;}
+  .lede{color:var(--muted);font-size:0.98rem;max-width:60ch;margin:0 0 40px;}
+  h2{font-size:1.05rem;margin:0 0 4px;}
+  .section{margin-bottom:48px;}
+  .section-note{color:var(--muted);font-size:0.9rem;margin:0 0 20px;max-width:58ch;}
+  figure{margin:0;}
+  figcaption{color:var(--muted);font-size:0.85rem;margin-top:14px;max-width:56ch;}
+  svg{width:100%;height:auto;display:block;}
+  svg text{font-family:"IBM Plex Mono",monospace;fill:currentColor;}
+  pre.block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;font-size:0.85rem;line-height:1.6;}
+  footer{color:var(--muted);font-size:0.82rem;margin-top:56px;border-top:1px solid var(--border);padding-top:18px;}
+</style>
+</head>
+<body>
+
+<p class="eyebrow">Ruby &middot; O(2&#8319;) recursion &#8594; O(n&#178;) tabulation</p>
+<h1>Counting paths once</h1>
+<p class="lede">Every route through the grid is a sequence of right/down moves. V1 walks every full route separately; V2 notices that routes converge on the same intersections, over and over.</p>
+
+<div class="section">
+  <h2>V1: the recursion tree, and where it overlaps</h2>
+  <p class="section-note">For a 2&#215;2 grid, <code>count_paths(right, down)</code> gets called on <code>(1, 1)</code> from two different branches &mdash; it doesn't know that, so it does the same work twice.</p>
+  <figure>
+    <svg viewBox="0 0 500 260" role="img" aria-label="Recursion tree for count_paths(2,2), showing that the subproblem (1,1) is reached both from (2,1) and from (1,2), and gets computed independently both times instead of being reused.">
+      <line x1="250" y1="40" x2="140" y2="110" stroke="currentColor" stroke-opacity="0.4"/>
+      <line x1="250" y1="40" x2="360" y2="110" stroke="currentColor" stroke-opacity="0.4"/>
+      <rect x="210" y="20" width="80" height="34" rx="7" fill="none" stroke="currentColor" stroke-opacity="0.5"/>
+      <text x="250" y="42" text-anchor="middle" font-size="12">(2,2)</text>
+
+      <rect x="100" y="94" width="80" height="34" rx="7" fill="none" stroke="currentColor" stroke-opacity="0.5"/>
+      <text x="140" y="116" text-anchor="middle" font-size="12">(1,2)</text>
+      <rect x="320" y="94" width="80" height="34" rx="7" fill="none" stroke="currentColor" stroke-opacity="0.5"/>
+      <text x="360" y="116" text-anchor="middle" font-size="12">(2,1)</text>
+
+      <line x1="140" y1="128" x2="90" y2="190" stroke="var(--accent)" stroke-opacity="0.6"/>
+      <line x1="360" y1="128" x2="410" y2="190" stroke="var(--accent)" stroke-opacity="0.6"/>
+
+      <rect x="50" y="184" width="80" height="34" rx="7" fill="var(--accent)" fill-opacity="0.15" stroke="var(--accent)"/>
+      <text x="90" y="206" text-anchor="middle" font-size="12" font-weight="700" fill="var(--accent)">(1,1)</text>
+      <rect x="370" y="184" width="80" height="34" rx="7" fill="var(--accent)" fill-opacity="0.15" stroke="var(--accent)"/>
+      <text x="410" y="206" text-anchor="middle" font-size="12" font-weight="700" fill="var(--accent)">(1,1)</text>
+
+      <text x="250" y="245" text-anchor="middle" font-size="12" fill="var(--accent)">same subproblem, computed twice - and this only gets worse as the grid grows</text>
+    </svg>
+    <figcaption>At <code>grid_size = 20</code>, this overlap compounds into billions of redundant calls &mdash; the naive version is not just slow, it's infeasible.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>V2: fill the grid once, bottom-up</h2>
+  <p class="section-note">Every cell's path count is just the cell above plus the cell to the left &mdash; the same relationship Pascal's triangle uses.</p>
+  <figure>
+    <svg viewBox="0 0 360 300" role="img" aria-label="A 3 by 3 grid of path counts filled bottom-up. Top row and left column are all 1. Each interior cell equals the cell above plus the cell to the left, ending with 6 in the bottom-right corner.">
+      <!-- 3x3 grid representing 0..2 on each axis -->
+      <g font-size="15" font-weight="700">
+        <!-- row 0 -->
+        <rect x="20" y="20" width="80" height="60" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="60" y="55" text-anchor="middle">1</text>
+        <rect x="100" y="20" width="80" height="60" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="140" y="55" text-anchor="middle">1</text>
+        <rect x="180" y="20" width="80" height="60" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="220" y="55" text-anchor="middle">1</text>
+        <!-- row 1 -->
+        <rect x="20" y="80" width="80" height="60" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="60" y="115" text-anchor="middle">1</text>
+        <rect x="100" y="80" width="80" height="60" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="140" y="115" text-anchor="middle">2</text>
+        <rect x="180" y="80" width="80" height="60" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="220" y="115" text-anchor="middle">3</text>
+        <!-- row 2 -->
+        <rect x="20" y="140" width="80" height="60" fill="none" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="60" y="175" text-anchor="middle">1</text>
+        <rect x="100" y="140" width="80" height="60" fill="var(--surface-2)" stroke="currentColor" stroke-opacity="0.4"/>
+        <text x="140" y="175" text-anchor="middle">3</text>
+        <rect x="180" y="140" width="80" height="60" fill="var(--accent-2)" fill-opacity="0.2" stroke="var(--accent-2)" stroke-width="2"/>
+        <text x="220" y="175" text-anchor="middle" fill="var(--accent-2)">6</text>
+      </g>
+      <text x="220" y="220" text-anchor="middle" font-size="12" fill="var(--accent-2)">6 = 3 (above) + 3 (left)</text>
+      <text x="140" y="290" text-anchor="middle" font-size="11" opacity="0.6">each cell built once, reused by whatever needs it next - never recomputed</text>
+    </svg>
+    <figcaption>This matches <code>lattice_paths(2) = 6</code> &mdash; every cell computed exactly once, in a fixed order, no recursion or repeated work.</figcaption>
+  </figure>
+</div>
+
+<div class="section">
+  <h2>Both versions</h2>
+  <pre class="block">def lattice_paths(grid_size)   # V1
+    count_paths(grid_size, grid_size)
+end
+
+def count_paths(right, down)
+    return 1 if right == 0 || down == 0
+    count_paths(right - 1, down) + count_paths(right, down - 1)
+end</pre>
+  <pre class="block" style="margin-top:16px;">def lattice_paths(grid_size)   # V2
+    paths = Array.new(grid_size + 1) { Array.new(grid_size + 1, 0) }
+
+    row = 0
+    while row &lt;= grid_size
+        col = 0
+        while col &lt;= grid_size
+            paths[row][col] = (row == 0 || col == 0) ? 1 :
+                paths[row - 1][col] + paths[row][col - 1]
+            col += 1
+        end
+        row += 1
+    end
+
+    paths[grid_size][grid_size]
+end</pre>
+</div>
+
+<footer>algorithm-fundamentals/euler/15_lattice_paths &middot; see approach.md</footer>
+</body>
+</html>
