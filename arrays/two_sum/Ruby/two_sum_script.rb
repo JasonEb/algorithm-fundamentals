@@ -92,7 +92,8 @@ end
 
 puts
 puts "V2"
-print V2::two_sum([2, 7, 11, 15], 9)
-print V2::two_sum([3, 2, 4], 6)
-print V2::two_sum([3, 3], 6)
-print V2::two_sum([-3, 4, 3, 90], 0)
+# print V2::two_sum([2, 7, 11, 15], 9)
+# print V2::two_sum([3, 2, 4], 6)
+# print V2::two_sum([3, 3], 6)
+# print V2::two_sum([-3, 4, 3, 90], 0)
+print V2::two_sum([5], 8)
